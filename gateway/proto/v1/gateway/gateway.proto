@@ -1,0 +1,357 @@
+syntax = "proto3";
+
+package gateway.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/BurMachine/Bigtech_microservices/gateway/pkg/v1/gateway;gateway";
+
+// GatewayService - единый сервис для REST API Gateway
+service GatewayService {
+  // Auth Service methods
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/v1/register"
+      body: "*"
+    };
+  }
+
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/v1/login"
+      body: "*"
+    };
+  }
+
+  rpc Refresh(RefreshRequest) returns (RefreshResponse) {
+    option (google.api.http) = {
+      post: "/v1/refresh"
+      body: "*"
+    };
+  }
+
+  // User Service methods
+  rpc CreateProfile(CreateProfileRequest) returns (UserProfile) {
+    option (google.api.http) = {
+      post: "/v1/profile"
+      body: "*"
+    };
+  }
+
+  rpc UpdateProfile(UpdateProfileRequest) returns (UserProfile) {
+    option (google.api.http) = {
+      put: "/v1/profile"
+      body: "*"
+    };
+  }
+
+  rpc GetProfileByID(GetProfileByIDRequest) returns (UserProfile) {
+    option (google.api.http) = {
+      get: "/v1/profile/{id}"
+    };
+  }
+
+  rpc GetProfileByNickname(GetProfileByNicknameRequest) returns (UserProfile) {
+    option (google.api.http) = {
+      get: "/v1/profile/nickname/{nickname}"
+    };
+  }
+
+  rpc SearchByNickname(SearchByNicknameRequest) returns (SearchByNicknameResponse) {
+    option (google.api.http) = {
+      get: "/v1/users/search"
+    };
+  }
+
+  // Social Service methods
+  rpc SendFriendRequest(SendFriendRequestRequest) returns (FriendRequest) {
+    option (google.api.http) = {
+      post: "/v1/friends/{user_id}/request"
+    };
+  }
+
+  rpc ListRequests(ListRequestsRequest) returns (ListRequestsResponse) {
+    option (google.api.http) = {
+      get: "/v1/friends/requests"
+    };
+  }
+
+  rpc AcceptFriendRequest(AcceptFriendRequestRequest) returns (FriendRequest) {
+    option (google.api.http) = {
+      post: "/v1/friends/requests/{request_id}/accept"
+    };
+  }
+
+  rpc DeclineFriendRequest(DeclineFriendRequestRequest) returns (FriendRequest) {
+    option (google.api.http) = {
+      post: "/v1/friends/requests/{request_id}/decline"
+    };
+  }
+
+  rpc RemoveFriend(RemoveFriendRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/friends/{user_id}"
+    };
+  }
+
+  rpc ListFriends(ListFriendsRequest) returns (ListFriendsResponse) {
+    option (google.api.http) = {
+      get: "/v1/friends"
+    };
+  }
+
+  // Chat Service methods
+  rpc CreateDirectChat(CreateDirectChatRequest) returns (CreateDirectChatResponse) {
+    option (google.api.http) = {
+      post: "/v1/chats/direct"
+      body: "*"
+    };
+  }
+
+  rpc GetChat(GetChatRequest) returns (Chat) {
+    option (google.api.http) = {
+      get: "/v1/chats/{chat_id}"
+    };
+  }
+
+  rpc ListUserChats(ListUserChatsRequest) returns (ListUserChatsResponse) {
+    option (google.api.http) = {
+      get: "/v1/chats"
+    };
+  }
+
+  rpc ListChatMembers(ListChatMembersRequest) returns (ListChatMembersResponse) {
+    option (google.api.http) = {
+      get: "/v1/chats/{chat_id}/members"
+    };
+  }
+
+  rpc SendMessage(SendMessageRequest) returns (Message) {
+    option (google.api.http) = {
+      post: "/v1/chats/{chat_id}/messages"
+      body: "*"
+    };
+  }
+
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {
+    option (google.api.http) = {
+      get: "/v1/chats/{chat_id}/messages"
+    };
+  }
+
+  rpc StreamMessages(StreamMessagesRequest) returns (stream Message) {
+    option (google.api.http) = {
+      get: "/v1/chats/{chat_id}/messages/stream"
+    };
+  }
+}
+
+// Auth Service Messages
+message RegisterRequest {
+  string email = 1 [(buf.validate.field).string.email = true];
+  string password = 2 [(buf.validate.field).string.min_len = 6];
+}
+
+message RegisterResponse {
+  string user_id = 1;
+}
+
+message LoginRequest {
+  string email = 1 [(buf.validate.field).string.email = true];
+  string password = 2 [(buf.validate.field).string.min_len = 6];
+}
+
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  string user_id = 3;
+}
+
+message RefreshRequest {
+  string refresh_token = 1;
+}
+
+message RefreshResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  string user_id = 3;
+}
+
+// User Service Messages
+message UserProfile {
+  string user_id = 1;
+  string nickname = 2;
+  optional string bio = 3;
+  optional string avatar_url = 4;
+  int64 created_at = 5;
+  int64 updated_at = 6;
+}
+
+message CreateProfileRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  string nickname = 2 [
+    (buf.validate.field).string = {
+      pattern: "^[a-z0-9_]{3,20}$",
+      min_len: 3,
+      max_len: 20
+    }
+  ];
+  optional string bio = 3;
+  optional string avatar_url = 4;
+}
+
+message UpdateProfileRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  optional string nickname = 2 [
+    (buf.validate.field).string = {
+      pattern: "^[a-z0-9_]{3,20}$",
+      min_len: 3,
+      max_len: 20
+    }
+  ];
+  optional string bio = 3;
+  optional string avatar_url = 4;
+}
+
+message GetProfileByIDRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetProfileByNicknameRequest {
+  string nickname = 1 [
+    (buf.validate.field).string = {
+      pattern: "^[a-z0-9_]{3,20}$",
+      min_len: 3,
+      max_len: 20
+    }
+  ];
+}
+
+message SearchByNicknameRequest {
+  string query = 1 [(buf.validate.field).string.min_len = 1];
+  int32 limit = 2 [(buf.validate.field).int32 = {gt: 0, lte: 100}];
+}
+
+message SearchByNicknameResponse {
+  repeated UserProfile results = 1;
+}
+
+// Social Service Messages
+enum FriendRequestStatus {
+  FRIEND_REQUEST_STATUS_UNSPECIFIED = 0;
+  FRIEND_REQUEST_STATUS_PENDING = 1;
+  FRIEND_REQUEST_STATUS_ACCEPTED = 2;
+  FRIEND_REQUEST_STATUS_DECLINED = 3;
+}
+
+message FriendRequest {
+  string request_id = 1;
+  string sender_id = 2;
+  string receiver_id = 3;
+  FriendRequestStatus status = 4;
+  int64 created_at = 5;
+  int64 updated_at = 6;
+}
+
+message SendFriendRequestRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message ListRequestsRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message ListRequestsResponse {
+  repeated FriendRequest requests = 1;
+}
+
+message AcceptFriendRequestRequest {
+  string request_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message DeclineFriendRequestRequest {
+  string request_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message RemoveFriendRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message ListFriendsRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  int32 limit = 2 [(buf.validate.field).int32 = {gt: 0, lte: 100}];
+  string cursor = 3;
+}
+
+message ListFriendsResponse {
+  repeated string friend_user_ids = 1;
+  string next_cursor = 2;
+}
+
+// Chat Service Messages
+message Chat {
+  string chat_id = 1;
+  string type = 2; // "direct" или "group"
+  repeated string participant_ids = 3;
+  int64 created_at = 4;
+  int64 updated_at = 5;
+}
+
+message Message {
+  string message_id = 1;
+  string chat_id = 2;
+  string sender_id = 3;
+  string text = 4;
+  int64 timestamp = 5;
+}
+
+message CreateDirectChatRequest {
+  string participant_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message CreateDirectChatResponse {
+  string chat_id = 1;
+}
+
+message GetChatRequest {
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message ListUserChatsRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message ListUserChatsResponse {
+  repeated Chat chats = 1;
+}
+
+message ListChatMembersRequest {
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message ListChatMembersResponse {
+  repeated string user_ids = 1;
+}
+
+message SendMessageRequest {
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+  string text = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+message ListMessagesRequest {
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+  int32 limit = 2 [(buf.validate.field).int32 = {gt: 0, lte: 100}];
+  string cursor = 3;
+}
+
+message ListMessagesResponse {
+  repeated Message messages = 1;
+  string next_cursor = 2;
+}
+
+message StreamMessagesRequest {
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+  int64 since_unix_ms = 2;
+}

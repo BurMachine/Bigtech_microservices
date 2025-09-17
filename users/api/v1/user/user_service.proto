@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package friend.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/BurMachine/Bigtech_microservices/friend/pkg/v1/friend;friend";
+
+// FriendService сервис для управления друзьями и заявками в друзья
+service FriendService {
+  // SendFriendRequest отправляет заявку в друзья
+  rpc SendFriendRequest(SendFriendRequestRequest) returns (FriendRequest) {}
+
+  // ListRequests возвращает список входящих заявок в друзья
+  rpc ListRequests(ListRequestsRequest) returns (ListRequestsResponse) {}
+
+  // AcceptFriendRequest принимает заявку в друзья
+  rpc AcceptFriendRequest(AcceptFriendRequestRequest) returns (FriendRequest) {}
+
+  // DeclineFriendRequest отклоняет заявку в друзья
+  rpc DeclineFriendRequest(DeclineFriendRequestRequest) returns (FriendRequest) {}
+
+  // RemoveFriend удаляет пользователя из друзей
+  rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
+
+  // ListFriends возвращает список друзей пользователя
+  rpc ListFriends(ListFriendsRequest) returns (ListFriendsResponse) {}
+}
+
+// Статус заявки в друзья
+enum FriendRequestStatus {
+  FRIEND_REQUEST_STATUS_UNSPECIFIED = 0;
+  FRIEND_REQUEST_STATUS_PENDING = 1;  // Ожидает рассмотрения
+  FRIEND_REQUEST_STATUS_ACCEPTED = 2; // Принята
+  FRIEND_REQUEST_STATUS_DECLINED = 3; // Отклонена
+}
+
+// Заявка в друзья
+message FriendRequest {
+  string request_id = 1; // Уникальный идентификатор заявки
+  string sender_id = 2;  // ID отправителя
+  string receiver_id = 3; // ID получателя
+  FriendRequestStatus status = 4; // Статус заявки
+  int64 created_at = 5;  // Время создания (timestamp)
+  int64 updated_at = 6;  // Время последнего обновления (timestamp)
+}
+
+// Запрос на отправку заявки в друзья
+message SendFriendRequestRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true]; // ID пользователя, которому отправляется заявка
+}
+
+// Запрос на получение списка заявок
+message ListRequestsRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true]; // ID пользователя
+}
+
+// Ответ со списком заявок
+message ListRequestsResponse {
+  repeated FriendRequest requests = 1; // Список заявок
+}
+
+// Запрос на принятие заявки
+message AcceptFriendRequestRequest {
+  string request_id = 1 [(buf.validate.field).string.uuid = true]; // ID заявки
+}
+
+// Запрос на отклонение заявки
+message DeclineFriendRequestRequest {
+  string request_id = 1 [(buf.validate.field).string.uuid = true]; // ID заявки
+}
+
+// Запрос на удаление друга
+message RemoveFriendRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true]; // ID пользователя, которого нужно удалить из друзей
+}
+
+// Запрос на получение списка друзей
+message ListFriendsRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true]; // ID пользователя
+  int32 limit = 2 [(buf.validate.field).int32 = {gt: 0, lte: 100}]; // Максимальное количество записей
+  string cursor = 3; // Курсор для пагинации (опционально)
+}
+
+// Ответ со списком друзей
+message ListFriendsResponse {
+  repeated string friend_user_ids = 1; // Список ID друзей
+  string next_cursor = 2; // Курсор для следующей страницы (если есть)
+}
+
+message RemoveFriendResponse {}
