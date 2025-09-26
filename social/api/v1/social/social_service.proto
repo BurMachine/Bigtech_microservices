@@ -1,90 +1,63 @@
 syntax = "proto3";
 
-package profile.v1;
+package social.v1;
 
-import "buf/validate/validate.proto";
+option go_package = "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/social;social";
 
-option go_package = "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user;user";
-
-// ProfileService сервис для управления профилями пользователей
-service ProfileService {
-  // CreateProfile создает профиль пользователя
-  rpc CreateProfile(CreateProfileRequest) returns (UserProfile) {}
-
-  // UpdateProfile обновляет профиль пользователя
-  rpc UpdateProfile(UpdateProfileRequest) returns (UserProfile) {}
-
-  // GetProfileByID возвращает профиль по ID пользователя
-  rpc GetProfileByID(GetProfileByIDRequest) returns (UserProfile) {}
-
-  // GetProfileByNickname возвращает профиль по никнейму
-  rpc GetProfileByNickname(GetProfileByNicknameRequest) returns (UserProfile) {}
-
-  // SearchByNickname выполняет поиск профилей по никнейму
-  rpc SearchByNickname(SearchByNicknameRequest) returns (SearchByNicknameResponse) {}
+service SocialService {
+  rpc SendFriendRequest(SendFriendRequestRequest) returns (FriendRequest) {}
+  rpc ListRequests(ListRequestsRequest) returns (ListRequestsResponse) {}
+  rpc AcceptFriendRequest(AcceptFriendRequestRequest) returns (FriendRequest) {}
+  rpc DeclineFriendRequest(DeclineFriendRequestRequest) returns (FriendRequest) {}
+  rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
+  rpc ListFriends(ListFriendsRequest) returns (ListFriendsResponse) {}
 }
 
-// Профиль пользователя
-message UserProfile {
-  string user_id = 1;      // Уникальный идентификатор пользователя
-  string nickname = 2;     // Уникальный никнейм пользователя
-  optional string bio = 3; // Биография пользователя (опционально)
-  optional string avatar_url = 4; // URL аватара пользователя (опционально)
-  int64 created_at = 5;    // Время создания профиля (timestamp)
-  int64 updated_at = 6;    // Время последнего обновления профиля (timestamp)
+message FriendRequest {
+  string request_id = 1;
+  Status status = 2;
 }
 
-// Запрос на создание профиля
-message CreateProfileRequest {
-  string user_id = 1 [(buf.validate.field).string.uuid = true]; // ID пользователя
-  string nickname = 2 [
-    (buf.validate.field).string = {
-      pattern: "^[a-z0-9_]{3,20}$",
-      min_len: 3,
-      max_len: 20
-    }
-  ]; // Никнейм пользователя
-  optional string bio = 3; // Биография пользователя (опционально)
-  optional string avatar_url = 4; // URL аватара пользователя (опционально)
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  PENDING = 1;
+  ACCEPTED = 2;
+  DECLINED = 3;
 }
 
-// Запрос на обновление профиля
-message UpdateProfileRequest {
-  string user_id = 1 [(buf.validate.field).string.uuid = true]; // ID пользователя
-  optional string nickname = 2 [
-    (buf.validate.field).string = {
-      pattern: "^[a-z0-9_]{3,20}$",
-      min_len: 3,
-      max_len: 20
-    }
-  ]; // Никнейм пользователя (опционально)
-  optional string bio = 3; // Биография пользователя (опционально)
-  optional string avatar_url = 4; // URL аватара пользователя (опционально)
+message SendFriendRequestRequest {
+  string user_id = 1;
 }
 
-// Запрос на получение профиля по ID
-message GetProfileByIDRequest {
-  string id = 1 [(buf.validate.field).string.uuid = true]; // ID пользователя
+message ListRequestsRequest {
+  string user_id = 1;
 }
 
-// Запрос на получение профиля по никнейму
-message GetProfileByNicknameRequest {
-  string nickname = 1 [
-    (buf.validate.field).string = {
-      pattern: "^[a-z0-9_]{3,20}$",
-      min_len: 3,
-      max_len: 20
-    }
-  ]; // Никнейм пользователя
+message ListRequestsResponse {
+  repeated FriendRequest requests = 1;
 }
 
-// Запрос на поиск по никнейму
-message SearchByNicknameRequest {
-  string query = 1 [(buf.validate.field).string.min_len = 1]; // Поисковый запрос
-  int32 limit = 2 [(buf.validate.field).int32 = {gt: 0, lte: 100}]; // Максимальное количество результатов
+message AcceptFriendRequestRequest {
+  string request_id = 1;
 }
 
-// Ответ на поиск по никнейму
-message SearchByNicknameResponse {
-  repeated UserProfile results = 1; // Найденные профили
+message DeclineFriendRequestRequest {
+  string request_id = 1;
+}
+
+message RemoveFriendRequest {
+  string user_id = 1;
+}
+
+message RemoveFriendResponse {}
+
+message ListFriendsRequest {
+  string user_id = 1;
+  int32 limit = 2;
+  optional string cursor = 3;
+}
+
+message ListFriendsResponse {
+  repeated string friend_user_ids = 1;
+  optional string next_cursor = 2;
 }

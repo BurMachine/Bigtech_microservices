@@ -1,13 +1,14 @@
 package main
 
 import (
-	"buf.build/go/protovalidate"
 	"context"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"sync"
+
+	"buf.build/go/protovalidate"
 
 	pb "github.com/BurMachine/Bigtech_microservices/gateway/pkg/v1/gateway"
 

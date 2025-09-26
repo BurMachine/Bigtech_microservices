@@ -1,4 +1,7 @@
 .idea
-/bin
-/vendor.protobuf
+*/bin
+*/vendor.protobuf
 
+make vendor
+make .bin-deps
+make generate

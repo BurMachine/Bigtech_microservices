@@ -1,15 +1,16 @@
 package main
 
 import (
-	"buf.build/go/protovalidate"
 	"context"
 	"fmt"
-	pb "github.com/BurMachine/Bigtech_microservices/chat/pkg/v1/chat"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"sync"
+
+	"buf.build/go/protovalidate"
+	pb "github.com/BurMachine/Bigtech_microservices/chat/pkg/v1/chat"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 type server struct {
