@@ -1,91 +1,90 @@
 syntax = "proto3";
 
-package friend.v1;
+package user.v1;
 
 import "buf/validate/validate.proto";
 
-option go_package = "github.com/BurMachine/Bigtech_microservices/friend/pkg/v1/friend;friend";
+option go_package = "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user;user";
 
-// FriendService сервис для управления друзьями и заявками в друзья
-service FriendService {
-  // SendFriendRequest отправляет заявку в друзья
-  rpc SendFriendRequest(SendFriendRequestRequest) returns (FriendRequest) {}
+// UserService сервис для управления профилями пользователей
+service UserService {
+  // CreateProfile создает профиль пользователя
+  rpc CreateProfile(CreateProfileRequest) returns (UserProfile) {}
 
-  // ListRequests возвращает список входящих заявок в друзья
-  rpc ListRequests(ListRequestsRequest) returns (ListRequestsResponse) {}
+  // UpdateProfile обновляет профиль пользователя
+  rpc UpdateProfile(UpdateProfileRequest) returns (UserProfile) {}
 
-  // AcceptFriendRequest принимает заявку в друзья
-  rpc AcceptFriendRequest(AcceptFriendRequestRequest) returns (FriendRequest) {}
+  // GetProfileByID возвращает профиль по ID пользователя
+  rpc GetProfileByID(GetProfileByIDRequest) returns (UserProfile) {}
 
-  // DeclineFriendRequest отклоняет заявку в друзья
-  rpc DeclineFriendRequest(DeclineFriendRequestRequest) returns (FriendRequest) {}
+  // GetProfileByNickname возвращает профиль по никнейму
+  rpc GetProfileByNickname(GetProfileByNicknameRequest) returns (UserProfile) {}
 
-  // RemoveFriend удаляет пользователя из друзей
-  rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
-
-  // ListFriends возвращает список друзей пользователя
-  rpc ListFriends(ListFriendsRequest) returns (ListFriendsResponse) {}
+  // SearchByNickname выполняет поиск профилей по никнейму
+  rpc SearchByNickname(SearchByNicknameRequest) returns (SearchByNicknameResponse) {}
 }
 
-// Статус заявки в друзья
-enum FriendRequestStatus {
-  FRIEND_REQUEST_STATUS_UNSPECIFIED = 0;
-  FRIEND_REQUEST_STATUS_PENDING = 1;  // Ожидает рассмотрения
-  FRIEND_REQUEST_STATUS_ACCEPTED = 2; // Принята
-  FRIEND_REQUEST_STATUS_DECLINED = 3; // Отклонена
+// Профиль пользователя
+message UserProfile {
+  string user_id = 1;      // Уникальный идентификатор пользователя
+  string nickname = 2;     // Уникальный никнейм пользователя
+  optional string bio = 3; // Биография пользователя (опционально)
+  optional string avatar_url = 4; // URL аватара пользователя (опционально)
+  int64 created_at = 5;    // Время создания профиля (timestamp)
+  int64 updated_at = 6;    // Время последнего обновления профиля (timestamp)
 }
 
-// Заявка в друзья
-message FriendRequest {
-  string request_id = 1; // Уникальный идентификатор заявки
-  string sender_id = 2;  // ID отправителя
-  string receiver_id = 3; // ID получателя
-  FriendRequestStatus status = 4; // Статус заявки
-  int64 created_at = 5;  // Время создания (timestamp)
-  int64 updated_at = 6;  // Время последнего обновления (timestamp)
-}
-
-// Запрос на отправку заявки в друзья
-message SendFriendRequestRequest {
-  string user_id = 1 [(buf.validate.field).string.uuid = true]; // ID пользователя, которому отправляется заявка
-}
-
-// Запрос на получение списка заявок
-message ListRequestsRequest {
+// Запрос на создание профиля
+message CreateProfileRequest {
   string user_id = 1 [(buf.validate.field).string.uuid = true]; // ID пользователя
+  string nickname = 2 [
+    (buf.validate.field).string = {
+      pattern: "^[a-z0-9_]{3,20}$",
+      min_len: 3,
+      max_len: 20
+    }
+  ]; // Никнейм пользователя
+  optional string bio = 3; // Биография пользователя (опционально)
+  optional string avatar_url = 4; // URL аватара пользователя (опционально)
 }
 
-// Ответ со списком заявок
-message ListRequestsResponse {
-  repeated FriendRequest requests = 1; // Список заявок
-}
-
-// Запрос на принятие заявки
-message AcceptFriendRequestRequest {
-  string request_id = 1 [(buf.validate.field).string.uuid = true]; // ID заявки
-}
-
-// Запрос на отклонение заявки
-message DeclineFriendRequestRequest {
-  string request_id = 1 [(buf.validate.field).string.uuid = true]; // ID заявки
-}
-
-// Запрос на удаление друга
-message RemoveFriendRequest {
-  string user_id = 1 [(buf.validate.field).string.uuid = true]; // ID пользователя, которого нужно удалить из друзей
-}
-
-// Запрос на получение списка друзей
-message ListFriendsRequest {
+// Запрос на обновление профиля
+message UpdateProfileRequest {
   string user_id = 1 [(buf.validate.field).string.uuid = true]; // ID пользователя
-  int32 limit = 2 [(buf.validate.field).int32 = {gt: 0, lte: 100}]; // Максимальное количество записей
-  string cursor = 3; // Курсор для пагинации (опционально)
+  optional string nickname = 2 [
+    (buf.validate.field).string = {
+      pattern: "^[a-z0-9_]{3,20}$",
+      min_len: 3,
+      max_len: 20
+    }
+  ]; // Никнейм пользователя (опционально)
+  optional string bio = 3; // Биография пользователя (опционально)
+  optional string avatar_url = 4; // URL аватара пользователя (опционально)
 }
 
-// Ответ со списком друзей
-message ListFriendsResponse {
-  repeated string friend_user_ids = 1; // Список ID друзей
-  string next_cursor = 2; // Курсор для следующей страницы (если есть)
+// Запрос на получение профиля по ID
+message GetProfileByIDRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true]; // ID пользователя
 }
 
-message RemoveFriendResponse {}
+// Запрос на получение профиля по никнейму
+message GetProfileByNicknameRequest {
+  string nickname = 1 [
+    (buf.validate.field).string = {
+      pattern: "^[a-z0-9_]{3,20}$",
+      min_len: 3,
+      max_len: 20
+    }
+  ]; // Никнейм пользователя
+}
+
+// Запрос на поиск по никнейму
+message SearchByNicknameRequest {
+  string query = 1 [(buf.validate.field).string.min_len = 1]; // Поисковый запрос
+  int32 limit = 2 [(buf.validate.field).int32 = {gt: 0, lte: 100}]; // Максимальное количество результатов
+}
+
+// Ответ на поиск по никнейму
+message SearchByNicknameResponse {
+  repeated UserProfile results = 1; // Найденные профили
+}

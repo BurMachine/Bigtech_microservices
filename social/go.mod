@@ -1,4 +1,4 @@
-module github.com/BurMachine/Bigtech_microservices/chat
+module github.com/BurMachine/Bigtech_microservices/social
 
 go 1.24.5
 

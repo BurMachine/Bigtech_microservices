@@ -48,10 +48,13 @@ proto-format:
 	$(info run buf format...)
 	$(LOCAL_BIN)/buf format -w
 
+docker-up: .bin-deps vendor
+	docker compose up
+
 # Объявляем, что текущие команды не являются файлами и
 # интсрументируем Makefile не искать изменения в файловой системе
 .PHONY: \
-	.bin-deps \
+	docker-up \
 	.protoc-generate \
 	.tidy \
 	.proto-lint \

@@ -2,7 +2,7 @@
 version: v2
 modules:
   - path: proto
-    name: github.com/moguchev/lesson2
+    name: github.com/burmachine/gateway
   - path: vendor.protobuf
 # Lint: https://buf.build/docs/lint/overview#defaults-and-configuration
 # Categories: https://buf.build/docs/lint/rules

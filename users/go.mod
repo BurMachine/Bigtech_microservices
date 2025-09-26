@@ -1,4 +1,4 @@
-module github.com/BurMachine/Bigtech_microservices/social
+module github.com/BurMachine/Bigtech_microservices/users
 
 go 1.24.5
 

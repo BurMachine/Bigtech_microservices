@@ -2,7 +2,7 @@
 version: v2
 modules:
   - path: api
-    name: github.com/burmachine/chat
+    name: github.com/burmachine/social
   - path: vendor.protobuf
 # Lint: https://buf.build/docs/lint/overview#defaults-and-configuration
 # Categories: https://buf.build/docs/lint/rules

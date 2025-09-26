@@ -1,0 +1,2249 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "v1/auth/messages.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "AuthService"
+    },
+    {
+      "name": "ChatService"
+    },
+    {
+      "name": "GatewayService"
+    },
+    {
+      "name": "ProfileService"
+    },
+    {
+      "name": "UserService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/chat.ChatService/CreateDirectChat": {
+      "post": {
+        "summary": "Create a direct (personal) chat with a participant.",
+        "operationId": "ChatService_CreateDirectChat",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chatCreateDirectChatResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "Request to create a direct chat.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chatCreateDirectChatRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChatService"
+        ]
+      }
+    },
+    "/chat.ChatService/GetChat": {
+      "post": {
+        "summary": "Get information about a specific chat.",
+        "operationId": "ChatService_GetChat",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chatChat"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "Request to get a chat.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chatGetChatRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChatService"
+        ]
+      }
+    },
+    "/chat.ChatService/ListChatMembers": {
+      "post": {
+        "summary": "List members of a chat.",
+        "operationId": "ChatService_ListChatMembers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chatListChatMembersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "Request to list chat members.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chatListChatMembersRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChatService"
+        ]
+      }
+    },
+    "/chat.ChatService/ListMessages": {
+      "post": {
+        "summary": "List historical messages in a chat with pagination.",
+        "operationId": "ChatService_ListMessages",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chatListMessagesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "Request to list messages.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chatListMessagesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChatService"
+        ]
+      }
+    },
+    "/chat.ChatService/ListUserChats": {
+      "post": {
+        "summary": "List all chats for a user.",
+        "operationId": "ChatService_ListUserChats",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chatListUserChatsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "Request to list user chats.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chatListUserChatsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChatService"
+        ]
+      }
+    },
+    "/chat.ChatService/SendMessage": {
+      "post": {
+        "summary": "Send a message to a chat.",
+        "operationId": "ChatService_SendMessage",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chatMessage"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "Request to send a message.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chatSendMessageRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChatService"
+        ]
+      }
+    },
+    "/chat.ChatService/StreamMessages": {
+      "post": {
+        "summary": "Stream new messages from a chat starting from a given time.",
+        "operationId": "ChatService_StreamMessages",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/chatMessage"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of chatMessage"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "Request for streaming messages.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chatStreamMessagesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChatService"
+        ]
+      }
+    },
+    "/github.com.BurMachine.Bigtech_microservices.auth.AuthService/Login": {
+      "post": {
+        "operationId": "AuthService_Login",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/Bigtech_microservicesauthLoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Bigtech_microservicesauthLoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/github.com.BurMachine.Bigtech_microservices.auth.AuthService/Refresh": {
+      "post": {
+        "operationId": "AuthService_Refresh",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/Bigtech_microservicesauthRefreshResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Bigtech_microservicesauthRefreshRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/github.com.BurMachine.Bigtech_microservices.auth.AuthService/Register": {
+      "post": {
+        "operationId": "AuthService_Register",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/Bigtech_microservicesauthRegisterResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Bigtech_microservicesauthRegisterRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/profile.v1.ProfileService/CreateProfile": {
+      "post": {
+        "summary": "CreateProfile создает профиль пользователя",
+        "operationId": "ProfileService_CreateProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/profilev1UserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/profilev1CreateProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
+    "/profile.v1.ProfileService/GetProfileByID": {
+      "post": {
+        "summary": "GetProfileByID возвращает профиль по ID пользователя",
+        "operationId": "ProfileService_GetProfileByID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/profilev1UserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/profilev1GetProfileByIDRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
+    "/profile.v1.ProfileService/GetProfileByNickname": {
+      "post": {
+        "summary": "GetProfileByNickname возвращает профиль по никнейму",
+        "operationId": "ProfileService_GetProfileByNickname",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/profilev1UserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/profilev1GetProfileByNicknameRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
+    "/profile.v1.ProfileService/SearchByNickname": {
+      "post": {
+        "summary": "SearchByNickname выполняет поиск профилей по никнейму",
+        "operationId": "ProfileService_SearchByNickname",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/profilev1SearchByNicknameResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/profilev1SearchByNicknameRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
+    "/profile.v1.ProfileService/UpdateProfile": {
+      "post": {
+        "summary": "UpdateProfile обновляет профиль пользователя",
+        "operationId": "ProfileService_UpdateProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/profilev1UserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/profilev1UpdateProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
+    "/user.v1.UserService/CreateProfile": {
+      "post": {
+        "summary": "CreateProfile создает профиль пользователя",
+        "operationId": "UserService_CreateProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/userv1UserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userv1CreateProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/user.v1.UserService/GetProfileByID": {
+      "post": {
+        "summary": "GetProfileByID возвращает профиль по ID пользователя",
+        "operationId": "UserService_GetProfileByID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/userv1UserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userv1GetProfileByIDRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/user.v1.UserService/GetProfileByNickname": {
+      "post": {
+        "summary": "GetProfileByNickname возвращает профиль по никнейму",
+        "operationId": "UserService_GetProfileByNickname",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/userv1UserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userv1GetProfileByNicknameRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/user.v1.UserService/SearchByNickname": {
+      "post": {
+        "summary": "SearchByNickname выполняет поиск профилей по никнейму",
+        "operationId": "UserService_SearchByNickname",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/userv1SearchByNicknameResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userv1SearchByNicknameRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/user.v1.UserService/UpdateProfile": {
+      "post": {
+        "summary": "UpdateProfile обновляет профиль пользователя",
+        "operationId": "UserService_UpdateProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/userv1UserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userv1UpdateProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/v1/chats": {
+      "get": {
+        "operationId": "GatewayService_ListUserChats",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1ListUserChatsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/chats/direct": {
+      "post": {
+        "summary": "Chat Service methods",
+        "operationId": "GatewayService_CreateDirectChat",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1CreateDirectChatResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gatewayv1CreateDirectChatRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/chats/{chatId}": {
+      "get": {
+        "operationId": "GatewayService_GetChat",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1Chat"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/chats/{chatId}/members": {
+      "get": {
+        "operationId": "GatewayService_ListChatMembers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1ListChatMembersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/chats/{chatId}/messages": {
+      "get": {
+        "operationId": "GatewayService_ListMessages",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1ListMessagesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      },
+      "post": {
+        "operationId": "GatewayService_SendMessage",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1Message"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GatewayServiceSendMessageBody"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/chats/{chatId}/messages/stream": {
+      "get": {
+        "operationId": "GatewayService_StreamMessages",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/gatewayv1Message"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of gatewayv1Message"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "sinceUnixMs",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/friends": {
+      "get": {
+        "operationId": "GatewayService_ListFriends",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFriendsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/friends/requests": {
+      "get": {
+        "operationId": "GatewayService_ListRequests",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListRequestsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/friends/requests/{requestId}/accept": {
+      "post": {
+        "operationId": "GatewayService_AcceptFriendRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FriendRequest"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/friends/requests/{requestId}/decline": {
+      "post": {
+        "operationId": "GatewayService_DeclineFriendRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FriendRequest"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/friends/{userId}": {
+      "delete": {
+        "operationId": "GatewayService_RemoveFriend",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/friends/{userId}/request": {
+      "post": {
+        "summary": "Social Service methods",
+        "operationId": "GatewayService_SendFriendRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FriendRequest"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/login": {
+      "post": {
+        "operationId": "GatewayService_Login",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1LoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gatewayv1LoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/profile": {
+      "post": {
+        "summary": "User Service methods",
+        "operationId": "GatewayService_CreateProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1UserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gatewayv1CreateProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      },
+      "put": {
+        "operationId": "GatewayService_UpdateProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1UserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gatewayv1UpdateProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/profile/nickname/{nickname}": {
+      "get": {
+        "operationId": "GatewayService_GetProfileByNickname",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1UserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "nickname",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/profile/{id}": {
+      "get": {
+        "operationId": "GatewayService_GetProfileByID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1UserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/refresh": {
+      "post": {
+        "operationId": "GatewayService_Refresh",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1RefreshResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gatewayv1RefreshRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/register": {
+      "post": {
+        "summary": "Auth Service methods",
+        "operationId": "GatewayService_Register",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1RegisterResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gatewayv1RegisterRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/users/search": {
+      "get": {
+        "operationId": "GatewayService_SearchByNickname",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayv1SearchByNicknameResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "Bigtech_microservicesauthLoginRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "Bigtech_microservicesauthLoginResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "Bigtech_microservicesauthRefreshRequest": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "Bigtech_microservicesauthRefreshResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "Bigtech_microservicesauthRegisterRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "Bigtech_microservicesauthRegisterResponse": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "chatChat": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID of the chat (required)."
+        },
+        "participantIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of participant user IDs (at least 2 for direct chats)."
+        }
+      },
+      "description": "Chat entity."
+    },
+    "chatCreateDirectChatRequest": {
+      "type": "object",
+      "properties": {
+        "participantId": {
+          "type": "string",
+          "description": "ID of the participant (required, must be a valid user ID)."
+        }
+      },
+      "description": "Request to create a direct chat."
+    },
+    "chatCreateDirectChatResponse": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "ID of the created chat."
+        }
+      },
+      "description": "Response for creating a direct chat."
+    },
+    "chatGetChatRequest": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "ID of the chat (required, must be a valid chat ID)."
+        }
+      },
+      "description": "Request to get a chat."
+    },
+    "chatListChatMembersRequest": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "ID of the chat (required, must be a valid chat ID)."
+        }
+      },
+      "description": "Request to list chat members."
+    },
+    "chatListChatMembersResponse": {
+      "type": "object",
+      "properties": {
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of user IDs in the chat."
+        }
+      },
+      "description": "Response for listing chat members."
+    },
+    "chatListMessagesRequest": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "ID of the chat (required, must be a valid chat ID)."
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Limit on the number of messages to return (required, positive integer)."
+        },
+        "cursor": {
+          "type": "string",
+          "description": "Optional pagination cursor for the next page."
+        }
+      },
+      "description": "Request to list messages."
+    },
+    "chatListMessagesResponse": {
+      "type": "object",
+      "properties": {
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/chatMessage"
+          },
+          "description": "List of messages in descending order (newest first)."
+        },
+        "nextCursor": {
+          "type": "string",
+          "description": "Optional next pagination cursor."
+        }
+      },
+      "description": "Response for listing messages."
+    },
+    "chatListUserChatsRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "ID of the user (required, must be a valid user ID)."
+        }
+      },
+      "description": "Request to list user chats."
+    },
+    "chatListUserChatsResponse": {
+      "type": "object",
+      "properties": {
+        "chats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/chatChat"
+          },
+          "description": "List of chats the user is in."
+        }
+      },
+      "description": "Response for listing user chats."
+    },
+    "chatMessage": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique ID of the message (generated)."
+        },
+        "chatId": {
+          "type": "string",
+          "description": "ID of the chat."
+        },
+        "senderId": {
+          "type": "string",
+          "description": "ID of the sender user."
+        },
+        "text": {
+          "type": "string",
+          "description": "Text content of the message."
+        },
+        "timestampUnixMs": {
+          "type": "string",
+          "format": "int64",
+          "description": "Unix timestamp in milliseconds when the message was sent."
+        }
+      },
+      "description": "Message entity."
+    },
+    "chatSendMessageRequest": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "ID of the chat (required, must be a valid chat ID)."
+        },
+        "text": {
+          "type": "string",
+          "description": "Text of the message (required, non-empty string)."
+        }
+      },
+      "description": "Request to send a message."
+    },
+    "chatStreamMessagesRequest": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "ID of the chat (required, must be a valid chat ID)."
+        },
+        "sinceUnixMs": {
+          "type": "string",
+          "format": "int64",
+          "description": "Optional starting Unix timestamp in milliseconds."
+        }
+      },
+      "description": "Request for streaming messages."
+    },
+    "gatewayv1Chat": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "title": "\"direct\" или \"group\""
+        },
+        "participantIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "title": "Chat Service Messages"
+    },
+    "gatewayv1CreateDirectChatRequest": {
+      "type": "object",
+      "properties": {
+        "participantId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayv1CreateDirectChatResponse": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayv1CreateProfileRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "nickname": {
+          "type": "string"
+        },
+        "bio": {
+          "type": "string"
+        },
+        "avatarUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayv1ListChatMembersResponse": {
+      "type": "object",
+      "properties": {
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "gatewayv1ListMessagesResponse": {
+      "type": "object",
+      "properties": {
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/gatewayv1Message"
+          }
+        },
+        "nextCursor": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayv1ListUserChatsResponse": {
+      "type": "object",
+      "properties": {
+        "chats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/gatewayv1Chat"
+          }
+        }
+      }
+    },
+    "gatewayv1LoginRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayv1LoginResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayv1Message": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string"
+        },
+        "chatId": {
+          "type": "string"
+        },
+        "senderId": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "gatewayv1RefreshRequest": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayv1RefreshResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayv1RegisterRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "title": "Auth Service Messages"
+    },
+    "gatewayv1RegisterResponse": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayv1SearchByNicknameResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/gatewayv1UserProfile"
+          }
+        }
+      }
+    },
+    "gatewayv1UpdateProfileRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "nickname": {
+          "type": "string"
+        },
+        "bio": {
+          "type": "string"
+        },
+        "avatarUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayv1UserProfile": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "nickname": {
+          "type": "string"
+        },
+        "bio": {
+          "type": "string"
+        },
+        "avatarUrl": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "title": "User Service Messages"
+    },
+    "profilev1CreateProfileRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "title": "ID пользователя"
+        },
+        "nickname": {
+          "type": "string",
+          "title": "Никнейм пользователя"
+        },
+        "bio": {
+          "type": "string",
+          "title": "Биография пользователя (опционально)"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "title": "URL аватара пользователя (опционально)"
+        }
+      },
+      "title": "Запрос на создание профиля"
+    },
+    "profilev1GetProfileByIDRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "ID пользователя"
+        }
+      },
+      "title": "Запрос на получение профиля по ID"
+    },
+    "profilev1GetProfileByNicknameRequest": {
+      "type": "object",
+      "properties": {
+        "nickname": {
+          "type": "string",
+          "title": "Никнейм пользователя"
+        }
+      },
+      "title": "Запрос на получение профиля по никнейму"
+    },
+    "profilev1SearchByNicknameRequest": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "title": "Поисковый запрос"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Максимальное количество результатов"
+        }
+      },
+      "title": "Запрос на поиск по никнейму"
+    },
+    "profilev1SearchByNicknameResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/profilev1UserProfile"
+          },
+          "title": "Найденные профили"
+        }
+      },
+      "title": "Ответ на поиск по никнейму"
+    },
+    "profilev1UpdateProfileRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "title": "ID пользователя"
+        },
+        "nickname": {
+          "type": "string",
+          "title": "Никнейм пользователя (опционально)"
+        },
+        "bio": {
+          "type": "string",
+          "title": "Биография пользователя (опционально)"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "title": "URL аватара пользователя (опционально)"
+        }
+      },
+      "title": "Запрос на обновление профиля"
+    },
+    "profilev1UserProfile": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "title": "Уникальный идентификатор пользователя"
+        },
+        "nickname": {
+          "type": "string",
+          "title": "Уникальный никнейм пользователя"
+        },
+        "bio": {
+          "type": "string",
+          "title": "Биография пользователя (опционально)"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "title": "URL аватара пользователя (опционально)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Время создания профиля (timestamp)"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Время последнего обновления профиля (timestamp)"
+        }
+      },
+      "title": "Профиль пользователя"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "userv1CreateProfileRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "title": "ID пользователя"
+        },
+        "nickname": {
+          "type": "string",
+          "title": "Никнейм пользователя"
+        },
+        "bio": {
+          "type": "string",
+          "title": "Биография пользователя (опционально)"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "title": "URL аватара пользователя (опционально)"
+        }
+      },
+      "title": "Запрос на создание профиля"
+    },
+    "userv1GetProfileByIDRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "ID пользователя"
+        }
+      },
+      "title": "Запрос на получение профиля по ID"
+    },
+    "userv1GetProfileByNicknameRequest": {
+      "type": "object",
+      "properties": {
+        "nickname": {
+          "type": "string",
+          "title": "Никнейм пользователя"
+        }
+      },
+      "title": "Запрос на получение профиля по никнейму"
+    },
+    "userv1SearchByNicknameRequest": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "title": "Поисковый запрос"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Максимальное количество результатов"
+        }
+      },
+      "title": "Запрос на поиск по никнейму"
+    },
+    "userv1SearchByNicknameResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/userv1UserProfile"
+          },
+          "title": "Найденные профили"
+        }
+      },
+      "title": "Ответ на поиск по никнейму"
+    },
+    "userv1UpdateProfileRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "title": "ID пользователя"
+        },
+        "nickname": {
+          "type": "string",
+          "title": "Никнейм пользователя (опционально)"
+        },
+        "bio": {
+          "type": "string",
+          "title": "Биография пользователя (опционально)"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "title": "URL аватара пользователя (опционально)"
+        }
+      },
+      "title": "Запрос на обновление профиля"
+    },
+    "userv1UserProfile": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "title": "Уникальный идентификатор пользователя"
+        },
+        "nickname": {
+          "type": "string",
+          "title": "Уникальный никнейм пользователя"
+        },
+        "bio": {
+          "type": "string",
+          "title": "Биография пользователя (опционально)"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "title": "URL аватара пользователя (опционально)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Время создания профиля (timestamp)"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Время последнего обновления профиля (timestamp)"
+        }
+      },
+      "title": "Профиль пользователя"
+    },
+    "v1FriendRequest": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "senderId": {
+          "type": "string"
+        },
+        "receiverId": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/v1FriendRequestStatus"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "v1FriendRequestStatus": {
+      "type": "string",
+      "enum": [
+        "FRIEND_REQUEST_STATUS_UNSPECIFIED",
+        "FRIEND_REQUEST_STATUS_PENDING",
+        "FRIEND_REQUEST_STATUS_ACCEPTED",
+        "FRIEND_REQUEST_STATUS_DECLINED"
+      ],
+      "default": "FRIEND_REQUEST_STATUS_UNSPECIFIED",
+      "title": "Social Service Messages"
+    },
+    "v1GatewayServiceSendMessageBody": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ListFriendsResponse": {
+      "type": "object",
+      "properties": {
+        "friendUserIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "nextCursor": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ListRequestsResponse": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1FriendRequest"
+          }
+        }
+      }
+    }
+  }
+}

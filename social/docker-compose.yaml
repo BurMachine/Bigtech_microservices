@@ -1,0 +1,21 @@
+services:
+  social_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: social-service:latest
+    container_name: social-service
+    ports:
+      - "8083:8083"
+    environment:
+      - ENV_VAR_EXAMPLE=value
+    volumes:
+      # Опционально: для логов (комментарий на отдельной строке)
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - microservices-net
+
+networks:
+  microservices-net:
+    driver: bridge
