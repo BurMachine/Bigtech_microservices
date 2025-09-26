@@ -714,7 +714,7 @@ var File_v1_chat_chat_service_proto protoreflect.FileDescriptor
 
 const file_v1_chat_chat_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1av1/chat/chat_service.proto\x12\x04chat\x1a\x1bbuf/validate/validate.proto\"J\n" +
+	"\x1av1/chat/chat_service.proto\x12\x1dBigtech_microservices.v1.chat\x1a\x1bbuf/validate/validate.proto\"J\n" +
 	"\x17CreateDirectChatRequest\x12/\n" +
 	"\x0eparticipant_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\rparticipantId\"=\n" +
 	"\x18CreateDirectChatResponse\x12!\n" +
@@ -725,10 +725,9 @@ const file_v1_chat_chat_service_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x128\n" +
 	"\x0fparticipant_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x02\"\x05r\x03\xb0\x01\x01R\x0eparticipantIds\"9\n" +
 	"\x14ListUserChatsRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"9\n" +
-	"\x15ListUserChatsResponse\x12 \n" +
-	"\x05chats\x18\x01 \x03(\v2\n" +
-	".chat.ChatR\x05chats\";\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"R\n" +
+	"\x15ListUserChatsResponse\x129\n" +
+	"\x05chats\x18\x01 \x03(\v2#.Bigtech_microservices.v1.chat.ChatR\x05chats\";\n" +
 	"\x16ListChatMembersRequest\x12!\n" +
 	"\achat_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06chatId\"C\n" +
 	"\x17ListChatMembersResponse\x12(\n" +
@@ -747,26 +746,25 @@ const file_v1_chat_chat_service_proto_rawDesc = "" +
 	"\achat_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06chatId\x12\x1d\n" +
 	"\x05limit\x18\x02 \x01(\x05B\a\xbaH\x04\x1a\x02 \x00R\x05limit\x12\x1b\n" +
 	"\x06cursor\x18\x03 \x01(\tH\x00R\x06cursor\x88\x01\x01B\t\n" +
-	"\a_cursor\"w\n" +
-	"\x14ListMessagesResponse\x12)\n" +
-	"\bmessages\x18\x01 \x03(\v2\r.chat.MessageR\bmessages\x12$\n" +
+	"\a_cursor\"\x90\x01\n" +
+	"\x14ListMessagesResponse\x12B\n" +
+	"\bmessages\x18\x01 \x03(\v2&.Bigtech_microservices.v1.chat.MessageR\bmessages\x12$\n" +
 	"\vnext_cursor\x18\x02 \x01(\tH\x00R\n" +
 	"nextCursor\x88\x01\x01B\x0e\n" +
 	"\f_next_cursor\"~\n" +
 	"\x15StreamMessagesRequest\x12!\n" +
 	"\achat_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06chatId\x120\n" +
 	"\rsince_unix_ms\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02(\x00H\x00R\vsinceUnixMs\x88\x01\x01B\x10\n" +
-	"\x0e_since_unix_ms2\xe6\x03\n" +
-	"\vChatService\x12Q\n" +
-	"\x10CreateDirectChat\x12\x1d.chat.CreateDirectChatRequest\x1a\x1e.chat.CreateDirectChatResponse\x12+\n" +
-	"\aGetChat\x12\x14.chat.GetChatRequest\x1a\n" +
-	".chat.Chat\x12H\n" +
-	"\rListUserChats\x12\x1a.chat.ListUserChatsRequest\x1a\x1b.chat.ListUserChatsResponse\x12N\n" +
-	"\x0fListChatMembers\x12\x1c.chat.ListChatMembersRequest\x1a\x1d.chat.ListChatMembersResponse\x126\n" +
-	"\vSendMessage\x12\x18.chat.SendMessageRequest\x1a\r.chat.Message\x12E\n" +
-	"\fListMessages\x12\x19.chat.ListMessagesRequest\x1a\x1a.chat.ListMessagesResponse\x12>\n" +
-	"\x0eStreamMessages\x12\x1b.chat.StreamMessagesRequest\x1a\r.chat.Message0\x01Bb\n" +
-	"\bcom.chatB\x10ChatServiceProtoP\x01Z\x14pkg/api/v1/chat;chat\xa2\x02\x03CXX\xaa\x02\x04Chat\xca\x02\x04Chat\xe2\x02\x10Chat\\GPBMetadata\xea\x02\x04Chatb\x06proto3"
+	"\x0e_since_unix_ms2\xc6\x06\n" +
+	"\vChatService\x12\x83\x01\n" +
+	"\x10CreateDirectChat\x126.Bigtech_microservices.v1.chat.CreateDirectChatRequest\x1a7.Bigtech_microservices.v1.chat.CreateDirectChatResponse\x12]\n" +
+	"\aGetChat\x12-.Bigtech_microservices.v1.chat.GetChatRequest\x1a#.Bigtech_microservices.v1.chat.Chat\x12z\n" +
+	"\rListUserChats\x123.Bigtech_microservices.v1.chat.ListUserChatsRequest\x1a4.Bigtech_microservices.v1.chat.ListUserChatsResponse\x12\x80\x01\n" +
+	"\x0fListChatMembers\x125.Bigtech_microservices.v1.chat.ListChatMembersRequest\x1a6.Bigtech_microservices.v1.chat.ListChatMembersResponse\x12h\n" +
+	"\vSendMessage\x121.Bigtech_microservices.v1.chat.SendMessageRequest\x1a&.Bigtech_microservices.v1.chat.Message\x12w\n" +
+	"\fListMessages\x122.Bigtech_microservices.v1.chat.ListMessagesRequest\x1a3.Bigtech_microservices.v1.chat.ListMessagesResponse\x12p\n" +
+	"\x0eStreamMessages\x124.Bigtech_microservices.v1.chat.StreamMessagesRequest\x1a&.Bigtech_microservices.v1.chat.Message0\x01B\xdd\x01\n" +
+	"!com.Bigtech_microservices.v1.chatB\x10ChatServiceProtoP\x01Z\x14pkg/api/v1/chat;chat\xa2\x02\x03BVC\xaa\x02\x1cBigtechMicroservices.V1.Chat\xca\x02\x1cBigtechMicroservices\\V1\\Chat\xe2\x02(BigtechMicroservices\\V1\\Chat\\GPBMetadata\xea\x02\x1eBigtechMicroservices::V1::Chatb\x06proto3"
 
 var (
 	file_v1_chat_chat_service_proto_rawDescOnce sync.Once
@@ -782,37 +780,37 @@ func file_v1_chat_chat_service_proto_rawDescGZIP() []byte {
 
 var file_v1_chat_chat_service_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_v1_chat_chat_service_proto_goTypes = []any{
-	(*CreateDirectChatRequest)(nil),  // 0: chat.CreateDirectChatRequest
-	(*CreateDirectChatResponse)(nil), // 1: chat.CreateDirectChatResponse
-	(*GetChatRequest)(nil),           // 2: chat.GetChatRequest
-	(*Chat)(nil),                     // 3: chat.Chat
-	(*ListUserChatsRequest)(nil),     // 4: chat.ListUserChatsRequest
-	(*ListUserChatsResponse)(nil),    // 5: chat.ListUserChatsResponse
-	(*ListChatMembersRequest)(nil),   // 6: chat.ListChatMembersRequest
-	(*ListChatMembersResponse)(nil),  // 7: chat.ListChatMembersResponse
-	(*SendMessageRequest)(nil),       // 8: chat.SendMessageRequest
-	(*Message)(nil),                  // 9: chat.Message
-	(*ListMessagesRequest)(nil),      // 10: chat.ListMessagesRequest
-	(*ListMessagesResponse)(nil),     // 11: chat.ListMessagesResponse
-	(*StreamMessagesRequest)(nil),    // 12: chat.StreamMessagesRequest
+	(*CreateDirectChatRequest)(nil),  // 0: Bigtech_microservices.v1.chat.CreateDirectChatRequest
+	(*CreateDirectChatResponse)(nil), // 1: Bigtech_microservices.v1.chat.CreateDirectChatResponse
+	(*GetChatRequest)(nil),           // 2: Bigtech_microservices.v1.chat.GetChatRequest
+	(*Chat)(nil),                     // 3: Bigtech_microservices.v1.chat.Chat
+	(*ListUserChatsRequest)(nil),     // 4: Bigtech_microservices.v1.chat.ListUserChatsRequest
+	(*ListUserChatsResponse)(nil),    // 5: Bigtech_microservices.v1.chat.ListUserChatsResponse
+	(*ListChatMembersRequest)(nil),   // 6: Bigtech_microservices.v1.chat.ListChatMembersRequest
+	(*ListChatMembersResponse)(nil),  // 7: Bigtech_microservices.v1.chat.ListChatMembersResponse
+	(*SendMessageRequest)(nil),       // 8: Bigtech_microservices.v1.chat.SendMessageRequest
+	(*Message)(nil),                  // 9: Bigtech_microservices.v1.chat.Message
+	(*ListMessagesRequest)(nil),      // 10: Bigtech_microservices.v1.chat.ListMessagesRequest
+	(*ListMessagesResponse)(nil),     // 11: Bigtech_microservices.v1.chat.ListMessagesResponse
+	(*StreamMessagesRequest)(nil),    // 12: Bigtech_microservices.v1.chat.StreamMessagesRequest
 }
 var file_v1_chat_chat_service_proto_depIdxs = []int32{
-	3,  // 0: chat.ListUserChatsResponse.chats:type_name -> chat.Chat
-	9,  // 1: chat.ListMessagesResponse.messages:type_name -> chat.Message
-	0,  // 2: chat.ChatService.CreateDirectChat:input_type -> chat.CreateDirectChatRequest
-	2,  // 3: chat.ChatService.GetChat:input_type -> chat.GetChatRequest
-	4,  // 4: chat.ChatService.ListUserChats:input_type -> chat.ListUserChatsRequest
-	6,  // 5: chat.ChatService.ListChatMembers:input_type -> chat.ListChatMembersRequest
-	8,  // 6: chat.ChatService.SendMessage:input_type -> chat.SendMessageRequest
-	10, // 7: chat.ChatService.ListMessages:input_type -> chat.ListMessagesRequest
-	12, // 8: chat.ChatService.StreamMessages:input_type -> chat.StreamMessagesRequest
-	1,  // 9: chat.ChatService.CreateDirectChat:output_type -> chat.CreateDirectChatResponse
-	3,  // 10: chat.ChatService.GetChat:output_type -> chat.Chat
-	5,  // 11: chat.ChatService.ListUserChats:output_type -> chat.ListUserChatsResponse
-	7,  // 12: chat.ChatService.ListChatMembers:output_type -> chat.ListChatMembersResponse
-	9,  // 13: chat.ChatService.SendMessage:output_type -> chat.Message
-	11, // 14: chat.ChatService.ListMessages:output_type -> chat.ListMessagesResponse
-	9,  // 15: chat.ChatService.StreamMessages:output_type -> chat.Message
+	3,  // 0: Bigtech_microservices.v1.chat.ListUserChatsResponse.chats:type_name -> Bigtech_microservices.v1.chat.Chat
+	9,  // 1: Bigtech_microservices.v1.chat.ListMessagesResponse.messages:type_name -> Bigtech_microservices.v1.chat.Message
+	0,  // 2: Bigtech_microservices.v1.chat.ChatService.CreateDirectChat:input_type -> Bigtech_microservices.v1.chat.CreateDirectChatRequest
+	2,  // 3: Bigtech_microservices.v1.chat.ChatService.GetChat:input_type -> Bigtech_microservices.v1.chat.GetChatRequest
+	4,  // 4: Bigtech_microservices.v1.chat.ChatService.ListUserChats:input_type -> Bigtech_microservices.v1.chat.ListUserChatsRequest
+	6,  // 5: Bigtech_microservices.v1.chat.ChatService.ListChatMembers:input_type -> Bigtech_microservices.v1.chat.ListChatMembersRequest
+	8,  // 6: Bigtech_microservices.v1.chat.ChatService.SendMessage:input_type -> Bigtech_microservices.v1.chat.SendMessageRequest
+	10, // 7: Bigtech_microservices.v1.chat.ChatService.ListMessages:input_type -> Bigtech_microservices.v1.chat.ListMessagesRequest
+	12, // 8: Bigtech_microservices.v1.chat.ChatService.StreamMessages:input_type -> Bigtech_microservices.v1.chat.StreamMessagesRequest
+	1,  // 9: Bigtech_microservices.v1.chat.ChatService.CreateDirectChat:output_type -> Bigtech_microservices.v1.chat.CreateDirectChatResponse
+	3,  // 10: Bigtech_microservices.v1.chat.ChatService.GetChat:output_type -> Bigtech_microservices.v1.chat.Chat
+	5,  // 11: Bigtech_microservices.v1.chat.ChatService.ListUserChats:output_type -> Bigtech_microservices.v1.chat.ListUserChatsResponse
+	7,  // 12: Bigtech_microservices.v1.chat.ChatService.ListChatMembers:output_type -> Bigtech_microservices.v1.chat.ListChatMembersResponse
+	9,  // 13: Bigtech_microservices.v1.chat.ChatService.SendMessage:output_type -> Bigtech_microservices.v1.chat.Message
+	11, // 14: Bigtech_microservices.v1.chat.ChatService.ListMessages:output_type -> Bigtech_microservices.v1.chat.ListMessagesResponse
+	9,  // 15: Bigtech_microservices.v1.chat.ChatService.StreamMessages:output_type -> Bigtech_microservices.v1.chat.Message
 	9,  // [9:16] is the sub-list for method output_type
 	2,  // [2:9] is the sub-list for method input_type
 	2,  // [2:2] is the sub-list for extension type_name

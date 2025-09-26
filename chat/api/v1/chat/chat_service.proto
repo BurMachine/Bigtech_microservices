@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package chat;
+package github.com.BurMachine.Bigtech_microservices.v1.chat;
 
 import "buf/validate/validate.proto";
 

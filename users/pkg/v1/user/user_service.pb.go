@@ -437,7 +437,7 @@ var File_v1_user_user_service_proto protoreflect.FileDescriptor
 
 const file_v1_user_user_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1av1/user/user_service.proto\x12\auser.v1\x1a\x1bbuf/validate/validate.proto\"\xd2\x01\n" +
+	"\x1av1/user/user_service.proto\x123github.com.BurMachine.Bigtech_microservices.v1.user\x1a\x1bbuf/validate/validate.proto\"\xd2\x01\n" +
 	"\vUserProfile\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
 	"\bnickname\x18\x02 \x01(\tR\bnickname\x12\x15\n" +
@@ -473,16 +473,16 @@ const file_v1_user_user_service_proto_rawDesc = "" +
 	"\bnickname\x18\x01 \x01(\tB\x1c\xbaH\x19r\x17\x10\x03\x18\x142\x11^[a-z0-9_]{3,20}$R\bnickname\"Y\n" +
 	"\x17SearchByNicknameRequest\x12\x1d\n" +
 	"\x05query\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05query\x12\x1f\n" +
-	"\x05limit\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d \x00R\x05limit\"J\n" +
-	"\x18SearchByNicknameResponse\x12.\n" +
-	"\aresults\x18\x01 \x03(\v2\x14.user.v1.UserProfileR\aresults2\x98\x03\n" +
-	"\vUserService\x12F\n" +
-	"\rCreateProfile\x12\x1d.user.v1.CreateProfileRequest\x1a\x14.user.v1.UserProfile\"\x00\x12F\n" +
-	"\rUpdateProfile\x12\x1d.user.v1.UpdateProfileRequest\x1a\x14.user.v1.UserProfile\"\x00\x12H\n" +
-	"\x0eGetProfileByID\x12\x1e.user.v1.GetProfileByIDRequest\x1a\x14.user.v1.UserProfile\"\x00\x12T\n" +
-	"\x14GetProfileByNickname\x12$.user.v1.GetProfileByNicknameRequest\x1a\x14.user.v1.UserProfile\"\x00\x12Y\n" +
-	"\x10SearchByNickname\x12 .user.v1.SearchByNicknameRequest\x1a!.user.v1.SearchByNicknameResponse\"\x00B\xa0\x01\n" +
-	"\vcom.user.v1B\x10UserServiceProtoP\x01ZBgithub.com/BurMachine/Bigtech_microservices/users/pkg/v1/user;user\xa2\x02\x03UXX\xaa\x02\aUser.V1\xca\x02\aUser\\V1\xe2\x02\x13User\\V1\\GPBMetadata\xea\x02\bUser::V1b\x06proto3"
+	"\x05limit\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d \x00R\x05limit\"v\n" +
+	"\x18SearchByNicknameResponse\x12Z\n" +
+	"\aresults\x18\x01 \x03(\v2@.github.com.BurMachine.Bigtech_microservices.v1.user.UserProfileR\aresults2\xd5\x06\n" +
+	"\vUserService\x12\x9e\x01\n" +
+	"\rCreateProfile\x12I.github.com.BurMachine.Bigtech_microservices.v1.user.CreateProfileRequest\x1a@.github.com.BurMachine.Bigtech_microservices.v1.user.UserProfile\"\x00\x12\x9e\x01\n" +
+	"\rUpdateProfile\x12I.github.com.BurMachine.Bigtech_microservices.v1.user.UpdateProfileRequest\x1a@.github.com.BurMachine.Bigtech_microservices.v1.user.UserProfile\"\x00\x12\xa0\x01\n" +
+	"\x0eGetProfileByID\x12J.github.com.BurMachine.Bigtech_microservices.v1.user.GetProfileByIDRequest\x1a@.github.com.BurMachine.Bigtech_microservices.v1.user.UserProfile\"\x00\x12\xac\x01\n" +
+	"\x14GetProfileByNickname\x12P.github.com.BurMachine.Bigtech_microservices.v1.user.GetProfileByNicknameRequest\x1a@.github.com.BurMachine.Bigtech_microservices.v1.user.UserProfile\"\x00\x12\xb1\x01\n" +
+	"\x10SearchByNickname\x12L.github.com.BurMachine.Bigtech_microservices.v1.user.SearchByNicknameRequest\x1aM.github.com.BurMachine.Bigtech_microservices.v1.user.SearchByNicknameResponse\"\x00B\xff\x02\n" +
+	"7com.github.com.BurMachine.Bigtech_microservices.v1.userB\x10UserServiceProtoP\x01ZBgithub.com/BurMachine/Bigtech_microservices/users/pkg/v1/user;user\xa2\x02\x06GCBBVU\xaa\x022Github.Com.BurMachine.BigtechMicroservices.V1.User\xca\x022Github\\Com\\BurMachine\\BigtechMicroservices\\V1\\User\xe2\x02>Github\\Com\\BurMachine\\BigtechMicroservices\\V1\\User\\GPBMetadata\xea\x027Github::Com::BurMachine::BigtechMicroservices::V1::Userb\x06proto3"
 
 var (
 	file_v1_user_user_service_proto_rawDescOnce sync.Once
@@ -498,26 +498,26 @@ func file_v1_user_user_service_proto_rawDescGZIP() []byte {
 
 var file_v1_user_user_service_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_v1_user_user_service_proto_goTypes = []any{
-	(*UserProfile)(nil),                 // 0: user.v1.UserProfile
-	(*CreateProfileRequest)(nil),        // 1: user.v1.CreateProfileRequest
-	(*UpdateProfileRequest)(nil),        // 2: user.v1.UpdateProfileRequest
-	(*GetProfileByIDRequest)(nil),       // 3: user.v1.GetProfileByIDRequest
-	(*GetProfileByNicknameRequest)(nil), // 4: user.v1.GetProfileByNicknameRequest
-	(*SearchByNicknameRequest)(nil),     // 5: user.v1.SearchByNicknameRequest
-	(*SearchByNicknameResponse)(nil),    // 6: user.v1.SearchByNicknameResponse
+	(*UserProfile)(nil),                 // 0: github.com.BurMachine.Bigtech_microservices.v1.user.UserProfile
+	(*CreateProfileRequest)(nil),        // 1: github.com.BurMachine.Bigtech_microservices.v1.user.CreateProfileRequest
+	(*UpdateProfileRequest)(nil),        // 2: github.com.BurMachine.Bigtech_microservices.v1.user.UpdateProfileRequest
+	(*GetProfileByIDRequest)(nil),       // 3: github.com.BurMachine.Bigtech_microservices.v1.user.GetProfileByIDRequest
+	(*GetProfileByNicknameRequest)(nil), // 4: github.com.BurMachine.Bigtech_microservices.v1.user.GetProfileByNicknameRequest
+	(*SearchByNicknameRequest)(nil),     // 5: github.com.BurMachine.Bigtech_microservices.v1.user.SearchByNicknameRequest
+	(*SearchByNicknameResponse)(nil),    // 6: github.com.BurMachine.Bigtech_microservices.v1.user.SearchByNicknameResponse
 }
 var file_v1_user_user_service_proto_depIdxs = []int32{
-	0, // 0: user.v1.SearchByNicknameResponse.results:type_name -> user.v1.UserProfile
-	1, // 1: user.v1.UserService.CreateProfile:input_type -> user.v1.CreateProfileRequest
-	2, // 2: user.v1.UserService.UpdateProfile:input_type -> user.v1.UpdateProfileRequest
-	3, // 3: user.v1.UserService.GetProfileByID:input_type -> user.v1.GetProfileByIDRequest
-	4, // 4: user.v1.UserService.GetProfileByNickname:input_type -> user.v1.GetProfileByNicknameRequest
-	5, // 5: user.v1.UserService.SearchByNickname:input_type -> user.v1.SearchByNicknameRequest
-	0, // 6: user.v1.UserService.CreateProfile:output_type -> user.v1.UserProfile
-	0, // 7: user.v1.UserService.UpdateProfile:output_type -> user.v1.UserProfile
-	0, // 8: user.v1.UserService.GetProfileByID:output_type -> user.v1.UserProfile
-	0, // 9: user.v1.UserService.GetProfileByNickname:output_type -> user.v1.UserProfile
-	6, // 10: user.v1.UserService.SearchByNickname:output_type -> user.v1.SearchByNicknameResponse
+	0, // 0: github.com.BurMachine.Bigtech_microservices.v1.user.SearchByNicknameResponse.results:type_name -> github.com.BurMachine.Bigtech_microservices.v1.user.UserProfile
+	1, // 1: github.com.BurMachine.Bigtech_microservices.v1.user.UserService.CreateProfile:input_type -> github.com.BurMachine.Bigtech_microservices.v1.user.CreateProfileRequest
+	2, // 2: github.com.BurMachine.Bigtech_microservices.v1.user.UserService.UpdateProfile:input_type -> github.com.BurMachine.Bigtech_microservices.v1.user.UpdateProfileRequest
+	3, // 3: github.com.BurMachine.Bigtech_microservices.v1.user.UserService.GetProfileByID:input_type -> github.com.BurMachine.Bigtech_microservices.v1.user.GetProfileByIDRequest
+	4, // 4: github.com.BurMachine.Bigtech_microservices.v1.user.UserService.GetProfileByNickname:input_type -> github.com.BurMachine.Bigtech_microservices.v1.user.GetProfileByNicknameRequest
+	5, // 5: github.com.BurMachine.Bigtech_microservices.v1.user.UserService.SearchByNickname:input_type -> github.com.BurMachine.Bigtech_microservices.v1.user.SearchByNicknameRequest
+	0, // 6: github.com.BurMachine.Bigtech_microservices.v1.user.UserService.CreateProfile:output_type -> github.com.BurMachine.Bigtech_microservices.v1.user.UserProfile
+	0, // 7: github.com.BurMachine.Bigtech_microservices.v1.user.UserService.UpdateProfile:output_type -> github.com.BurMachine.Bigtech_microservices.v1.user.UserProfile
+	0, // 8: github.com.BurMachine.Bigtech_microservices.v1.user.UserService.GetProfileByID:output_type -> github.com.BurMachine.Bigtech_microservices.v1.user.UserProfile
+	0, // 9: github.com.BurMachine.Bigtech_microservices.v1.user.UserService.GetProfileByNickname:output_type -> github.com.BurMachine.Bigtech_microservices.v1.user.UserProfile
+	6, // 10: github.com.BurMachine.Bigtech_microservices.v1.user.UserService.SearchByNickname:output_type -> github.com.BurMachine.Bigtech_microservices.v1.user.SearchByNicknameResponse
 	6, // [6:11] is the sub-list for method output_type
 	1, // [1:6] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name

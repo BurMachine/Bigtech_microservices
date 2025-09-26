@@ -76,7 +76,7 @@ func (Status) EnumDescriptor() ([]byte, []int) {
 type FriendRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RequestId     string                 `protobuf:"bytes,1,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Status        Status                 `protobuf:"varint,2,opt,name=status,proto3,enum=social.v1.Status" json:"status,omitempty"`
+	Status        Status                 `protobuf:"varint,2,opt,name=status,proto3,enum=github.com.BurMachine.Bigtech_microservices.v1.social.Status" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -541,17 +541,17 @@ var File_v1_social_social_service_proto protoreflect.FileDescriptor
 
 const file_v1_social_social_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1ev1/social/social_service.proto\x12\tsocial.v1\"Y\n" +
+	"\x1ev1/social/social_service.proto\x125github.com.BurMachine.Bigtech_microservices.v1.social\"\x85\x01\n" +
 	"\rFriendRequest\x12\x1d\n" +
 	"\n" +
-	"request_id\x18\x01 \x01(\tR\trequestId\x12)\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x11.social.v1.StatusR\x06status\"3\n" +
+	"request_id\x18\x01 \x01(\tR\trequestId\x12U\n" +
+	"\x06status\x18\x02 \x01(\x0e2=.github.com.BurMachine.Bigtech_microservices.v1.social.StatusR\x06status\"3\n" +
 	"\x18SendFriendRequestRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\".\n" +
 	"\x13ListRequestsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"L\n" +
-	"\x14ListRequestsResponse\x124\n" +
-	"\brequests\x18\x01 \x03(\v2\x18.social.v1.FriendRequestR\brequests\";\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"x\n" +
+	"\x14ListRequestsResponse\x12`\n" +
+	"\brequests\x18\x01 \x03(\v2D.github.com.BurMachine.Bigtech_microservices.v1.social.FriendRequestR\brequests\";\n" +
 	"\x1aAcceptFriendRequestRequest\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\tR\trequestId\"<\n" +
@@ -575,16 +575,15 @@ const file_v1_social_social_service_proto_rawDesc = "" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\v\n" +
 	"\aPENDING\x10\x01\x12\f\n" +
 	"\bACCEPTED\x10\x02\x12\f\n" +
-	"\bDECLINED\x10\x032\x91\x04\n" +
-	"\rSocialService\x12T\n" +
-	"\x11SendFriendRequest\x12#.social.v1.SendFriendRequestRequest\x1a\x18.social.v1.FriendRequest\"\x00\x12Q\n" +
-	"\fListRequests\x12\x1e.social.v1.ListRequestsRequest\x1a\x1f.social.v1.ListRequestsResponse\"\x00\x12X\n" +
-	"\x13AcceptFriendRequest\x12%.social.v1.AcceptFriendRequestRequest\x1a\x18.social.v1.FriendRequest\"\x00\x12Z\n" +
-	"\x14DeclineFriendRequest\x12&.social.v1.DeclineFriendRequestRequest\x1a\x18.social.v1.FriendRequest\"\x00\x12Q\n" +
-	"\fRemoveFriend\x12\x1e.social.v1.RemoveFriendRequest\x1a\x1f.social.v1.RemoveFriendResponse\"\x00\x12N\n" +
-	"\vListFriends\x12\x1d.social.v1.ListFriendsRequest\x1a\x1e.social.v1.ListFriendsResponse\"\x00B\xb0\x01\n" +
-	"\rcom.social.v1B\x12SocialServiceProtoP\x01ZFgithub.com/BurMachine/Bigtech_microservices/users/pkg/v1/social;social\xa2\x02\x03SXX\xaa\x02\tSocial.V1\xca\x02\tSocial\\V1\xe2\x02\x15Social\\V1\\GPBMetadata\xea\x02\n" +
-	"Social::V1b\x06proto3"
+	"\bDECLINED\x10\x032\xa7\b\n" +
+	"\rSocialService\x12\xac\x01\n" +
+	"\x11SendFriendRequest\x12O.github.com.BurMachine.Bigtech_microservices.v1.social.SendFriendRequestRequest\x1aD.github.com.BurMachine.Bigtech_microservices.v1.social.FriendRequest\"\x00\x12\xa9\x01\n" +
+	"\fListRequests\x12J.github.com.BurMachine.Bigtech_microservices.v1.social.ListRequestsRequest\x1aK.github.com.BurMachine.Bigtech_microservices.v1.social.ListRequestsResponse\"\x00\x12\xb0\x01\n" +
+	"\x13AcceptFriendRequest\x12Q.github.com.BurMachine.Bigtech_microservices.v1.social.AcceptFriendRequestRequest\x1aD.github.com.BurMachine.Bigtech_microservices.v1.social.FriendRequest\"\x00\x12\xb2\x01\n" +
+	"\x14DeclineFriendRequest\x12R.github.com.BurMachine.Bigtech_microservices.v1.social.DeclineFriendRequestRequest\x1aD.github.com.BurMachine.Bigtech_microservices.v1.social.FriendRequest\"\x00\x12\xa9\x01\n" +
+	"\fRemoveFriend\x12J.github.com.BurMachine.Bigtech_microservices.v1.social.RemoveFriendRequest\x1aK.github.com.BurMachine.Bigtech_microservices.v1.social.RemoveFriendResponse\"\x00\x12\xa6\x01\n" +
+	"\vListFriends\x12I.github.com.BurMachine.Bigtech_microservices.v1.social.ListFriendsRequest\x1aJ.github.com.BurMachine.Bigtech_microservices.v1.social.ListFriendsResponse\"\x00B\x8f\x03\n" +
+	"9com.github.com.BurMachine.Bigtech_microservices.v1.socialB\x12SocialServiceProtoP\x01ZFgithub.com/BurMachine/Bigtech_microservices/users/pkg/v1/social;social\xa2\x02\x06GCBBVS\xaa\x024Github.Com.BurMachine.BigtechMicroservices.V1.Social\xca\x024Github\\Com\\BurMachine\\BigtechMicroservices\\V1\\Social\xe2\x02@Github\\Com\\BurMachine\\BigtechMicroservices\\V1\\Social\\GPBMetadata\xea\x029Github::Com::BurMachine::BigtechMicroservices::V1::Socialb\x06proto3"
 
 var (
 	file_v1_social_social_service_proto_rawDescOnce sync.Once
@@ -601,33 +600,33 @@ func file_v1_social_social_service_proto_rawDescGZIP() []byte {
 var file_v1_social_social_service_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_v1_social_social_service_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_v1_social_social_service_proto_goTypes = []any{
-	(Status)(0),                         // 0: social.v1.Status
-	(*FriendRequest)(nil),               // 1: social.v1.FriendRequest
-	(*SendFriendRequestRequest)(nil),    // 2: social.v1.SendFriendRequestRequest
-	(*ListRequestsRequest)(nil),         // 3: social.v1.ListRequestsRequest
-	(*ListRequestsResponse)(nil),        // 4: social.v1.ListRequestsResponse
-	(*AcceptFriendRequestRequest)(nil),  // 5: social.v1.AcceptFriendRequestRequest
-	(*DeclineFriendRequestRequest)(nil), // 6: social.v1.DeclineFriendRequestRequest
-	(*RemoveFriendRequest)(nil),         // 7: social.v1.RemoveFriendRequest
-	(*RemoveFriendResponse)(nil),        // 8: social.v1.RemoveFriendResponse
-	(*ListFriendsRequest)(nil),          // 9: social.v1.ListFriendsRequest
-	(*ListFriendsResponse)(nil),         // 10: social.v1.ListFriendsResponse
+	(Status)(0),                         // 0: github.com.BurMachine.Bigtech_microservices.v1.social.Status
+	(*FriendRequest)(nil),               // 1: github.com.BurMachine.Bigtech_microservices.v1.social.FriendRequest
+	(*SendFriendRequestRequest)(nil),    // 2: github.com.BurMachine.Bigtech_microservices.v1.social.SendFriendRequestRequest
+	(*ListRequestsRequest)(nil),         // 3: github.com.BurMachine.Bigtech_microservices.v1.social.ListRequestsRequest
+	(*ListRequestsResponse)(nil),        // 4: github.com.BurMachine.Bigtech_microservices.v1.social.ListRequestsResponse
+	(*AcceptFriendRequestRequest)(nil),  // 5: github.com.BurMachine.Bigtech_microservices.v1.social.AcceptFriendRequestRequest
+	(*DeclineFriendRequestRequest)(nil), // 6: github.com.BurMachine.Bigtech_microservices.v1.social.DeclineFriendRequestRequest
+	(*RemoveFriendRequest)(nil),         // 7: github.com.BurMachine.Bigtech_microservices.v1.social.RemoveFriendRequest
+	(*RemoveFriendResponse)(nil),        // 8: github.com.BurMachine.Bigtech_microservices.v1.social.RemoveFriendResponse
+	(*ListFriendsRequest)(nil),          // 9: github.com.BurMachine.Bigtech_microservices.v1.social.ListFriendsRequest
+	(*ListFriendsResponse)(nil),         // 10: github.com.BurMachine.Bigtech_microservices.v1.social.ListFriendsResponse
 }
 var file_v1_social_social_service_proto_depIdxs = []int32{
-	0,  // 0: social.v1.FriendRequest.status:type_name -> social.v1.Status
-	1,  // 1: social.v1.ListRequestsResponse.requests:type_name -> social.v1.FriendRequest
-	2,  // 2: social.v1.SocialService.SendFriendRequest:input_type -> social.v1.SendFriendRequestRequest
-	3,  // 3: social.v1.SocialService.ListRequests:input_type -> social.v1.ListRequestsRequest
-	5,  // 4: social.v1.SocialService.AcceptFriendRequest:input_type -> social.v1.AcceptFriendRequestRequest
-	6,  // 5: social.v1.SocialService.DeclineFriendRequest:input_type -> social.v1.DeclineFriendRequestRequest
-	7,  // 6: social.v1.SocialService.RemoveFriend:input_type -> social.v1.RemoveFriendRequest
-	9,  // 7: social.v1.SocialService.ListFriends:input_type -> social.v1.ListFriendsRequest
-	1,  // 8: social.v1.SocialService.SendFriendRequest:output_type -> social.v1.FriendRequest
-	4,  // 9: social.v1.SocialService.ListRequests:output_type -> social.v1.ListRequestsResponse
-	1,  // 10: social.v1.SocialService.AcceptFriendRequest:output_type -> social.v1.FriendRequest
-	1,  // 11: social.v1.SocialService.DeclineFriendRequest:output_type -> social.v1.FriendRequest
-	8,  // 12: social.v1.SocialService.RemoveFriend:output_type -> social.v1.RemoveFriendResponse
-	10, // 13: social.v1.SocialService.ListFriends:output_type -> social.v1.ListFriendsResponse
+	0,  // 0: github.com.BurMachine.Bigtech_microservices.v1.social.FriendRequest.status:type_name -> github.com.BurMachine.Bigtech_microservices.v1.social.Status
+	1,  // 1: github.com.BurMachine.Bigtech_microservices.v1.social.ListRequestsResponse.requests:type_name -> github.com.BurMachine.Bigtech_microservices.v1.social.FriendRequest
+	2,  // 2: github.com.BurMachine.Bigtech_microservices.v1.social.SocialService.SendFriendRequest:input_type -> github.com.BurMachine.Bigtech_microservices.v1.social.SendFriendRequestRequest
+	3,  // 3: github.com.BurMachine.Bigtech_microservices.v1.social.SocialService.ListRequests:input_type -> github.com.BurMachine.Bigtech_microservices.v1.social.ListRequestsRequest
+	5,  // 4: github.com.BurMachine.Bigtech_microservices.v1.social.SocialService.AcceptFriendRequest:input_type -> github.com.BurMachine.Bigtech_microservices.v1.social.AcceptFriendRequestRequest
+	6,  // 5: github.com.BurMachine.Bigtech_microservices.v1.social.SocialService.DeclineFriendRequest:input_type -> github.com.BurMachine.Bigtech_microservices.v1.social.DeclineFriendRequestRequest
+	7,  // 6: github.com.BurMachine.Bigtech_microservices.v1.social.SocialService.RemoveFriend:input_type -> github.com.BurMachine.Bigtech_microservices.v1.social.RemoveFriendRequest
+	9,  // 7: github.com.BurMachine.Bigtech_microservices.v1.social.SocialService.ListFriends:input_type -> github.com.BurMachine.Bigtech_microservices.v1.social.ListFriendsRequest
+	1,  // 8: github.com.BurMachine.Bigtech_microservices.v1.social.SocialService.SendFriendRequest:output_type -> github.com.BurMachine.Bigtech_microservices.v1.social.FriendRequest
+	4,  // 9: github.com.BurMachine.Bigtech_microservices.v1.social.SocialService.ListRequests:output_type -> github.com.BurMachine.Bigtech_microservices.v1.social.ListRequestsResponse
+	1,  // 10: github.com.BurMachine.Bigtech_microservices.v1.social.SocialService.AcceptFriendRequest:output_type -> github.com.BurMachine.Bigtech_microservices.v1.social.FriendRequest
+	1,  // 11: github.com.BurMachine.Bigtech_microservices.v1.social.SocialService.DeclineFriendRequest:output_type -> github.com.BurMachine.Bigtech_microservices.v1.social.FriendRequest
+	8,  // 12: github.com.BurMachine.Bigtech_microservices.v1.social.SocialService.RemoveFriend:output_type -> github.com.BurMachine.Bigtech_microservices.v1.social.RemoveFriendResponse
+	10, // 13: github.com.BurMachine.Bigtech_microservices.v1.social.SocialService.ListFriends:output_type -> github.com.BurMachine.Bigtech_microservices.v1.social.ListFriendsResponse
 	8,  // [8:14] is the sub-list for method output_type
 	2,  // [2:8] is the sub-list for method input_type
 	2,  // [2:2] is the sub-list for extension type_name

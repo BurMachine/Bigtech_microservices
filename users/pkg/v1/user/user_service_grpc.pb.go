@@ -19,11 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_CreateProfile_FullMethodName        = "/user.v1.UserService/CreateProfile"
-	UserService_UpdateProfile_FullMethodName        = "/user.v1.UserService/UpdateProfile"
-	UserService_GetProfileByID_FullMethodName       = "/user.v1.UserService/GetProfileByID"
-	UserService_GetProfileByNickname_FullMethodName = "/user.v1.UserService/GetProfileByNickname"
-	UserService_SearchByNickname_FullMethodName     = "/user.v1.UserService/SearchByNickname"
+	UserService_CreateProfile_FullMethodName        = "/github.com.BurMachine.Bigtech_microservices.v1.user.UserService/CreateProfile"
+	UserService_UpdateProfile_FullMethodName        = "/github.com.BurMachine.Bigtech_microservices.v1.user.UserService/UpdateProfile"
+	UserService_GetProfileByID_FullMethodName       = "/github.com.BurMachine.Bigtech_microservices.v1.user.UserService/GetProfileByID"
+	UserService_GetProfileByNickname_FullMethodName = "/github.com.BurMachine.Bigtech_microservices.v1.user.UserService/GetProfileByNickname"
+	UserService_SearchByNickname_FullMethodName     = "/github.com.BurMachine.Bigtech_microservices.v1.user.UserService/SearchByNickname"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -258,7 +258,7 @@ func _UserService_SearchByNickname_Handler(srv interface{}, ctx context.Context,
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var UserService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "user.v1.UserService",
+	ServiceName: "github.com.BurMachine.Bigtech_microservices.v1.user.UserService",
 	HandlerType: (*UserServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

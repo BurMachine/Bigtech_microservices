@@ -19,13 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ChatService_CreateDirectChat_FullMethodName = "/chat.ChatService/CreateDirectChat"
-	ChatService_GetChat_FullMethodName          = "/chat.ChatService/GetChat"
-	ChatService_ListUserChats_FullMethodName    = "/chat.ChatService/ListUserChats"
-	ChatService_ListChatMembers_FullMethodName  = "/chat.ChatService/ListChatMembers"
-	ChatService_SendMessage_FullMethodName      = "/chat.ChatService/SendMessage"
-	ChatService_ListMessages_FullMethodName     = "/chat.ChatService/ListMessages"
-	ChatService_StreamMessages_FullMethodName   = "/chat.ChatService/StreamMessages"
+	ChatService_CreateDirectChat_FullMethodName = "/Bigtech_microservices.v1.chat.ChatService/CreateDirectChat"
+	ChatService_GetChat_FullMethodName          = "/Bigtech_microservices.v1.chat.ChatService/GetChat"
+	ChatService_ListUserChats_FullMethodName    = "/Bigtech_microservices.v1.chat.ChatService/ListUserChats"
+	ChatService_ListChatMembers_FullMethodName  = "/Bigtech_microservices.v1.chat.ChatService/ListChatMembers"
+	ChatService_SendMessage_FullMethodName      = "/Bigtech_microservices.v1.chat.ChatService/SendMessage"
+	ChatService_ListMessages_FullMethodName     = "/Bigtech_microservices.v1.chat.ChatService/ListMessages"
+	ChatService_StreamMessages_FullMethodName   = "/Bigtech_microservices.v1.chat.ChatService/StreamMessages"
 )
 
 // ChatServiceClient is the client API for ChatService service.
@@ -332,7 +332,7 @@ type ChatService_StreamMessagesServer = grpc.ServerStreamingServer[Message]
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ChatService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "chat.ChatService",
+	ServiceName: "Bigtech_microservices.v1.chat.ChatService",
 	HandlerType: (*ChatServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

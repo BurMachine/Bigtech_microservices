@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package social.v1;
+package github.com.BurMachine.Bigtech_microservices.v1.social;
 
 option go_package = "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/social;social";
 

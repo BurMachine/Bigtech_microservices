@@ -796,7 +796,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/Register", runtime.WithHTTPPathPattern("/v1/register"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/Register", runtime.WithHTTPPathPattern("/v1/register"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -816,7 +816,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/Login", runtime.WithHTTPPathPattern("/v1/login"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/Login", runtime.WithHTTPPathPattern("/v1/login"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -836,7 +836,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/Refresh", runtime.WithHTTPPathPattern("/v1/refresh"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/Refresh", runtime.WithHTTPPathPattern("/v1/refresh"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -856,7 +856,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/CreateProfile", runtime.WithHTTPPathPattern("/v1/profile"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/CreateProfile", runtime.WithHTTPPathPattern("/v1/profile"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -876,7 +876,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/UpdateProfile", runtime.WithHTTPPathPattern("/v1/profile"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/UpdateProfile", runtime.WithHTTPPathPattern("/v1/profile"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -896,7 +896,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/GetProfileByID", runtime.WithHTTPPathPattern("/v1/profile/{id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/GetProfileByID", runtime.WithHTTPPathPattern("/v1/profile/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -916,7 +916,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/GetProfileByNickname", runtime.WithHTTPPathPattern("/v1/profile/nickname/{nickname}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/GetProfileByNickname", runtime.WithHTTPPathPattern("/v1/profile/nickname/{nickname}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -936,7 +936,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/SearchByNickname", runtime.WithHTTPPathPattern("/v1/users/search"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/SearchByNickname", runtime.WithHTTPPathPattern("/v1/users/search"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -956,7 +956,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/SendFriendRequest", runtime.WithHTTPPathPattern("/v1/friends/{user_id}/request"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/SendFriendRequest", runtime.WithHTTPPathPattern("/v1/friends/{user_id}/request"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -976,7 +976,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/ListRequests", runtime.WithHTTPPathPattern("/v1/friends/requests"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/ListRequests", runtime.WithHTTPPathPattern("/v1/friends/requests"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -996,7 +996,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/AcceptFriendRequest", runtime.WithHTTPPathPattern("/v1/friends/requests/{request_id}/accept"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/AcceptFriendRequest", runtime.WithHTTPPathPattern("/v1/friends/requests/{request_id}/accept"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1016,7 +1016,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/DeclineFriendRequest", runtime.WithHTTPPathPattern("/v1/friends/requests/{request_id}/decline"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/DeclineFriendRequest", runtime.WithHTTPPathPattern("/v1/friends/requests/{request_id}/decline"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1036,7 +1036,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/RemoveFriend", runtime.WithHTTPPathPattern("/v1/friends/{user_id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/RemoveFriend", runtime.WithHTTPPathPattern("/v1/friends/{user_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1056,7 +1056,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/ListFriends", runtime.WithHTTPPathPattern("/v1/friends"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/ListFriends", runtime.WithHTTPPathPattern("/v1/friends"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1076,7 +1076,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/CreateDirectChat", runtime.WithHTTPPathPattern("/v1/chats/direct"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/CreateDirectChat", runtime.WithHTTPPathPattern("/v1/chats/direct"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1096,7 +1096,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/GetChat", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/GetChat", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1116,7 +1116,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/ListUserChats", runtime.WithHTTPPathPattern("/v1/chats"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/ListUserChats", runtime.WithHTTPPathPattern("/v1/chats"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1136,7 +1136,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/ListChatMembers", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/members"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/ListChatMembers", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/members"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1156,7 +1156,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/SendMessage", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/messages"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/SendMessage", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/messages"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1176,7 +1176,7 @@ func RegisterGatewayServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gateway.v1.GatewayService/ListMessages", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/messages"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/ListMessages", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/messages"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1241,7 +1241,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/Register", runtime.WithHTTPPathPattern("/v1/register"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/Register", runtime.WithHTTPPathPattern("/v1/register"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1258,7 +1258,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/Login", runtime.WithHTTPPathPattern("/v1/login"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/Login", runtime.WithHTTPPathPattern("/v1/login"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1275,7 +1275,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/Refresh", runtime.WithHTTPPathPattern("/v1/refresh"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/Refresh", runtime.WithHTTPPathPattern("/v1/refresh"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1292,7 +1292,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/CreateProfile", runtime.WithHTTPPathPattern("/v1/profile"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/CreateProfile", runtime.WithHTTPPathPattern("/v1/profile"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1309,7 +1309,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/UpdateProfile", runtime.WithHTTPPathPattern("/v1/profile"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/UpdateProfile", runtime.WithHTTPPathPattern("/v1/profile"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1326,7 +1326,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/GetProfileByID", runtime.WithHTTPPathPattern("/v1/profile/{id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/GetProfileByID", runtime.WithHTTPPathPattern("/v1/profile/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1343,7 +1343,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/GetProfileByNickname", runtime.WithHTTPPathPattern("/v1/profile/nickname/{nickname}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/GetProfileByNickname", runtime.WithHTTPPathPattern("/v1/profile/nickname/{nickname}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1360,7 +1360,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/SearchByNickname", runtime.WithHTTPPathPattern("/v1/users/search"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/SearchByNickname", runtime.WithHTTPPathPattern("/v1/users/search"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1377,7 +1377,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/SendFriendRequest", runtime.WithHTTPPathPattern("/v1/friends/{user_id}/request"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/SendFriendRequest", runtime.WithHTTPPathPattern("/v1/friends/{user_id}/request"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1394,7 +1394,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/ListRequests", runtime.WithHTTPPathPattern("/v1/friends/requests"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/ListRequests", runtime.WithHTTPPathPattern("/v1/friends/requests"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1411,7 +1411,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/AcceptFriendRequest", runtime.WithHTTPPathPattern("/v1/friends/requests/{request_id}/accept"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/AcceptFriendRequest", runtime.WithHTTPPathPattern("/v1/friends/requests/{request_id}/accept"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1428,7 +1428,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/DeclineFriendRequest", runtime.WithHTTPPathPattern("/v1/friends/requests/{request_id}/decline"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/DeclineFriendRequest", runtime.WithHTTPPathPattern("/v1/friends/requests/{request_id}/decline"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1445,7 +1445,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/RemoveFriend", runtime.WithHTTPPathPattern("/v1/friends/{user_id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/RemoveFriend", runtime.WithHTTPPathPattern("/v1/friends/{user_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1462,7 +1462,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/ListFriends", runtime.WithHTTPPathPattern("/v1/friends"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/ListFriends", runtime.WithHTTPPathPattern("/v1/friends"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1479,7 +1479,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/CreateDirectChat", runtime.WithHTTPPathPattern("/v1/chats/direct"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/CreateDirectChat", runtime.WithHTTPPathPattern("/v1/chats/direct"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1496,7 +1496,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/GetChat", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/GetChat", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1513,7 +1513,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/ListUserChats", runtime.WithHTTPPathPattern("/v1/chats"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/ListUserChats", runtime.WithHTTPPathPattern("/v1/chats"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1530,7 +1530,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/ListChatMembers", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/members"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/ListChatMembers", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/members"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1547,7 +1547,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/SendMessage", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/messages"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/SendMessage", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/messages"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1564,7 +1564,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/ListMessages", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/messages"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/ListMessages", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/messages"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1581,7 +1581,7 @@ func RegisterGatewayServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gateway.v1.GatewayService/StreamMessages", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/messages/stream"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/github.com.BurMachine.v1.gateway.GatewayService/StreamMessages", runtime.WithHTTPPathPattern("/v1/chats/{chat_id}/messages/stream"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return

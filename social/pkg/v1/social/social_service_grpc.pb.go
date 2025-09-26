@@ -19,12 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SocialService_SendFriendRequest_FullMethodName    = "/social.v1.SocialService/SendFriendRequest"
-	SocialService_ListRequests_FullMethodName         = "/social.v1.SocialService/ListRequests"
-	SocialService_AcceptFriendRequest_FullMethodName  = "/social.v1.SocialService/AcceptFriendRequest"
-	SocialService_DeclineFriendRequest_FullMethodName = "/social.v1.SocialService/DeclineFriendRequest"
-	SocialService_RemoveFriend_FullMethodName         = "/social.v1.SocialService/RemoveFriend"
-	SocialService_ListFriends_FullMethodName          = "/social.v1.SocialService/ListFriends"
+	SocialService_SendFriendRequest_FullMethodName    = "/github.com.BurMachine.Bigtech_microservices.v1.social.SocialService/SendFriendRequest"
+	SocialService_ListRequests_FullMethodName         = "/github.com.BurMachine.Bigtech_microservices.v1.social.SocialService/ListRequests"
+	SocialService_AcceptFriendRequest_FullMethodName  = "/github.com.BurMachine.Bigtech_microservices.v1.social.SocialService/AcceptFriendRequest"
+	SocialService_DeclineFriendRequest_FullMethodName = "/github.com.BurMachine.Bigtech_microservices.v1.social.SocialService/DeclineFriendRequest"
+	SocialService_RemoveFriend_FullMethodName         = "/github.com.BurMachine.Bigtech_microservices.v1.social.SocialService/RemoveFriend"
+	SocialService_ListFriends_FullMethodName          = "/github.com.BurMachine.Bigtech_microservices.v1.social.SocialService/ListFriends"
 )
 
 // SocialServiceClient is the client API for SocialService service.
@@ -278,7 +278,7 @@ func _SocialService_ListFriends_Handler(srv interface{}, ctx context.Context, de
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var SocialService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "social.v1.SocialService",
+	ServiceName: "github.com.BurMachine.Bigtech_microservices.v1.social.SocialService",
 	HandlerType: (*SocialServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

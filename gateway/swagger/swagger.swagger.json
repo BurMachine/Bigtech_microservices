@@ -23,7 +23,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ListUserChatsResponse"
+              "$ref": "#/definitions/gatewayListUserChatsResponse"
             }
           },
           "default": {
@@ -54,7 +54,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1CreateDirectChatResponse"
+              "$ref": "#/definitions/gatewayCreateDirectChatResponse"
             }
           },
           "default": {
@@ -70,7 +70,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateDirectChatRequest"
+              "$ref": "#/definitions/gatewayCreateDirectChatRequest"
             }
           }
         ],
@@ -86,7 +86,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1Chat"
+              "$ref": "#/definitions/gatewayChat"
             }
           },
           "default": {
@@ -116,7 +116,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ListChatMembersResponse"
+              "$ref": "#/definitions/gatewayListChatMembersResponse"
             }
           },
           "default": {
@@ -146,7 +146,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ListMessagesResponse"
+              "$ref": "#/definitions/gatewayListMessagesResponse"
             }
           },
           "default": {
@@ -187,7 +187,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1Message"
+              "$ref": "#/definitions/gatewayMessage"
             }
           },
           "default": {
@@ -228,13 +228,13 @@
               "type": "object",
               "properties": {
                 "result": {
-                  "$ref": "#/definitions/v1Message"
+                  "$ref": "#/definitions/gatewayMessage"
                 },
                 "error": {
                   "$ref": "#/definitions/rpcStatus"
                 }
               },
-              "title": "Stream result of v1Message"
+              "title": "Stream result of gatewayMessage"
             }
           },
           "default": {
@@ -271,7 +271,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ListFriendsResponse"
+              "$ref": "#/definitions/gatewayListFriendsResponse"
             }
           },
           "default": {
@@ -314,7 +314,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ListRequestsResponse"
+              "$ref": "#/definitions/gatewayListRequestsResponse"
             }
           },
           "default": {
@@ -344,7 +344,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1FriendRequest"
+              "$ref": "#/definitions/gatewayFriendRequest"
             }
           },
           "default": {
@@ -374,7 +374,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1FriendRequest"
+              "$ref": "#/definitions/gatewayFriendRequest"
             }
           },
           "default": {
@@ -436,7 +436,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1FriendRequest"
+              "$ref": "#/definitions/gatewayFriendRequest"
             }
           },
           "default": {
@@ -466,7 +466,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1LoginResponse"
+              "$ref": "#/definitions/gatewayLoginResponse"
             }
           },
           "default": {
@@ -482,7 +482,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1LoginRequest"
+              "$ref": "#/definitions/gatewayLoginRequest"
             }
           }
         ],
@@ -499,7 +499,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1UserProfile"
+              "$ref": "#/definitions/gatewayUserProfile"
             }
           },
           "default": {
@@ -515,7 +515,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateProfileRequest"
+              "$ref": "#/definitions/gatewayCreateProfileRequest"
             }
           }
         ],
@@ -529,7 +529,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1UserProfile"
+              "$ref": "#/definitions/gatewayUserProfile"
             }
           },
           "default": {
@@ -545,7 +545,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1UpdateProfileRequest"
+              "$ref": "#/definitions/gatewayUpdateProfileRequest"
             }
           }
         ],
@@ -561,7 +561,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1UserProfile"
+              "$ref": "#/definitions/gatewayUserProfile"
             }
           },
           "default": {
@@ -591,7 +591,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1UserProfile"
+              "$ref": "#/definitions/gatewayUserProfile"
             }
           },
           "default": {
@@ -621,7 +621,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1RefreshResponse"
+              "$ref": "#/definitions/gatewayRefreshResponse"
             }
           },
           "default": {
@@ -637,7 +637,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1RefreshRequest"
+              "$ref": "#/definitions/gatewayRefreshRequest"
             }
           }
         ],
@@ -654,7 +654,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1RegisterResponse"
+              "$ref": "#/definitions/gatewayRegisterResponse"
             }
           },
           "default": {
@@ -670,7 +670,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1RegisterRequest"
+              "$ref": "#/definitions/gatewayRegisterRequest"
             }
           }
         ],
@@ -686,7 +686,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1SearchByNicknameResponse"
+              "$ref": "#/definitions/gatewaySearchByNicknameResponse"
             }
           },
           "default": {
@@ -726,6 +726,309 @@
         }
       }
     },
+    "gatewayChat": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "title": "\"direct\" или \"group\""
+        },
+        "participantIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "title": "Chat Service Messages"
+    },
+    "gatewayCreateDirectChatRequest": {
+      "type": "object",
+      "properties": {
+        "participantId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayCreateDirectChatResponse": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayCreateProfileRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "nickname": {
+          "type": "string"
+        },
+        "bio": {
+          "type": "string"
+        },
+        "avatarUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayFriendRequest": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "senderId": {
+          "type": "string"
+        },
+        "receiverId": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/gatewayFriendRequestStatus"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "gatewayFriendRequestStatus": {
+      "type": "string",
+      "enum": [
+        "FRIEND_REQUEST_STATUS_UNSPECIFIED",
+        "FRIEND_REQUEST_STATUS_PENDING",
+        "FRIEND_REQUEST_STATUS_ACCEPTED",
+        "FRIEND_REQUEST_STATUS_DECLINED"
+      ],
+      "default": "FRIEND_REQUEST_STATUS_UNSPECIFIED",
+      "title": "Social Service Messages"
+    },
+    "gatewayListChatMembersResponse": {
+      "type": "object",
+      "properties": {
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "gatewayListFriendsResponse": {
+      "type": "object",
+      "properties": {
+        "friendUserIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "nextCursor": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayListMessagesResponse": {
+      "type": "object",
+      "properties": {
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/gatewayMessage"
+          }
+        },
+        "nextCursor": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayListRequestsResponse": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/gatewayFriendRequest"
+          }
+        }
+      }
+    },
+    "gatewayListUserChatsResponse": {
+      "type": "object",
+      "properties": {
+        "chats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/gatewayChat"
+          }
+        }
+      }
+    },
+    "gatewayLoginRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayLoginResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayMessage": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string"
+        },
+        "chatId": {
+          "type": "string"
+        },
+        "senderId": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "gatewayRefreshRequest": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayRefreshResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayRegisterRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "title": "Auth Service Messages"
+    },
+    "gatewayRegisterResponse": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewaySearchByNicknameResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/gatewayUserProfile"
+          }
+        }
+      }
+    },
+    "gatewayUpdateProfileRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "nickname": {
+          "type": "string"
+        },
+        "bio": {
+          "type": "string"
+        },
+        "avatarUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayUserProfile": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "nickname": {
+          "type": "string"
+        },
+        "bio": {
+          "type": "string"
+        },
+        "avatarUrl": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "title": "User Service Messages"
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -753,309 +1056,6 @@
           }
         }
       }
-    },
-    "v1Chat": {
-      "type": "object",
-      "properties": {
-        "chatId": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string",
-          "title": "\"direct\" или \"group\""
-        },
-        "participantIds": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "int64"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "int64"
-        }
-      },
-      "title": "Chat Service Messages"
-    },
-    "v1CreateDirectChatRequest": {
-      "type": "object",
-      "properties": {
-        "participantId": {
-          "type": "string"
-        }
-      }
-    },
-    "v1CreateDirectChatResponse": {
-      "type": "object",
-      "properties": {
-        "chatId": {
-          "type": "string"
-        }
-      }
-    },
-    "v1CreateProfileRequest": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string"
-        },
-        "nickname": {
-          "type": "string"
-        },
-        "bio": {
-          "type": "string"
-        },
-        "avatarUrl": {
-          "type": "string"
-        }
-      }
-    },
-    "v1FriendRequest": {
-      "type": "object",
-      "properties": {
-        "requestId": {
-          "type": "string"
-        },
-        "senderId": {
-          "type": "string"
-        },
-        "receiverId": {
-          "type": "string"
-        },
-        "status": {
-          "$ref": "#/definitions/v1FriendRequestStatus"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "int64"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
-    "v1FriendRequestStatus": {
-      "type": "string",
-      "enum": [
-        "FRIEND_REQUEST_STATUS_UNSPECIFIED",
-        "FRIEND_REQUEST_STATUS_PENDING",
-        "FRIEND_REQUEST_STATUS_ACCEPTED",
-        "FRIEND_REQUEST_STATUS_DECLINED"
-      ],
-      "default": "FRIEND_REQUEST_STATUS_UNSPECIFIED",
-      "title": "Social Service Messages"
-    },
-    "v1ListChatMembersResponse": {
-      "type": "object",
-      "properties": {
-        "userIds": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "v1ListFriendsResponse": {
-      "type": "object",
-      "properties": {
-        "friendUserIds": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "nextCursor": {
-          "type": "string"
-        }
-      }
-    },
-    "v1ListMessagesResponse": {
-      "type": "object",
-      "properties": {
-        "messages": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1Message"
-          }
-        },
-        "nextCursor": {
-          "type": "string"
-        }
-      }
-    },
-    "v1ListRequestsResponse": {
-      "type": "object",
-      "properties": {
-        "requests": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1FriendRequest"
-          }
-        }
-      }
-    },
-    "v1ListUserChatsResponse": {
-      "type": "object",
-      "properties": {
-        "chats": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1Chat"
-          }
-        }
-      }
-    },
-    "v1LoginRequest": {
-      "type": "object",
-      "properties": {
-        "email": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        }
-      }
-    },
-    "v1LoginResponse": {
-      "type": "object",
-      "properties": {
-        "accessToken": {
-          "type": "string"
-        },
-        "refreshToken": {
-          "type": "string"
-        },
-        "userId": {
-          "type": "string"
-        }
-      }
-    },
-    "v1Message": {
-      "type": "object",
-      "properties": {
-        "messageId": {
-          "type": "string"
-        },
-        "chatId": {
-          "type": "string"
-        },
-        "senderId": {
-          "type": "string"
-        },
-        "text": {
-          "type": "string"
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
-    "v1RefreshRequest": {
-      "type": "object",
-      "properties": {
-        "refreshToken": {
-          "type": "string"
-        }
-      }
-    },
-    "v1RefreshResponse": {
-      "type": "object",
-      "properties": {
-        "accessToken": {
-          "type": "string"
-        },
-        "refreshToken": {
-          "type": "string"
-        },
-        "userId": {
-          "type": "string"
-        }
-      }
-    },
-    "v1RegisterRequest": {
-      "type": "object",
-      "properties": {
-        "email": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        }
-      },
-      "title": "Auth Service Messages"
-    },
-    "v1RegisterResponse": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string"
-        }
-      }
-    },
-    "v1SearchByNicknameResponse": {
-      "type": "object",
-      "properties": {
-        "results": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1UserProfile"
-          }
-        }
-      }
-    },
-    "v1UpdateProfileRequest": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string"
-        },
-        "nickname": {
-          "type": "string"
-        },
-        "bio": {
-          "type": "string"
-        },
-        "avatarUrl": {
-          "type": "string"
-        }
-      }
-    },
-    "v1UserProfile": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string"
-        },
-        "nickname": {
-          "type": "string"
-        },
-        "bio": {
-          "type": "string"
-        },
-        "avatarUrl": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "int64"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "int64"
-        }
-      },
-      "title": "User Service Messages"
     }
   }
 }
