@@ -14,7 +14,7 @@ import (
 )
 
 type server struct {
-	pb.UnimplementedFriendServiceServer
+	pb.UnsafeSocialServiceServer
 
 	validator *protovalidate.Validator
 }
@@ -59,7 +59,7 @@ func main() {
 		defer wg.Done()
 
 		grpcServer := grpc.NewServer()
-		pb.RegisterFriendServiceServer(grpcServer, server)
+		pb.RegisterSocialServiceServer(grpcServer, server)
 
 		reflection.Register(grpcServer)
 

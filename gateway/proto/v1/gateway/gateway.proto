@@ -3,7 +3,6 @@ syntax = "proto3";
 package github.com.BurMachine.v1.gateway;
 
 import "google/api/annotations.proto";
-import "google/protobuf/empty.proto";
 import "buf/validate/validate.proto";
 
 option go_package = "github.com/BurMachine/Bigtech_microservices/gateway/pkg/v1/gateway;gateway";
@@ -90,7 +89,7 @@ service GatewayService {
     };
   }
 
-  rpc RemoveFriend(RemoveFriendRequest) returns (google.protobuf.Empty) {
+  rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {
     option (google.api.http) = {
       delete: "/v1/friends/{user_id}"
     };
@@ -248,11 +247,7 @@ enum FriendRequestStatus {
 
 message FriendRequest {
   string request_id = 1;
-  string sender_id = 2;
-  string receiver_id = 3;
-  FriendRequestStatus status = 4;
-  int64 created_at = 5;
-  int64 updated_at = 6;
+  FriendRequestStatus status = 2;
 }
 
 message SendFriendRequestRequest {
@@ -290,13 +285,14 @@ message ListFriendsResponse {
   string next_cursor = 2;
 }
 
+message RemoveFriendResponse {}
+
 // Chat Service Messages
 message Chat {
-  string chat_id = 1;
-  string type = 2; // "direct" или "group"
-  repeated string participant_ids = 3;
-  int64 created_at = 4;
-  int64 updated_at = 5;
+  // ID of the chat (required).
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  // List of participant user IDs (at least 2 for direct chats).
+  repeated string participant_ids = 2 [(buf.validate.field).repeated.min_items = 2, (buf.validate.field).repeated.items.string.uuid = true];
 }
 
 message Message {

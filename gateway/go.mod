@@ -15,6 +15,7 @@ require (
 
 require (
 	cel.dev/expr v0.24.0 // indirect
+	github.com/BurMachine/Bigtech_microservices v0.0.0-20250926120852-59280fb86c48 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/google/cel-go v0.26.1 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect

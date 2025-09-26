@@ -404,8 +404,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "type": "object",
-              "properties": {}
+              "$ref": "#/definitions/gatewayRemoveFriendResponse"
             }
           },
           "default": {
@@ -729,26 +728,16 @@
     "gatewayChat": {
       "type": "object",
       "properties": {
-        "chatId": {
-          "type": "string"
-        },
-        "type": {
+        "id": {
           "type": "string",
-          "title": "\"direct\" или \"group\""
+          "description": "ID of the chat (required)."
         },
         "participantIds": {
           "type": "array",
           "items": {
             "type": "string"
-          }
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "int64"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "int64"
+          },
+          "description": "List of participant user IDs (at least 2 for direct chats)."
         }
       },
       "title": "Chat Service Messages"
@@ -792,22 +781,8 @@
         "requestId": {
           "type": "string"
         },
-        "senderId": {
-          "type": "string"
-        },
-        "receiverId": {
-          "type": "string"
-        },
         "status": {
           "$ref": "#/definitions/gatewayFriendRequestStatus"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "int64"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "int64"
         }
       }
     },
@@ -973,6 +948,9 @@
           "type": "string"
         }
       }
+    },
+    "gatewayRemoveFriendResponse": {
+      "type": "object"
     },
     "gatewaySearchByNicknameResponse": {
       "type": "object",
