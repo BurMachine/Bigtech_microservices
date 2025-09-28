@@ -1,0 +1,1039 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "v1/gateway/gateway.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "GatewayService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/chats": {
+      "get": {
+        "operationId": "GatewayService_ListUserChats",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayListUserChatsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/chats/direct": {
+      "post": {
+        "summary": "Chat Service methods",
+        "operationId": "GatewayService_CreateDirectChat",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayCreateDirectChatResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gatewayCreateDirectChatRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/chats/{chatId}": {
+      "get": {
+        "operationId": "GatewayService_GetChat",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayChat"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/chats/{chatId}/members": {
+      "get": {
+        "operationId": "GatewayService_ListChatMembers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayListChatMembersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/chats/{chatId}/messages": {
+      "get": {
+        "operationId": "GatewayService_ListMessages",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayListMessagesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      },
+      "post": {
+        "operationId": "GatewayService_SendMessage",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayMessage"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GatewayServiceSendMessageBody"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/chats/{chatId}/messages/stream": {
+      "get": {
+        "operationId": "GatewayService_StreamMessages",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/gatewayMessage"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of gatewayMessage"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "sinceUnixMs",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/friends": {
+      "get": {
+        "operationId": "GatewayService_ListFriends",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayListFriendsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/friends/requests": {
+      "get": {
+        "operationId": "GatewayService_ListRequests",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayListRequestsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/friends/requests/{requestId}/accept": {
+      "post": {
+        "operationId": "GatewayService_AcceptFriendRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayFriendRequest"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/friends/requests/{requestId}/decline": {
+      "post": {
+        "operationId": "GatewayService_DeclineFriendRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayFriendRequest"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/friends/{userId}": {
+      "delete": {
+        "operationId": "GatewayService_RemoveFriend",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayRemoveFriendResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/friends/{userId}/request": {
+      "post": {
+        "summary": "Social Service methods",
+        "operationId": "GatewayService_SendFriendRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayFriendRequest"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/login": {
+      "post": {
+        "operationId": "GatewayService_Login",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayLoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gatewayLoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/profile": {
+      "post": {
+        "summary": "User Service methods",
+        "operationId": "GatewayService_CreateProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayUserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gatewayCreateProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      },
+      "put": {
+        "operationId": "GatewayService_UpdateProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayUserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gatewayUpdateProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/profile/nickname/{nickname}": {
+      "get": {
+        "operationId": "GatewayService_GetProfileByNickname",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayUserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "nickname",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/profile/{id}": {
+      "get": {
+        "operationId": "GatewayService_GetProfileByID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayUserProfile"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/refresh": {
+      "post": {
+        "operationId": "GatewayService_Refresh",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayRefreshResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gatewayRefreshRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/register": {
+      "post": {
+        "summary": "Auth Service methods",
+        "operationId": "GatewayService_Register",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewayRegisterResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gatewayRegisterRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    },
+    "/v1/users/search": {
+      "get": {
+        "operationId": "GatewayService_SearchByNickname",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gatewaySearchByNicknameResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "GatewayService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "GatewayServiceSendMessageBody": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayChat": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID of the chat (required)."
+        },
+        "participantIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of participant user IDs (at least 2 for direct chats)."
+        }
+      },
+      "title": "Chat Service Messages"
+    },
+    "gatewayCreateDirectChatRequest": {
+      "type": "object",
+      "properties": {
+        "participantId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayCreateDirectChatResponse": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayCreateProfileRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "nickname": {
+          "type": "string"
+        },
+        "bio": {
+          "type": "string"
+        },
+        "avatarUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayFriendRequest": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/gatewayFriendRequestStatus"
+        }
+      }
+    },
+    "gatewayFriendRequestStatus": {
+      "type": "string",
+      "enum": [
+        "FRIEND_REQUEST_STATUS_UNSPECIFIED",
+        "FRIEND_REQUEST_STATUS_PENDING",
+        "FRIEND_REQUEST_STATUS_ACCEPTED",
+        "FRIEND_REQUEST_STATUS_DECLINED"
+      ],
+      "default": "FRIEND_REQUEST_STATUS_UNSPECIFIED",
+      "title": "Social Service Messages"
+    },
+    "gatewayListChatMembersResponse": {
+      "type": "object",
+      "properties": {
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "gatewayListFriendsResponse": {
+      "type": "object",
+      "properties": {
+        "friendUserIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "nextCursor": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayListMessagesResponse": {
+      "type": "object",
+      "properties": {
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/gatewayMessage"
+          }
+        },
+        "nextCursor": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayListRequestsResponse": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/gatewayFriendRequest"
+          }
+        }
+      }
+    },
+    "gatewayListUserChatsResponse": {
+      "type": "object",
+      "properties": {
+        "chats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/gatewayChat"
+          }
+        }
+      }
+    },
+    "gatewayLoginRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayLoginResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayMessage": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string"
+        },
+        "chatId": {
+          "type": "string"
+        },
+        "senderId": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "gatewayRefreshRequest": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayRefreshResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayRegisterRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "title": "Auth Service Messages"
+    },
+    "gatewayRegisterResponse": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayRemoveFriendResponse": {
+      "type": "object"
+    },
+    "gatewaySearchByNicknameResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/gatewayUserProfile"
+          }
+        }
+      }
+    },
+    "gatewayUpdateProfileRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "nickname": {
+          "type": "string"
+        },
+        "bio": {
+          "type": "string"
+        },
+        "avatarUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "gatewayUserProfile": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "nickname": {
+          "type": "string"
+        },
+        "bio": {
+          "type": "string"
+        },
+        "avatarUrl": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "title": "User Service Messages"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package  github.com.BurMachine.Bigtech_microservices.auth;
+
+import "v1/auth/messages.proto";
+
+option go_package = "pkg/api/v1/auth;auth";
+
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Refresh(RefreshRequest) returns (RefreshResponse);
+}

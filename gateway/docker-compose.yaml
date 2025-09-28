@@ -1,0 +1,21 @@
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: gateway:latest
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - ENV_VAR_EXAMPLE=value
+    volumes:
+      # Опционально: для логов (комментарий на отдельной строке)
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - microservices-net
+
+networks:
+  microservices-net:
+    driver: bridge

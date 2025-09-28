@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+package github.com.BurMachine.Bigtech_microservices.v1.chat;
+
+import "buf/validate/validate.proto";
+
+option go_package = "pkg/api/v1/chat;chat";
+
+// ChatService manages chats and message sending.
+service ChatService {
+  // Create a direct (personal) chat with a participant.
+  rpc CreateDirectChat(CreateDirectChatRequest) returns (CreateDirectChatResponse);
+
+  // Get information about a specific chat.
+  rpc GetChat(GetChatRequest) returns (Chat);
+
+  // List all chats for a user.
+  rpc ListUserChats(ListUserChatsRequest) returns (ListUserChatsResponse);
+
+  // List members of a chat.
+  rpc ListChatMembers(ListChatMembersRequest) returns (ListChatMembersResponse);
+
+  // Send a message to a chat.
+  rpc SendMessage(SendMessageRequest) returns (Message);
+
+  // List historical messages in a chat with pagination.
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse);
+
+  // Stream new messages from a chat starting from a given time.
+  rpc StreamMessages(StreamMessagesRequest) returns (stream Message);
+}
+
+// Request to create a direct chat.
+message CreateDirectChatRequest {
+  // ID of the participant (required, must be a valid user ID).
+  string participant_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// Response for creating a direct chat.
+message CreateDirectChatResponse {
+  // ID of the created chat.
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// Request to get a chat.
+message GetChatRequest {
+  // ID of the chat (required, must be a valid chat ID).
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// Chat entity.
+message Chat {
+  // ID of the chat (required).
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  // List of participant user IDs (at least 2 for direct chats).
+  repeated string participant_ids = 2 [(buf.validate.field).repeated.min_items = 2, (buf.validate.field).repeated.items.string.uuid = true];
+}
+
+// Request to list user chats.
+message ListUserChatsRequest {
+  // ID of the user (required, must be a valid user ID).
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// Response for listing user chats.
+message ListUserChatsResponse {
+  // List of chats the user is in.
+  repeated Chat chats = 1;
+}
+
+// Request to list chat members.
+message ListChatMembersRequest {
+  // ID of the chat (required, must be a valid chat ID).
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// Response for listing chat members.
+message ListChatMembersResponse {
+  // List of user IDs in the chat.
+  repeated string user_ids = 1 [(buf.validate.field).repeated.items.string.uuid = true];
+}
+
+// Request to send a message.
+message SendMessageRequest {
+  // ID of the chat (required, must be a valid chat ID).
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+  // Text of the message (required, non-empty string).
+  string text = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+// Message entity.
+message Message {
+  // Unique ID of the message (generated).
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  // ID of the chat.
+  string chat_id = 2 [(buf.validate.field).string.uuid = true];
+  // ID of the sender user.
+  string sender_id = 3 [(buf.validate.field).string.uuid = true];
+  // Text content of the message.
+  string text = 4 [(buf.validate.field).string.min_len = 1];
+  // Unix timestamp in milliseconds when the message was sent.
+  int64 timestamp_unix_ms = 5 [(buf.validate.field).int64.gte = 0];
+}
+
+// Request to list messages.
+message ListMessagesRequest {
+  // ID of the chat (required, must be a valid chat ID).
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+  // Limit on the number of messages to return (required, positive integer).
+  int32 limit = 2 [(buf.validate.field).int32.gt = 0];
+  // Optional pagination cursor for the next page.
+  optional string cursor = 3;
+}
+
+// Response for listing messages.
+message ListMessagesResponse {
+  // List of messages in descending order (newest first).
+  repeated Message messages = 1;
+  // Optional next pagination cursor.
+  optional string next_cursor = 2;
+}
+
+// Request for streaming messages.
+message StreamMessagesRequest {
+  // ID of the chat (required, must be a valid chat ID).
+  string chat_id = 1 [(buf.validate.field).string.uuid = true];
+  // Optional starting Unix timestamp in milliseconds.
+  optional int64 since_unix_ms = 2 [(buf.validate.field).int64.gte = 0];
+}
