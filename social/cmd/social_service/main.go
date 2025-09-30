@@ -2,62 +2,35 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
 	"log"
 	"net"
 	"sync"
 
-	"buf.build/go/protovalidate"
+	social_grpc "github.com/BurMachine/Bigtech_microservices/social/internal/app/delivery/grpc"
+	friends_repo "github.com/BurMachine/Bigtech_microservices/social/internal/app/repositories/friends"
+	"github.com/BurMachine/Bigtech_microservices/social/internal/app/usecases/social"
 	pb "github.com/BurMachine/Bigtech_microservices/social/pkg/v1/social"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
-
-type server struct {
-	pb.UnsafeSocialServiceServer
-
-	validator *protovalidate.Validator
-}
-
-func NewServer() (*server, error) {
-	srv := &server{}
-
-	validator, err := protovalidate.New(
-		protovalidate.WithDisableLazy(),
-		protovalidate.WithMessages(
-			// Добавляем сюда все запросы наши
-			&pb.SendFriendRequestRequest{},
-			&pb.ListRequestsRequest{},
-			&pb.AcceptFriendRequestRequest{},
-			&pb.DeclineFriendRequestRequest{},
-			&pb.RemoveFriendRequest{},
-			&pb.ListFriendsRequest{},
-		),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize validator: %w", err)
-	}
-
-	srv.validator = &validator
-	return srv, nil
-}
 
 func main() {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	server, err := NewServer()
+	// Construct
+	repo := friends_repo.New(&sql.DB{})
+	uc := social.NewUsecases(repo)
+	server, err := social_grpc.NewServer(uc)
 	if err != nil {
 		log.Fatalf("failed to create server: %v", err)
 	}
 
 	var wg sync.WaitGroup
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		grpcServer := grpc.NewServer()
 		pb.RegisterSocialServiceServer(grpcServer, server)
 
@@ -72,7 +45,7 @@ func main() {
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("failed to serve: %v", err)
 		}
-	}()
+	})
 
 	wg.Wait()
 }
