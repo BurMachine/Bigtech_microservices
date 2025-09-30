@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: v1/user/user_service.proto
+// source: v1/user_repo/user_service.proto
 
 package user
 
@@ -19,11 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_CreateProfile_FullMethodName        = "/github.com.BurMachine.Bigtech_microservices.v1.user.UserService/CreateProfile"
-	UserService_UpdateProfile_FullMethodName        = "/github.com.BurMachine.Bigtech_microservices.v1.user.UserService/UpdateProfile"
-	UserService_GetProfileByID_FullMethodName       = "/github.com.BurMachine.Bigtech_microservices.v1.user.UserService/GetProfileByID"
-	UserService_GetProfileByNickname_FullMethodName = "/github.com.BurMachine.Bigtech_microservices.v1.user.UserService/GetProfileByNickname"
-	UserService_SearchByNickname_FullMethodName     = "/github.com.BurMachine.Bigtech_microservices.v1.user.UserService/SearchByNickname"
+	UserService_CreateProfile_FullMethodName        = "/github.com.BurMachine.Bigtech_microservices.v1.user_repo.UserService/CreateProfile"
+	UserService_UpdateProfile_FullMethodName        = "/github.com.BurMachine.Bigtech_microservices.v1.user_repo.UserService/UpdateProfile"
+	UserService_GetProfileByID_FullMethodName       = "/github.com.BurMachine.Bigtech_microservices.v1.user_repo.UserService/GetProfileByID"
+	UserService_GetProfileByNickname_FullMethodName = "/github.com.BurMachine.Bigtech_microservices.v1.user_repo.UserService/GetProfileByNickname"
+	UserService_SearchByNickname_FullMethodName     = "/github.com.BurMachine.Bigtech_microservices.v1.user_repo.UserService/SearchByNickname"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -258,7 +258,7 @@ func _UserService_SearchByNickname_Handler(srv interface{}, ctx context.Context,
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var UserService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "github.com.BurMachine.Bigtech_microservices.v1.user.UserService",
+	ServiceName: "github.com.BurMachine.Bigtech_microservices.v1.user_repo.UserService",
 	HandlerType: (*UserServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -283,5 +283,5 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "v1/user/user_service.proto",
+	Metadata: "v1/user_repo/user_service.proto",
 }

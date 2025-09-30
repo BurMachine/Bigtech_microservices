@@ -163,7 +163,7 @@ func NewServer() (*Server, error) {
 
 	chatConn, err := grpc.NewClient(chatAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, fmt.Errorf("failed to dial chat service: %w", err)
+		return nil, fmt.Errorf("failed to dial chat_repo service: %w", err)
 	}
 	srv.conns = append(srv.conns, chatConn)
 	srv.chatClient = chat.NewChatServiceClient(chatConn)
@@ -177,7 +177,7 @@ func NewServer() (*Server, error) {
 
 	userConn, err := grpc.NewClient(userAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, fmt.Errorf("failed to dial user service: %w", err)
+		return nil, fmt.Errorf("failed to dial user_repo service: %w", err)
 	}
 	srv.conns = append(srv.conns, userConn)
 	srv.userClient = user.NewUserServiceClient(userConn)

@@ -25,7 +25,7 @@ const (
 // Request to create a direct chat.
 type CreateDirectChatRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// ID of the participant (required, must be a valid user ID).
+	// ID of the participant (required, must be a valid user_repo ID).
 	ParticipantId string `protobuf:"bytes,1,opt,name=participant_id,json=participantId,proto3" json:"participant_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -165,7 +165,7 @@ type Chat struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// ID of the chat (required).
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// List of participant user IDs (at least 2 for direct chats).
+	// List of participant user_repo IDs (at least 2 for direct chats).
 	ParticipantIds []string `protobuf:"bytes,2,rep,name=participant_ids,json=participantIds,proto3" json:"participant_ids,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
@@ -215,10 +215,10 @@ func (x *Chat) GetParticipantIds() []string {
 	return nil
 }
 
-// Request to list user chats.
+// Request to list user_repo chats.
 type ListUserChatsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// ID of the user (required, must be a valid user ID).
+	// ID of the user_repo (required, must be a valid user_repo ID).
 	UserId        string `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -261,10 +261,10 @@ func (x *ListUserChatsRequest) GetUserId() string {
 	return ""
 }
 
-// Response for listing user chats.
+// Response for listing user_repo chats.
 type ListUserChatsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// List of chats the user is in.
+	// List of chats the user_repo is in.
 	Chats         []*Chat `protobuf:"bytes,1,rep,name=chats,proto3" json:"chats,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -356,7 +356,7 @@ func (x *ListChatMembersRequest) GetChatId() string {
 // Response for listing chat members.
 type ListChatMembersResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// List of user IDs in the chat.
+	// List of user_repo IDs in the chat.
 	UserIds       []string `protobuf:"bytes,1,rep,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -461,7 +461,7 @@ type Message struct {
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// ID of the chat.
 	ChatId string `protobuf:"bytes,2,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
-	// ID of the sender user.
+	// ID of the sender user_repo.
 	SenderId string `protobuf:"bytes,3,opt,name=sender_id,json=senderId,proto3" json:"sender_id,omitempty"`
 	// Text content of the message.
 	Text string `protobuf:"bytes,4,opt,name=text,proto3" json:"text,omitempty"`

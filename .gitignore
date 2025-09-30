@@ -2,6 +2,5 @@
 */bin
 */vendor.protobuf
 
-make vendor
-make .bin-deps
-make generate
+HW-1.md
+HW-2.md
