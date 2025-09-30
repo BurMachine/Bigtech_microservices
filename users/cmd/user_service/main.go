@@ -2,51 +2,28 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
 	"log"
 	"net"
 	"sync"
 
-	"buf.build/go/protovalidate"
+	user_grpc "github.com/BurMachine/Bigtech_microservices/users/internal/app/delivery/grpc"
+	user_repo "github.com/BurMachine/Bigtech_microservices/users/internal/app/repositories/user"
+	"github.com/BurMachine/Bigtech_microservices/users/internal/app/usecases/users"
 	pb "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
-
-type server struct {
-	pb.UnimplementedUserServiceServer
-
-	validator *protovalidate.Validator
-}
-
-func NewServer() (*server, error) {
-	srv := &server{}
-
-	validator, err := protovalidate.New(
-		protovalidate.WithDisableLazy(),
-		protovalidate.WithMessages(
-			// Добавляем сюда все запросы наши
-			&pb.CreateProfileRequest{},
-			&pb.UpdateProfileRequest{},
-			&pb.GetProfileByIDRequest{},
-			&pb.GetProfileByNicknameRequest{},
-			&pb.SearchByNicknameRequest{},
-		),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize validator: %w", err)
-	}
-
-	srv.validator = &validator
-	return srv, nil
-}
 
 func main() {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	server, err := NewServer()
+	// construct
+	repo := user_repo.New(&sql.DB{})
+	uc := users.NewUsecases(repo)
+	server, err := user_grpc.NewServer(uc)
 	if err != nil {
 		log.Fatalf("failed to create server: %v", err)
 	}
