@@ -2,21 +2,16 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"sync"
 
-	"buf.build/go/protovalidate"
-	"github.com/BurMachine/Bigtech_microservices/auth/pkg/v1/auth"
-	"github.com/BurMachine/Bigtech_microservices/chat/pkg/v1/chat"
-	"github.com/BurMachine/Bigtech_microservices/social/pkg/v1/social"
-	"github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
-	"google.golang.org/grpc/credentials/insecure"
-
+	"github.com/BurMachine/Bigtech_microservices/gateway/internal/app/clients"
+	grpc_gateway "github.com/BurMachine/Bigtech_microservices/gateway/internal/app/delivery/grpc"
+	"github.com/BurMachine/Bigtech_microservices/gateway/internal/app/usecases/gateway"
 	pb "github.com/BurMachine/Bigtech_microservices/gateway/pkg/v1/gateway"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -24,24 +19,19 @@ import (
 )
 
 // Server is used to implement pb.NotesServiceServer.
-type Server struct {
-	pb.UnimplementedGatewayServiceServer
-	validator *protovalidate.Validator
-
-	authClient   auth.AuthServiceClient
-	chatClient   chat.ChatServiceClient
-	socialClient social.SocialServiceClient
-	userClient   user.UserServiceClient
-
-	conns []*grpc.ClientConn
-}
 
 func main() {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	server, err := NewServer()
+	// Construct
+	clientsGroup, err := clients.NewGroup("8081", "8082", "8083", "8084")
+	if err != nil {
+		log.Fatal(err)
+	}
+	uc := gateway.NewUsecase(clientsGroup.AuthClient, clientsGroup.UserClient, clientsGroup.SocialClient, clientsGroup.ChatClient)
+	server, err := grpc_gateway.NewServer(uc)
 	if err != nil {
 		log.Fatalf("failed to create Server: %v", err)
 	}
@@ -52,7 +42,7 @@ func main() {
 	go func() {
 		defer wg.Done()
 
-		grpcServer := grpc.NewServer()
+		grpcServer := grpc.NewServer(grpc.Creds(insecure.NewCredentials()))
 		pb.RegisterGatewayServiceServer(grpcServer, server)
 
 		reflection.Register(grpcServer)
@@ -92,95 +82,4 @@ func main() {
 	}()
 
 	wg.Wait()
-}
-
-func NewServer() (*Server, error) {
-	srv := &Server{}
-
-	validator, err := protovalidate.New(
-		protovalidate.WithDisableLazy(),
-		protovalidate.WithMessages(
-			// Auth Service requests
-			&pb.RegisterRequest{},
-			&pb.LoginRequest{},
-			&pb.RefreshRequest{},
-
-			// User Service requests
-			&pb.CreateProfileRequest{},
-			&pb.UpdateProfileRequest{},
-			&pb.GetProfileByIDRequest{},
-			&pb.GetProfileByNicknameRequest{},
-			&pb.SearchByNicknameRequest{},
-
-			// Social Service requests
-			&pb.SendFriendRequestRequest{},
-			&pb.ListRequestsRequest{},
-			&pb.AcceptFriendRequestRequest{},
-			&pb.DeclineFriendRequestRequest{},
-			&pb.RemoveFriendRequest{},
-			&pb.ListFriendsRequest{},
-
-			// Chat Service requests
-			&pb.CreateDirectChatRequest{},
-			&pb.GetChatRequest{},
-			&pb.ListUserChatsRequest{},
-			&pb.ListChatMembersRequest{},
-			&pb.SendMessageRequest{},
-			&pb.ListMessagesRequest{},
-			&pb.StreamMessagesRequest{},
-		),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize validator: %w", err)
-	}
-
-	srv.validator = &validator
-
-	authAddr := os.Getenv("AUTH_ADDR")
-	if authAddr == "" {
-		authAddr = "localhost:8081" // Default
-	}
-	chatAddr := os.Getenv("CHAT_ADDR")
-	if chatAddr == "" {
-		chatAddr = "localhost:8082"
-	}
-	socialAddr := os.Getenv("SOCIAL_ADDR")
-	if socialAddr == "" {
-		socialAddr = "localhost:8083"
-	}
-	userAddr := os.Getenv("USER_ADDR")
-	if userAddr == "" {
-		userAddr = "localhost:8084"
-	}
-
-	// Создаём conn для каждого сервиса
-	authConn, err := grpc.NewClient(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to dial auth service: %w", err)
-	}
-	srv.conns = append(srv.conns, authConn)
-	srv.authClient = auth.NewAuthServiceClient(authConn)
-
-	chatConn, err := grpc.NewClient(chatAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to dial chat_repo service: %w", err)
-	}
-	srv.conns = append(srv.conns, chatConn)
-	srv.chatClient = chat.NewChatServiceClient(chatConn)
-
-	socialConn, err := grpc.NewClient(socialAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to dial social service: %w", err)
-	}
-	srv.conns = append(srv.conns, socialConn)
-	srv.socialClient = social.NewSocialServiceClient(socialConn)
-
-	userConn, err := grpc.NewClient(userAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to dial user_repo service: %w", err)
-	}
-	srv.conns = append(srv.conns, userConn)
-	srv.userClient = user.NewUserServiceClient(userConn)
-
-	return srv, nil
 }

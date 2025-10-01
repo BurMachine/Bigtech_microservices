@@ -8,6 +8,7 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/auth/internal/app/usecases/auth/dto"
 )
 
+//go:generate mockgen -source=usecases.go -destination=mocks/mock_repositories.go -package=mocks
 type (
 	AuthRepository interface {
 		CreateToken(ctx context.Context, dto dto.LoginDTO) (*models.UserToken, error)

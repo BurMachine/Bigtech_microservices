@@ -2,14 +2,11 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"net"
 	"sync"
 
-	user_grpc "github.com/BurMachine/Bigtech_microservices/users/internal/app/delivery/grpc"
-	user_repo "github.com/BurMachine/Bigtech_microservices/users/internal/app/repositories/user"
-	"github.com/BurMachine/Bigtech_microservices/users/internal/app/usecases/users"
+	"github.com/BurMachine/Bigtech_microservices/users/internal/app/di"
 	pb "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -21,11 +18,9 @@ func main() {
 	defer cancel()
 
 	// construct
-	repo := user_repo.New(&sql.DB{})
-	uc := users.NewUsecases(repo)
-	server, err := user_grpc.NewServer(uc)
+	server, err := di.Wire("dsn")
 	if err != nil {
-		log.Fatalf("failed to create server: %v", err)
+		log.Fatalf("failed to inject dependencies: %v", err)
 	}
 
 	var wg sync.WaitGroup

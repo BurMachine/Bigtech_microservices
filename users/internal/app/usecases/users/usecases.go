@@ -38,6 +38,6 @@ type userService struct {
 
 var _ Usecases = (*userService)(nil)
 
-func NewUsecases(repo UserRepository) *userService {
+func NewUsecases(repo UserRepository) Usecases {
 	return &userService{repo: repo}
 }

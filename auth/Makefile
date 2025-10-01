@@ -51,6 +51,8 @@ proto-format:
 docker-up: .bin-deps vendor
 	docker compose up
 
+
+
 # Объявляем, что текущие команды не являются файлами и
 # интсрументируем Makefile не искать изменения в файловой системе
 .PHONY: \
