@@ -1,6 +1,6 @@
 module github.com/BurMachine/Bigtech_microservices/gateway
 
-go 1.24.5
+go 1.25.1
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.9-20250912141014-52f32327d4b0.1
@@ -14,6 +14,10 @@ require (
 require (
 	cel.dev/expr v0.24.0 // indirect
 	github.com/BurMachine/Bigtech_microservices v0.0.0-20250926120852-59280fb86c48 // indirect
+	github.com/BurMachine/Bigtech_microservices/auth v0.0.0-20250928200309-a1441aabf035 // indirect
+	github.com/BurMachine/Bigtech_microservices/chat v0.0.0-20250928200309-a1441aabf035 // indirect
+	github.com/BurMachine/Bigtech_microservices/social v0.0.0-20250928200309-a1441aabf035 // indirect
+	github.com/BurMachine/Bigtech_microservices/users v0.0.0-20250928200309-a1441aabf035 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
 	github.com/google/cel-go v0.26.1 // indirect

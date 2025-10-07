@@ -44,6 +44,14 @@ cloud.google.com/go/storage v1.14.0/go.mod h1:GrKmX003DSIwi9o29oFT7YDnHYwZoctc3f
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 github.com/BurMachine/Bigtech_microservices v0.0.0-20250926120852-59280fb86c48 h1:3qIxdzQMI4lcAoSQhhKyyRCthmeEF8oh8Re6/eubb5c=
 github.com/BurMachine/Bigtech_microservices v0.0.0-20250926120852-59280fb86c48/go.mod h1:wxJZjryyU+XKcLb2Tg6SIBRm+njnkcD6+3YvGdTtUYU=
+github.com/BurMachine/Bigtech_microservices/auth v0.0.0-20250928200309-a1441aabf035 h1:Rk52JVbVUjDo1ubjKrG1fI5aMlWLca/qR9uqWTKHWvI=
+github.com/BurMachine/Bigtech_microservices/auth v0.0.0-20250928200309-a1441aabf035/go.mod h1:PTJMlCmSu3aypGYdiwNwTp9scpcK/Y8TXZrWzQsxojU=
+github.com/BurMachine/Bigtech_microservices/chat v0.0.0-20250928200309-a1441aabf035 h1:lMOwnG/uOddLhka3wICD7k+Bn6rkmlmpeIrQDZh/VfA=
+github.com/BurMachine/Bigtech_microservices/chat v0.0.0-20250928200309-a1441aabf035/go.mod h1:l1Tl0+3ZE87gNsSGawF0KPRW7Hxw/MGNrlGb6bHCeKs=
+github.com/BurMachine/Bigtech_microservices/social v0.0.0-20250928200309-a1441aabf035 h1:MRyVRiKP/X+O+3OQiw7ufw2puo5IrX+ayJ1r5fhe0mk=
+github.com/BurMachine/Bigtech_microservices/social v0.0.0-20250928200309-a1441aabf035/go.mod h1:LP2WnXetQQ1j+VflKmbIHCj8Ln5b1Z/DAm5/TgqDLkg=
+github.com/BurMachine/Bigtech_microservices/users v0.0.0-20250928200309-a1441aabf035 h1:EWClAZGPWjDP/WQeFC2x1Y/fk9OH1muIsW5CggieAo0=
+github.com/BurMachine/Bigtech_microservices/users v0.0.0-20250928200309-a1441aabf035/go.mod h1:E2yMjhK+fYHDkIpGmVI1GIVpROwtR8aHMsuvIqrQJzA=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/antlr4-go/antlr/v4 v4.13.1 h1:SqQKkuVZ+zWkMMNkjy5FZe5mr5WURWnlpmOuzYWrPrQ=

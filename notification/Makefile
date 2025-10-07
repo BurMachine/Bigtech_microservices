@@ -14,12 +14,13 @@ PKG_PROTO_PATH := $(CURDIR)/pkg
 # Путь до завендореных protobuf файлов
 VENDOR_PROTO_PATH := $(CURDIR)/vendor.protobuf
 MIGRATION_DIR = migrations
-DB_URL = postgres://postgres:postgres_pass@localhost:5432/users_db?sslmode=disable
+DB_URL = postgres://postgres:postgres_pass@localhost:5432/notification_db?sslmode=disable
 
 
 ##########################
 # Зависимости и установка #
 ##########################
+
 # Устанавливаем необходимые плагины
 .bin-deps: export GOBIN := $(LOCAL_BIN)
 .bin-deps:
@@ -35,6 +36,7 @@ DB_URL = postgres://postgres:postgres_pass@localhost:5432/users_db?sslmode=disab
 ####################
 # Генерация кода   #
 ####################
+
 generate: export GOBIN := $(LOCAL_BIN)
 generate:
 	PATH=$(LOCAL_BIN):PATH $(LOCAL_BIN)/buf generate
@@ -42,7 +44,8 @@ generate:
 
 ###############
 # Сборка      #
-##############
+###############
+
 # Билд приложения
 build:
 	go build -o $(LOCAL_BIN) ./cmd/notes/client
@@ -52,11 +55,14 @@ build:
 ####################
 # Линтинг и формат #
 ####################
+
 # Линтер
 lint: .proto-lint
+
 # Линтер proto файлов
 .proto-lint:
 	$(LOCAL_BIN)/protolint -config_path ./.protolint.yaml ./proto/
+
 # Форматирование protobuf файлов
 proto-format:
 	$(info run buf format...)
@@ -66,10 +72,13 @@ proto-format:
 ###############
 # База данных #
 ###############
+
 migrate-up:
 	GOOSE_DRIVER=postgres GOOSE_DBSTRING=$(DB_URL) goose -dir $(MIGRATION_DIR) up
+
 migrate-down:
 	GOOSE_DRIVER=postgres GOOSE_DBSTRING=$(DB_URL) goose -dir $(MIGRATION_DIR) down
+
 migrate-status:
 	GOOSE_DRIVER=postgres GOOSE_DBSTRING=$(DB_URL) goose -dir $(MIGRATION_DIR) status
 
@@ -77,6 +86,7 @@ migrate-status:
 ###############
 # Docker      #
 ###############
+
 docker-up: .bin-deps vendor
 	docker compose up
 
@@ -84,11 +94,11 @@ docker-up: .bin-deps vendor
 ####################
 # Вспомогательные #
 ####################
+
 # Объявляем, что текущие команды не являются файлами и
-# интсрументируем Makefile не искать изменения в файловой системе
+# инструментируем Makefile не искать изменения в файловой системе
 .PHONY: \
 	docker-up \
-	.bin-deps \
 	.protoc-generate \
 	.tidy \
 	.proto-lint \

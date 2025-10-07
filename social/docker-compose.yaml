@@ -1,21 +1,34 @@
+version: '3.8'
+
+networks:
+  messenger:
+    external: true
+
 services:
-  social_service:
+  social:
     build:
       context: .
       dockerfile: Dockerfile
-    image: social-service:latest
-    container_name: social-service
+    container_name: social
     ports:
       - "8083:8083"
     environment:
-      - ENV_VAR_EXAMPLE=value
-    volumes:
-      # Опционально: для логов (комментарий на отдельной строке)
-      - ./logs:/app/logs
-    restart: unless-stopped
+      GRPC_PORT: 8083
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres_pass
+      DB_NAME: social_db
+      DB_SSLMODE: disable
+      # Kafka для публикации событий
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_TOPIC_FRIEND_REQUEST: social.friend.request
+      KAFKA_TOPIC_FRIEND_UPDATED: social.friend.updated
+      # Outbox worker
+      OUTBOX_POLL_INTERVAL: 5s
+      OUTBOX_BATCH_SIZE: 100
+      LOG_LEVEL: debug
     networks:
-      - microservices-net
+      - messenger
+    restart: unless-stopped
 
-networks:
-  microservices-net:
-    driver: bridge
