@@ -1,11 +1,35 @@
 package chat_repo
 
-import "database/sql"
+import (
+	"github.com/BurMachine/Bigtech_microservices/chat/pkg/postgres"
+	"github.com/Masterminds/squirrel"
+)
 
-type Repo struct {
-	db *sql.DB
+type Repository struct {
+	db postgres.QueryEngineProvider
+	qb squirrel.StatementBuilderType
 }
 
-func NewRepo(db *sql.DB) *Repo {
-	return &Repo{db}
+// NewRepository конструктор Repository
+func NewRepository(p postgres.QueryEngineProvider) *Repository {
+	return &Repository{
+		db: p,
+		qb: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
+	}
 }
+
+// Константы для названий таблиц и колонок
+const (
+	tableChats          = "chats"
+	tableChatMembers    = "chat_members"
+	tableMessages       = "messages"
+	colChatID           = "id"
+	colChatCreatedAt    = "created_at"
+	colChatMemberChatID = "chat_id"
+	colChatMemberUserID = "user_id"
+	colMessageID        = "id"
+	colMessageChatID    = "chat_id"
+	colMessageSenderID  = "sender_id"
+	colMessageText      = "text"
+	colMessageCreatedAt = "created_at"
+)

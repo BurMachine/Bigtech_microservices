@@ -78,11 +78,11 @@ func messageFromModelMessage(model *models.Message) *pb.Message {
 		return nil
 	}
 	return &pb.Message{
-		Id:       model.ID,
-		ChatId:   model.ChatID,
-		SenderId: model.SenderID,
-		Text:     model.Text,
-		// CreatedAt: model.CreatedAt.UnixMilli()
+		Id:              model.ID,
+		ChatId:          model.ChatID,
+		SenderId:        model.SenderID,
+		Text:            model.Text,
+		TimestampUnixMs: model.CreatedAt.UnixMilli(),
 	}
 }
 
@@ -108,7 +108,7 @@ func listMessagesResponseFromModelMessages(messages []*models.Message, nextCurso
 }
 
 func listUserChatsResponseFromModelChats(chats []*models.Chat) *pb.ListUserChatsResponse {
-	chatsRes := make([]*pb.Chat, len(chats))
+	chatsRes := make([]*pb.Chat, 0, len(chats))
 	for _, v := range chats {
 		chatsRes = append(chatsRes, chatFromModelChat(v))
 	}

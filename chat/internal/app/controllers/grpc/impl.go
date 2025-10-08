@@ -2,6 +2,7 @@ package chat_grpc
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/models"
 	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/usecases/chat"
@@ -23,7 +24,7 @@ func (s *Service) CreateDirectChat(ctx context.Context, request *pb.CreateDirect
 		case chat.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, fmt.Sprintf("internal error: %v", err.Error()))
 		}
 	}
 
@@ -46,7 +47,7 @@ func (s *Service) GetChat(ctx context.Context, request *pb.GetChatRequest) (*pb.
 		case chat.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, fmt.Sprintf("internal error: %v", err.Error()))
 		}
 	}
 
@@ -65,7 +66,7 @@ func (s *Service) ListUserChats(ctx context.Context, request *pb.ListUserChatsRe
 		case chat.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, fmt.Sprintf("internal error: %v", err.Error()))
 		}
 	}
 
@@ -84,7 +85,7 @@ func (s *Service) ListChatMembers(ctx context.Context, request *pb.ListChatMembe
 		case chat.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, fmt.Sprintf("internal error: %v", err.Error()))
 		}
 	}
 
@@ -105,7 +106,7 @@ func (s *Service) SendMessage(ctx context.Context, request *pb.SendMessageReques
 		case chat.ErrPermissionDenied:
 			return nil, status.Error(codes.PermissionDenied, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, fmt.Sprintf("internal error: %v", err.Error()))
 		}
 	}
 
@@ -124,7 +125,7 @@ func (s *Service) ListMessages(ctx context.Context, request *pb.ListMessagesRequ
 		case chat.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, fmt.Sprintf("internal error: %v", err.Error()))
 		}
 	}
 
