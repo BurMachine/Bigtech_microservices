@@ -24,7 +24,7 @@ func (s *Service) SendFriendRequest(ctx context.Context, request *pb.SendFriendR
 		case social.ErrNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
 		}
 	}
 
@@ -43,7 +43,7 @@ func (s *Service) ListRequests(ctx context.Context, request *pb.ListRequestsRequ
 		case social.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
 		}
 	}
 
@@ -66,7 +66,7 @@ func (s *Service) AcceptFriendRequest(ctx context.Context, request *pb.AcceptFri
 		case social.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
 		}
 	}
 
@@ -89,7 +89,7 @@ func (s *Service) DeclineFriendRequest(ctx context.Context, request *pb.DeclineF
 		case social.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
 		}
 	}
 
@@ -110,7 +110,7 @@ func (s *Service) RemoveFriend(ctx context.Context, request *pb.RemoveFriendRequ
 		case social.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
 		}
 	}
 
@@ -129,7 +129,7 @@ func (s *Service) ListFriends(ctx context.Context, request *pb.ListFriendsReques
 		case social.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
 		}
 	}
 

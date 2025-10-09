@@ -1,50 +1,51 @@
 -- +goose Up
 -- +goose StatementBegin
 
--- Расширение для полнотекстового поиска должно быть установлено ПЕРВЫМ
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
+-- Таблица для заявок в друзья
+CREATE TABLE IF NOT EXISTS friend_requests (
+                                               id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                                               from_user_id UUID NOT NULL,
+                                               to_user_id UUID NOT NULL,
+                                               status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING', 'ACCEPTED', 'DECLINED')),
+                                               created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                                               updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                                               CONSTRAINT unique_request UNIQUE (from_user_id, to_user_id)
+);
 
-CREATE TABLE IF NOT EXISTS user_profiles (
-                                             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) UNIQUE NOT NULL,
-    nickname VARCHAR(20) UNIQUE NOT NULL,
-    bio TEXT,
-    avatar_url TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+-- Таблица для дружеских связей
+CREATE TABLE IF NOT EXISTS friends (
+                                       user_id UUID NOT NULL,
+                                       friend_user_id UUID NOT NULL,
+                                       created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                                       CONSTRAINT unique_friendship UNIQUE (user_id, friend_user_id),
+                                       CONSTRAINT check_different_users CHECK (user_id != friend_user_id)
+);
 
-    -- Ограничения
-    CONSTRAINT check_email_format CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
-    CONSTRAINT check_nickname_format CHECK (nickname ~* '^[a-z0-9_]{3,20}$')
-    );
-
--- Индексы для быстрого поиска
-CREATE INDEX idx_user_profiles_email ON user_profiles(email);
-CREATE INDEX idx_user_profiles_nickname ON user_profiles(nickname);
-CREATE INDEX idx_user_profiles_nickname_trgm ON user_profiles USING gin(nickname gin_trgm_ops);
+-- Индексы для оптимизации запросов
+CREATE INDEX idx_friend_requests_to_user_id ON friend_requests(to_user_id, status, created_at DESC);
+CREATE INDEX idx_friends_user_id ON friends(user_id, created_at DESC);
 
 -- Функция для автоматического обновления updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
-RETURN NEW;
+    RETURN NEW;
 END;
 $$ language 'plpgsql';
 
--- Триггер для автоматического обновления updated_at
-CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles
+-- Триггер для автоматического обновления updated_at в friend_requests
+CREATE TRIGGER update_friend_requests_updated_at BEFORE UPDATE ON friend_requests
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
+DROP TRIGGER IF EXISTS update_friend_requests_updated_at ON friend_requests;
 DROP FUNCTION IF EXISTS update_updated_at_column();
-DROP INDEX IF EXISTS idx_user_profiles_nickname_trgm;
-DROP INDEX IF EXISTS idx_user_profiles_nickname;
-DROP INDEX IF EXISTS idx_user_profiles_email;
-DROP TABLE IF EXISTS user_profiles;
-DROP EXTENSION IF EXISTS pg_trgm;
+DROP INDEX IF EXISTS idx_friend_requests_to_user_id;
+DROP INDEX IF EXISTS idx_friends_user_id;
+DROP TABLE IF EXISTS friends;
+DROP TABLE IF EXISTS friend_requests;
 -- +goose StatementEnd

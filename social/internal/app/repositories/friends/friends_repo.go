@@ -1,11 +1,19 @@
 package friends_repo
 
-import "database/sql"
+import (
+	"github.com/BurMachine/Bigtech_microservices/social/pkg/postgres"
+	"github.com/Masterminds/squirrel"
+)
 
-type Repo struct {
-	db *sql.DB
+type Repository struct {
+	db postgres.QueryEngineProvider
+	qb squirrel.StatementBuilderType
 }
 
-func New(db *sql.DB) *Repo {
-	return &Repo{db: db}
+// NewRepository конструктор Repository
+func NewRepository(p postgres.QueryEngineProvider) *Repository {
+	return &Repository{
+		db: p,
+		qb: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
+	}
 }

@@ -16,6 +16,10 @@ type (
 		DeclineFriendRequest(ctx context.Context, requestID string) error
 		RemoveFriend(ctx context.Context, userID1, userID2 string) error
 		ListFriends(ctx context.Context, userID string, limit int, cursor string) ([]string, string, error)
+		GetFriendRequest(ctx context.Context, requestID string) (*models.FriendRequest, error)
+	}
+	TransactionManager interface {
+		RunReadCommitted(ctx context.Context, f func(ctx context.Context) error) error
 	}
 )
 
@@ -37,10 +41,11 @@ var (
 
 type socialService struct {
 	repo FriendRepository
+	tm   TransactionManager
 }
 
 var _ Usecases = (*socialService)(nil)
 
-func NewUsecases(repo FriendRepository) *socialService {
-	return &socialService{repo: repo}
+func NewUsecases(repo FriendRepository, tm TransactionManager) *socialService {
+	return &socialService{repo: repo, tm: tm}
 }
