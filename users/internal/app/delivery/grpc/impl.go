@@ -22,7 +22,7 @@ func (s *Service) CreateProfile(ctx context.Context, request *pb.CreateProfileRe
 		case users.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
 		}
 	}
 
@@ -45,7 +45,7 @@ func (s *Service) UpdateProfile(ctx context.Context, request *pb.UpdateProfileRe
 		case users.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
 		}
 	}
 
@@ -66,7 +66,7 @@ func (s *Service) GetProfileByID(ctx context.Context, request *pb.GetProfileByID
 		case users.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
 		}
 	}
 
@@ -87,7 +87,7 @@ func (s *Service) GetProfileByNickname(ctx context.Context, request *pb.GetProfi
 		case users.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
 		}
 	}
 
@@ -106,7 +106,7 @@ func (s *Service) SearchByNickname(ctx context.Context, request *pb.SearchByNick
 		case users.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
-			return nil, status.Error(codes.Internal, "internal error")
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
 		}
 	}
 

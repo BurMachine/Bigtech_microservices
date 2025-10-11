@@ -15,6 +15,7 @@ PKG_PROTO_PATH := $(CURDIR)/pkg
 VENDOR_PROTO_PATH := $(CURDIR)/vendor.protobuf
 MIGRATION_DIR = migrations
 DB_URL = postgres://postgres:postgres_pass@localhost:5432/users_db?sslmode=disable
+DI_PATH = ./internal/app/di/
 
 
 ##########################
@@ -80,6 +81,13 @@ migrate-status:
 docker-up: .bin-deps vendor
 	docker compose up
 
+
+
+###############
+#     DI      #
+###############
+di-gen:
+	wire gen $(DI_PATH)
 
 ####################
 # Вспомогательные #

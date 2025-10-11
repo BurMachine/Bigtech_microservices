@@ -32,6 +32,7 @@ message UserProfile {
   optional string avatar_url = 4; // URL аватара пользователя (опционально)
   int64 created_at = 5;    // Время создания профиля (timestamp)
   int64 updated_at = 6;    // Время последнего обновления профиля (timestamp)
+  string email = 7;
 }
 
 // Запрос на создание профиля
@@ -46,6 +47,7 @@ message CreateProfileRequest {
   ]; // Никнейм пользователя
   optional string bio = 3; // Биография пользователя (опционально)
   optional string avatar_url = 4; // URL аватара пользователя (опционально)
+  string email = 5;
 }
 
 // Запрос на обновление профиля

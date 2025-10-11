@@ -2,6 +2,7 @@ package social
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -26,13 +27,56 @@ func (s *socialService) SendFriendRequest(ctx context.Context, dto dto.SendFrien
 		return nil, ErrInvalidArgument
 	}
 
-	requestID := ""
+	// Проверка существования целевого пользователя
+	_, err = s.userService.GetProfileByID(ctx, dto.ToUserID)
+	if err != nil {
+		if errors.Is(err, models.ErrNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("%s: check user exists: %w", api, err)
+	}
+
+	var requestID string
 	err = s.tm.RunReadCommitted(ctx,
 		func(txCtx context.Context) error {
-			// TODO Добавить работу с users_repo для проверки существования пользователя
+			// Проверка, являются ли пользователи уже друзьями
+			friends, _, err := s.repo.ListFriends(txCtx, currentUserID, 1, "")
+			if err != nil {
+				return fmt.Errorf("%s: check existing friends: %w", api, err)
+			}
+			for _, friendID := range friends {
+				if friendID == dto.ToUserID {
+					return fmt.Errorf("%s: %w", api, ErrAlreadyFriends)
+				}
+			}
+
+			// Проверка на существующую заявку
+			requests, err := s.repo.ListRequests(txCtx, currentUserID)
+			if err != nil {
+				return fmt.Errorf("%s: check existing requests: %w", api, err)
+			}
+			for _, req := range requests {
+				if (req.FromUserID == currentUserID && req.ToUserID == dto.ToUserID && req.Status == "PENDING") ||
+					(req.FromUserID == dto.ToUserID && req.ToUserID == currentUserID && req.Status == "PENDING") {
+					return fmt.Errorf("%s: friend request already pending", api)
+				}
+			}
+
 			requestID, err = s.repo.SendFriendRequest(txCtx, currentUserID, dto.ToUserID)
 			if err != nil {
-				return err // Ошибка мапится на ErrAlreadyExists, ErrNotFound в репозитории
+				return fmt.Errorf("%s: %w", api, err)
+			}
+
+			err = s.outboxRepo.SaveFriendsRequestCreated(ctx, models.FriendRequest{
+				RequestID:  requestID,
+				FromUserID: currentUserID,
+				ToUserID:   dto.ToUserID,
+				Status:     "PENDING",
+				CreatedAt:  time.Now(),
+				UpdatedAt:  time.Now(),
+			})
+			if err != nil {
+				return fmt.Errorf("%s: %w", api, err)
 			}
 			return nil
 		},
@@ -106,7 +150,7 @@ func (s *socialService) AcceptFriendRequest(ctx context.Context, dto dto.AcceptD
 			// Получаем заявку для проверки статуса и прав
 			request, err = s.repo.GetFriendRequest(txCtx, dto.RequestID)
 			if err != nil {
-				return err // Ошибка мапится на ErrNotFound в репозитории
+				return err
 			}
 
 			// Проверка статуса
@@ -119,6 +163,26 @@ func (s *socialService) AcceptFriendRequest(ctx context.Context, dto dto.AcceptD
 				return ErrPermissionDenied
 			}
 
+			// Проверка, являются ли пользователи уже друзьями
+			friends, _, err := s.repo.ListFriends(txCtx, currentUserID, 1, "")
+			if err != nil {
+				return fmt.Errorf("%s: check existing friends: %w", api, err)
+			}
+			for _, friendID := range friends {
+				if friendID == request.FromUserID {
+					return fmt.Errorf("%s: %w", api, ErrAlreadyFriends)
+				}
+			}
+
+			// Проверка существования отправителя заявки
+			_, err = s.userService.GetProfileByID(ctx, request.FromUserID)
+			if err != nil {
+				if errors.Is(err, models.ErrNotFound) {
+					return ErrNotFound
+				}
+				return fmt.Errorf("check sender exists: %w", err)
+			}
+
 			// Принимаем заявку
 			err = s.repo.AcceptFriendRequest(txCtx, dto.RequestID)
 			if err != nil {
@@ -128,6 +192,18 @@ func (s *socialService) AcceptFriendRequest(ctx context.Context, dto dto.AcceptD
 			// Обновляем статус в локальной модели для возврата
 			request.Status = "ACCEPTED"
 			request.UpdatedAt = time.Now()
+
+			err = s.outboxRepo.SaveFriendsRequestUpdated(ctx, models.FriendRequest{
+				RequestID:  request.RequestID,
+				FromUserID: request.FromUserID,
+				ToUserID:   request.ToUserID,
+				Status:     request.Status,
+				CreatedAt:  request.CreatedAt,
+				UpdatedAt:  request.UpdatedAt,
+			})
+			if err != nil {
+				return fmt.Errorf("%s: %w", api, err)
+			}
 
 			return nil
 		},
@@ -157,7 +233,7 @@ func (s *socialService) DeclineFriendRequest(ctx context.Context, dto dto.Accept
 			// Получаем заявку для проверки статуса и прав
 			request, err = s.repo.GetFriendRequest(txCtx, dto.RequestID)
 			if err != nil {
-				return err // Ошибка мапится на ErrNotFound в репозитории
+				return err
 			}
 
 			// Проверка статуса
@@ -179,6 +255,18 @@ func (s *socialService) DeclineFriendRequest(ctx context.Context, dto dto.Accept
 			// Обновляем статус в локальной модели для возврата
 			request.Status = "DECLINED"
 			request.UpdatedAt = time.Now()
+
+			err = s.outboxRepo.SaveFriendsRequestUpdated(ctx, models.FriendRequest{
+				RequestID:  request.RequestID,
+				FromUserID: request.FromUserID,
+				ToUserID:   request.ToUserID,
+				Status:     request.Status,
+				CreatedAt:  request.CreatedAt,
+				UpdatedAt:  request.UpdatedAt,
+			})
+			if err != nil {
+				return fmt.Errorf("%s: %w", api, err)
+			}
 
 			return nil
 		},
@@ -202,16 +290,25 @@ func (s *socialService) RemoveFriend(ctx context.Context, dto dto.RemoveFriendDT
 		return fmt.Errorf("%s: %w", api, err)
 	}
 
-	// Проверка, что пользователь удаляет друга или себя (но себя нельзя)
+	// Проверка, что пользователь не пытается удалить себя
 	if currentUserID == dto.UserID {
 		return ErrInvalidArgument
+	}
+
+	// Проверка существования удаляемого друга
+	_, err = s.userService.GetProfileByID(ctx, dto.UserID)
+	if err != nil {
+		if errors.Is(err, models.ErrNotFound) {
+			return ErrNotFound
+		}
+		return fmt.Errorf("%s: check user exists: %w", api, err)
 	}
 
 	err = s.tm.RunReadCommitted(ctx,
 		func(txCtx context.Context) error {
 			err = s.repo.RemoveFriend(txCtx, currentUserID, dto.UserID)
 			if err != nil {
-				return err // Ошибка мапится на ErrNotFound в репозитории
+				return err
 			}
 			return nil
 		},
@@ -238,6 +335,15 @@ func (s *socialService) ListFriends(ctx context.Context, dto dto.ListFriendsDTO)
 	// Проверка, что пользователь запрашивает своих друзей
 	if currentUserID != dto.UserID {
 		return nil, "", ErrPermissionDenied
+	}
+
+	// Проверка существования пользователя
+	_, err = s.userService.GetProfileByID(ctx, dto.UserID)
+	if err != nil {
+		if errors.Is(err, models.ErrNotFound) {
+			return nil, "", ErrNotFound
+		}
+		return nil, "", fmt.Errorf("%s: check user exists: %w", api, err)
 	}
 
 	var friends []string

@@ -19,7 +19,7 @@ func (s *Service) SendFriendRequest(ctx context.Context, request *pb.SendFriendR
 		switch err {
 		case social.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
-		case social.ErrAlreadyExists:
+		case social.ErrAlreadyExists, social.ErrAlreadyFriends:
 			return nil, status.Error(codes.AlreadyExists, err.Error())
 		case social.ErrNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -65,6 +65,8 @@ func (s *Service) AcceptFriendRequest(ctx context.Context, request *pb.AcceptFri
 			return nil, status.Error(codes.PermissionDenied, err.Error())
 		case social.ErrInvalidArgument:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
+		case social.ErrAlreadyFriends:
+			return nil, status.Error(codes.AlreadyExists, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
 		}

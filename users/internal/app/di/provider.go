@@ -4,29 +4,50 @@
 package di
 
 import (
-	"database/sql"
+	"context"
 
 	user_grpc "github.com/BurMachine/Bigtech_microservices/users/internal/app/delivery/grpc"
 	user_repo "github.com/BurMachine/Bigtech_microservices/users/internal/app/repositories/user"
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/usecases/users"
+	"github.com/BurMachine/Bigtech_microservices/users/pkg/postgres"
+	"github.com/BurMachine/Bigtech_microservices/users/pkg/postgres/transaction_manager"
 	"github.com/google/wire"
 )
 
-// NewDB — провайдер для DB (теперь здесь, чтобы импорт использовался)
-func NewDB(dbDSN string) (*sql.DB, error) {
+// Провайдер для контекста
+func ProvideContext() context.Context {
+	return context.Background()
+}
 
-	return &sql.DB{}, nil
+// Провайдер для опций пула соединений (пустой слайс)
+func ProvideConnectionPoolOptions() []postgres.ConnectionPoolOption {
+	return []postgres.ConnectionPoolOption{}
+}
+
+// Провайдер для QueryEngineProvider
+func ProvideQueryEngineProvider(tm *transaction_manager.TransactionManager) postgres.QueryEngineProvider {
+	return tm
 }
 
 // ProviderSet — сет зависимостей
 var ProviderSet = wire.NewSet(
-	NewDB,
-	user_repo.New,
+	ProvideContext,
+	ProvideConnectionPoolOptions,
+	ProvideQueryEngineProvider,
+	postgres.NewConnectionPool,
+	transaction_manager.New,
+
+	// Привязка интерфейса TransactionManager к реализации
+	wire.Bind(new(users.TransactionManager), new(*transaction_manager.TransactionManager)),
+
+	// Привязка интерфейса UserRepository к реализации
+
+	user_repo.NewRepository,
 	users.NewUsecases,
 	user_grpc.NewServer,
 )
 
-// Wire — генерируемая функция (не пиши тело!)
+// Wire — генерируемая функция
 func Wire(dbDSN string) (*user_grpc.Service, error) {
 	panic(wire.Build(ProviderSet))
 }

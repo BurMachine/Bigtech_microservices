@@ -18,6 +18,18 @@ type (
 		ListFriends(ctx context.Context, userID string, limit int, cursor string) ([]string, string, error)
 		GetFriendRequest(ctx context.Context, requestID string) (*models.FriendRequest, error)
 	}
+
+	OutboxRepository interface {
+		// Запись о создании заявки в друзья
+		SaveFriendsRequestCreated(ctx context.Context, request models.FriendRequest) error
+		// Запись о подтверждении/отклонении заявки в друзья
+		SaveFriendsRequestUpdated(ctx context.Context, request models.FriendRequest) error
+	}
+
+	UserService interface {
+		GetProfileByID(ctx context.Context, id string) (models.UserProfile, error)
+	}
+
 	TransactionManager interface {
 		RunReadCommitted(ctx context.Context, f func(ctx context.Context) error) error
 	}
@@ -37,15 +49,18 @@ var (
 	ErrAlreadyExists    = errors.New("already exists")
 	ErrNotFound         = errors.New("not found")
 	ErrPermissionDenied = errors.New("permission denied")
+	ErrAlreadyFriends   = errors.New("users are already friends")
 )
 
 type socialService struct {
-	repo FriendRepository
-	tm   TransactionManager
+	repo        FriendRepository
+	outboxRepo  OutboxRepository
+	userService UserService
+	tm          TransactionManager
 }
 
 var _ Usecases = (*socialService)(nil)
 
-func NewUsecases(repo FriendRepository, tm TransactionManager) *socialService {
-	return &socialService{repo: repo, tm: tm}
+func NewUsecases(repo FriendRepository, tm TransactionManager, outboxRepo OutboxRepository, userService UserService) *socialService {
+	return &socialService{repo: repo, tm: tm, outboxRepo: outboxRepo, userService: userService}
 }

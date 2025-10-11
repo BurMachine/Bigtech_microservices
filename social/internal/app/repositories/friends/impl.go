@@ -74,7 +74,10 @@ func (r *Repository) ListRequests(ctx context.Context, userID string) ([]*models
 
 	qb := r.qb.Select(colRequestID, colFromUserID, colToUserID, colStatus, colCreatedAt, colUpdatedAt).
 		From(tableFriendRequests).
-		Where(squirrel.Eq{colToUserID: userID, colStatus: "PENDING"}).
+		Where(squirrel.Or{
+			squirrel.Eq{colFromUserID: userID}, // Исходящие заявки
+			squirrel.Eq{colToUserID: userID},   // Входящие заявки
+		}).
 		OrderBy(fmt.Sprintf("%s DESC", colCreatedAt))
 
 	conn := r.db.GetQueryEngine(ctx)

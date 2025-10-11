@@ -7,8 +7,12 @@ import (
 	"net"
 	"sync"
 
+	"github.com/BurMachine/Bigtech_microservices/social/internal/app/adapters/social_event_handler"
+	"github.com/BurMachine/Bigtech_microservices/social/internal/app/adapters/users_client"
 	social_grpc "github.com/BurMachine/Bigtech_microservices/social/internal/app/delivery/grpc"
+	"github.com/BurMachine/Bigtech_microservices/social/internal/app/modules/outbox"
 	friends_repo "github.com/BurMachine/Bigtech_microservices/social/internal/app/repositories/friends"
+	"github.com/BurMachine/Bigtech_microservices/social/internal/app/repositories/outbox_repo"
 	"github.com/BurMachine/Bigtech_microservices/social/internal/app/usecases/social"
 	"github.com/BurMachine/Bigtech_microservices/social/internal/config"
 	"github.com/BurMachine/Bigtech_microservices/social/pkg/postgres"
@@ -32,6 +36,7 @@ func main() {
 	defer cancel()
 
 	// Construct
+	eventHandler := social_event_handler.NewKafkaEventsHandler(cfg.Kafka.Brokers)
 
 	dsn := DSN(&cfg.Postgres)
 	conn, err := postgres.NewConnectionPool(ctx, dsn)
@@ -39,12 +44,21 @@ func main() {
 		log.Fatal(err)
 	}
 	txMngr := transaction_manager.New(conn)
+	outboxRepo := outbox_repo.NewRepository(txMngr)
 	repo := friends_repo.NewRepository(txMngr)
-	uc := social.NewUsecases(repo, txMngr)
+	userService, err := users_client.NewClient("8084")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	worker := outbox.NewProcessor(outboxRepo, eventHandler, txMngr)
+	uc := social.NewUsecases(repo, txMngr, outboxRepo, userService)
 	server, err := social_grpc.NewServer(uc)
 	if err != nil {
 		log.Fatalf("failed to create server: %v", err)
 	}
+
+	go worker.Run(ctx)
 
 	var wg sync.WaitGroup
 
@@ -66,6 +80,7 @@ func main() {
 	})
 
 	wg.Wait()
+	ctx.Done()
 }
 
 // support

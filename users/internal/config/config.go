@@ -4,8 +4,6 @@ type Config struct {
 	AddrGrpc string `env:"GRPC" envDefault:":8082"`
 
 	Postgres Postgres `envPrefix:"PG_"`
-
-	Kafka Kafka `envPrefix:"KAFKA_"`
 }
 
 type Postgres struct {
@@ -13,9 +11,5 @@ type Postgres struct {
 	DbPort     string `env:"PORT" envDefault:"5432"`
 	DbUser     string `env:"USER" envDefault:"postgres"`
 	DbPassword string `env:"PASSWORD" envDefault:"postgres_pass"`
-	DbName     string `env:"NAME" envDefault:"social_db"`
-}
-
-type Kafka struct {
-	Brokers []string `env:"BROKERS" envDefault:"localhost:9092"`
+	DbName     string `env:"NAME" envDefault:"users_db"`
 }
