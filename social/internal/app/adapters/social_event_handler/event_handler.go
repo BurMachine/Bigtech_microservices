@@ -36,7 +36,7 @@ func (h *KafkaEventsHandler) HandleBatch(ctx context.Context, events []*models.E
 	for _, ev := range events {
 		messages = append(messages, kafka.Message{
 			Topic: ev.Topic, // ← Теперь работает
-			Key:   []byte(ev.PartitionKey),
+			Key:   []byte(ev.ID.String()),
 			Value: ev.Payload,
 			Time:  ev.CreatedAt,
 		})

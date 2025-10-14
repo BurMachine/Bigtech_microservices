@@ -1,27 +1,40 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 CREATE TABLE inbox_messages (
-                                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                                message_key VARCHAR(255) NOT NULL,  -- Ключ для дедупликации/идентификации сообщения
-                                consumer VARCHAR(100) NOT NULL,     -- Имя потребителя (напр. 'social-notifier')
-                                processed_at TIMESTAMP WITH TIME ZONE NULL,  -- NULL = не обработано
-                                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                                id            UUID         PRIMARY KEY,
+                                topic         TEXT         NOT NULL,
+                                partition     INT          NOT NULL,
+                                kafka_offset  BIGINT       NOT NULL,      -- Переименовано из offset
+                                payload       JSONB        NOT NULL,
+                                status        TEXT         NOT NULL,
+                                attempts      INT          NOT NULL DEFAULT 0,
+                                last_error    TEXT,
+                                received_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
+                                processed_at  TIMESTAMPTZ,
+
+                                CONSTRAINT valid_status CHECK (status IN ('received', 'processing', 'processed', 'failed'))
 );
 
-CREATE INDEX idx_inbox_messages_consumer ON inbox_messages(consumer);
-CREATE INDEX idx_inbox_messages_processed ON inbox_messages(processed_at);
-CREATE INDEX idx_inbox_messages_key ON inbox_messages(message_key);
+-- Индекс для быстрого поиска сообщений по статусу и количеству попыток
+CREATE INDEX idx_inbox_messages_status_attempts
+    ON inbox_messages(status, attempts)
+    WHERE status IN ('received', 'failed');
+
+-- Индекс для дедупликации и быстрого поиска по топику
+CREATE INDEX idx_inbox_messages_topic_partition_offset
+    ON inbox_messages(topic, partition, kafka_offset);
+
+-- Индекс для очистки старых обработанных сообщений
+CREATE INDEX idx_inbox_messages_processed_at
+    ON inbox_messages(processed_at)
+    WHERE processed_at IS NOT NULL;
+
+-- Индекс для временных меток (сортировка и поиск)
+CREATE INDEX idx_inbox_messages_received_at
+    ON inbox_messages(received_at);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP INDEX IF EXISTS idx_inbox_messages_key;
-DROP INDEX IF EXISTS idx_inbox_messages_processed;
-DROP INDEX IF EXISTS idx_inbox_messages_consumer;
-
 DROP TABLE IF EXISTS inbox_messages;
-
-DROP EXTENSION IF EXISTS "uuid-ossp";
 -- +goose StatementEnd
