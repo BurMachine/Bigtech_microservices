@@ -32,19 +32,6 @@ services:
     networks:
       - messenger
     restart: unless-stopped
-    depends_on:
-      postgres-notification:
-        condition: service_healthy
-    command: >
-      sh -c "
-        echo '⏳ Waiting for database...' &&
-        sleep 10 &&
-        echo '🔄 Running migrations...' &&
-        goose -dir /app/migrations postgres 'host=postgres-notification port=5436 user=notification_user password=notification_pass dbname=notification_db sslmode=disable' up &&
-        echo '✅ Migrations completed!' &&
-        echo '🚀 Starting notification Service with Outbox Worker...' &&
-        ./notification-service
-      "
 
 volumes:
   postgres-notification-data:

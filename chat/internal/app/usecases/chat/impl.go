@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -190,7 +191,7 @@ func (s *chatService) SendMessage(ctx context.Context, dto dto.SendMessageDTO) (
 			// Проверка, что чат существует и пользователь имеет доступ
 			chat, err := s.repo.GetChat(txCtx, dto.ChatID)
 			if err != nil {
-				return err // Ошибка мапится на ErrNotFound в репозитории
+				return err
 			}
 
 			if !contains(chat.Participants, currentUserID) {
@@ -201,6 +202,26 @@ func (s *chatService) SendMessage(ctx context.Context, dto dto.SendMessageDTO) (
 			if err != nil {
 				return err
 			}
+
+			payload, err := json.Marshal(message)
+			if err != nil {
+				return fmt.Errorf("%s: failed to marshal message: %w", api, err)
+			}
+
+			event := &models.Event{
+				ID:           uuid.New(),
+				EventType:    "MessageSent",
+				Payload:      payload,
+				PartitionKey: message.ChatID,
+				CreatedAt:    time.Now(),
+				PublishedAt:  nil,
+			}
+
+			err = s.eventHandler.HandleEvent(txCtx, event)
+			if err != nil {
+				return fmt.Errorf("%s: failed to marshal message: %w", api, err)
+			}
+
 			result = message
 			return nil
 		},

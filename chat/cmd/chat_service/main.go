@@ -7,6 +7,7 @@ import (
 	"net"
 	"sync"
 
+	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/adapters/chat_event_handler"
 	chat_grpc "github.com/BurMachine/Bigtech_microservices/chat/internal/app/controllers/grpc"
 	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/repositories/chat_repo"
 	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/usecases/chat"
@@ -33,6 +34,8 @@ func main() {
 	defer cancel()
 
 	// Construct
+	eventHandler := chat_event_handler.NewKafkaEventsHandler(cfg.Kafka.Brokers, cfg.Kafka.Topic)
+
 	dsn := DSN(&cfg.Postgres)
 	conn, err := postgres.NewConnectionPool(ctx, dsn)
 	if err != nil {
@@ -40,7 +43,7 @@ func main() {
 	}
 	txMngr := transaction_manager.New(conn)
 	repo := chat_repo.NewRepository(txMngr)
-	uc := chat.NewUsecases(repo, txMngr)
+	uc := chat.NewUsecases(repo, eventHandler, txMngr)
 	server, err := chat_grpc.NewServer(uc)
 	if err != nil {
 		log.Fatalf("failed to create server: %v", err)

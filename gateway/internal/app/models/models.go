@@ -37,6 +37,7 @@ type UserProfile struct {
 	UserID    string
 	Nickname  string
 	Bio       string
+	Email     string
 	AvatarURL string
 	CreatedAt time.Time
 	UpdatedAt time.Time

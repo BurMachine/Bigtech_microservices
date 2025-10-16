@@ -17,7 +17,7 @@ services:
       - "8078:8078"
       - "8079:8079"
     environment:
-      HTTP_PORT: 8080
+      HTTP_PORT: 8078
       AUTH_SERVICE_URL: auth:50051
       USER_SERVICE_URL: users:50052
       SOCIAL_SERVICE_URL: social:50053

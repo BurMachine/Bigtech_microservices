@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Chat struct {
 	ID           string
@@ -15,4 +19,13 @@ type Message struct {
 	SenderID  string
 	Text      string
 	CreatedAt time.Time `db:"created_at"`
+}
+
+type Event struct {
+	ID           uuid.UUID  `db:"id"`
+	EventType    string     `db:"event_type"`
+	Payload      []byte     `db:"payload"`
+	PartitionKey string     `db:"partition_key"`
+	CreatedAt    time.Time  `db:"created_at"`
+	PublishedAt  *time.Time `db:"published_at"`
 }

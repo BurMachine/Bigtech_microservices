@@ -20,6 +20,10 @@ type (
 		StreamMessages(ctx context.Context, chatID string, sinceUnixMs int64, messageChan chan<- *models.Message) error // Для стрима, заглушка
 	}
 
+	EventHandler interface {
+		HandleEvent(ctx context.Context, event *models.Event) (err error)
+	}
+
 	TransactionManager interface {
 		RunReadCommitted(ctx context.Context, f func(ctx context.Context) error) error
 	}
@@ -44,12 +48,13 @@ var (
 )
 
 type chatService struct {
-	repo ChatRepository
-	tm   TransactionManager
+	repo         ChatRepository
+	eventHandler EventHandler
+	tm           TransactionManager
 }
 
 var _ Usecases = (*chatService)(nil)
 
-func NewUsecases(repo ChatRepository, tm TransactionManager) *chatService {
-	return &chatService{repo: repo, tm: tm}
+func NewUsecases(repo ChatRepository, eventHandler EventHandler, tm TransactionManager) *chatService {
+	return &chatService{repo: repo, eventHandler: eventHandler, tm: tm}
 }
