@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: v1/user/user_service.proto
 
-package user
+package user_repo
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
@@ -31,6 +31,7 @@ type UserProfile struct {
 	AvatarUrl     *string                `protobuf:"bytes,4,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"` // URL аватара пользователя (опционально)
 	CreatedAt     int64                  `protobuf:"varint,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`      // Время создания профиля (timestamp)
 	UpdatedAt     int64                  `protobuf:"varint,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`      // Время последнего обновления профиля (timestamp)
+	Email         string                 `protobuf:"bytes,7,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -107,6 +108,13 @@ func (x *UserProfile) GetUpdatedAt() int64 {
 	return 0
 }
 
+func (x *UserProfile) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
 // Запрос на создание профиля
 type CreateProfileRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -114,6 +122,7 @@ type CreateProfileRequest struct {
 	Nickname      string                 `protobuf:"bytes,2,opt,name=nickname,proto3" json:"nickname,omitempty"`                          // Никнейм пользователя
 	Bio           *string                `protobuf:"bytes,3,opt,name=bio,proto3,oneof" json:"bio,omitempty"`                              // Биография пользователя (опционально)
 	AvatarUrl     *string                `protobuf:"bytes,4,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"` // URL аватара пользователя (опционально)
+	Email         string                 `protobuf:"bytes,5,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -172,6 +181,13 @@ func (x *CreateProfileRequest) GetBio() string {
 func (x *CreateProfileRequest) GetAvatarUrl() string {
 	if x != nil && x.AvatarUrl != nil {
 		return *x.AvatarUrl
+	}
+	return ""
+}
+
+func (x *CreateProfileRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
 	}
 	return ""
 }
@@ -437,7 +453,7 @@ var File_v1_user_user_service_proto protoreflect.FileDescriptor
 
 const file_v1_user_user_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1av1/user/user_service.proto\x123github.com.BurMachine.Bigtech_microservices.v1.user\x1a\x1bbuf/validate/validate.proto\"\xd2\x01\n" +
+	"\x1av1/user/user_service.proto\x123github.com.BurMachine.Bigtech_microservices.v1.user\x1a\x1bbuf/validate/validate.proto\"\xe8\x01\n" +
 	"\vUserProfile\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
 	"\bnickname\x18\x02 \x01(\tR\bnickname\x12\x15\n" +
@@ -447,15 +463,17 @@ const file_v1_user_user_service_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\x03R\tupdatedAtB\x06\n" +
+	"updated_at\x18\x06 \x01(\x03R\tupdatedAt\x12\x14\n" +
+	"\x05email\x18\a \x01(\tR\x05emailB\x06\n" +
 	"\x04_bioB\r\n" +
-	"\v_avatar_url\"\xc5\x01\n" +
+	"\v_avatar_url\"\xdb\x01\n" +
 	"\x14CreateProfileRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x128\n" +
 	"\bnickname\x18\x02 \x01(\tB\x1c\xbaH\x19r\x17\x10\x03\x18\x142\x11^[a-z0-9_]{3,20}$R\bnickname\x12\x15\n" +
 	"\x03bio\x18\x03 \x01(\tH\x00R\x03bio\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"avatar_url\x18\x04 \x01(\tH\x01R\tavatarUrl\x88\x01\x01B\x06\n" +
+	"avatar_url\x18\x04 \x01(\tH\x01R\tavatarUrl\x88\x01\x01\x12\x14\n" +
+	"\x05email\x18\x05 \x01(\tR\x05emailB\x06\n" +
 	"\x04_bioB\r\n" +
 	"\v_avatar_url\"\xd7\x01\n" +
 	"\x14UpdateProfileRequest\x12!\n" +
@@ -481,8 +499,8 @@ const file_v1_user_user_service_proto_rawDesc = "" +
 	"\rUpdateProfile\x12I.github.com.BurMachine.Bigtech_microservices.v1.user.UpdateProfileRequest\x1a@.github.com.BurMachine.Bigtech_microservices.v1.user.UserProfile\"\x00\x12\xa0\x01\n" +
 	"\x0eGetProfileByID\x12J.github.com.BurMachine.Bigtech_microservices.v1.user.GetProfileByIDRequest\x1a@.github.com.BurMachine.Bigtech_microservices.v1.user.UserProfile\"\x00\x12\xac\x01\n" +
 	"\x14GetProfileByNickname\x12P.github.com.BurMachine.Bigtech_microservices.v1.user.GetProfileByNicknameRequest\x1a@.github.com.BurMachine.Bigtech_microservices.v1.user.UserProfile\"\x00\x12\xb1\x01\n" +
-	"\x10SearchByNickname\x12L.github.com.BurMachine.Bigtech_microservices.v1.user.SearchByNicknameRequest\x1aM.github.com.BurMachine.Bigtech_microservices.v1.user.SearchByNicknameResponse\"\x00B\xff\x02\n" +
-	"7com.github.com.BurMachine.Bigtech_microservices.v1.userB\x10UserServiceProtoP\x01ZBgithub.com/BurMachine/Bigtech_microservices/users/pkg/v1/user;user\xa2\x02\x06GCBBVU\xaa\x022Github.Com.BurMachine.BigtechMicroservices.V1.User\xca\x022Github\\Com\\BurMachine\\BigtechMicroservices\\V1\\User\xe2\x02>Github\\Com\\BurMachine\\BigtechMicroservices\\V1\\User\\GPBMetadata\xea\x027Github::Com::BurMachine::BigtechMicroservices::V1::Userb\x06proto3"
+	"\x10SearchByNickname\x12L.github.com.BurMachine.Bigtech_microservices.v1.user.SearchByNicknameRequest\x1aM.github.com.BurMachine.Bigtech_microservices.v1.user.SearchByNicknameResponse\"\x00B\x89\x03\n" +
+	"7com.github.com.BurMachine.Bigtech_microservices.v1.userB\x10UserServiceProtoP\x01ZLgithub.com/BurMachine/Bigtech_microservices/users/pkg/v1/user_repo;user_repo\xa2\x02\x06GCBBVU\xaa\x022Github.Com.BurMachine.BigtechMicroservices.V1.User\xca\x022Github\\Com\\BurMachine\\BigtechMicroservices\\V1\\User\xe2\x02>Github\\Com\\BurMachine\\BigtechMicroservices\\V1\\User\\GPBMetadata\xea\x027Github::Com::BurMachine::BigtechMicroservices::V1::Userb\x06proto3"
 
 var (
 	file_v1_user_user_service_proto_rawDescOnce sync.Once
