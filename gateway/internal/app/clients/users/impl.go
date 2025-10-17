@@ -20,7 +20,7 @@ func (c *Client) CreateProfile(ctx context.Context, in models.UserProfile) (mode
 		Nickname:  in.Nickname,
 		Bio:       &in.Bio,
 		AvatarUrl: &in.AvatarURL,
-		Email:     in.Email,
+		//Email:     in.Email,
 	}
 	resp, err := c.Client.CreateProfile(ctx, req)
 	if err != nil {

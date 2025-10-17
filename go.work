@@ -7,8 +7,6 @@ use (
 	./social
 	./users
 	./notification
-	./_e2e
-
 )
 
 replace google.golang.org/genproto => google.golang.org/genproto/googleapis/rpc v0.0.0-20250908214217-97024824d090
