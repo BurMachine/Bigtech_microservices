@@ -4,11 +4,8 @@ import (
 	"context"
 
 	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/models"
-	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/usecases/chat"
 	pb "github.com/BurMachine/Bigtech_microservices/chat/pkg/v1/chat"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func (s *Service) CreateDirectChat(ctx context.Context, request *pb.CreateDirectChatRequest) (*pb.CreateDirectChatResponse, error) {
@@ -17,14 +14,7 @@ func (s *Service) CreateDirectChat(ctx context.Context, request *pb.CreateDirect
 	// Запуск usecase
 	chatID, err := s.usecase.CreateDirectChat(ctx, dtoReq)
 	if err != nil {
-		switch err {
-		case chat.ErrChatAlreadyExists:
-			return nil, status.Error(codes.AlreadyExists, err.Error())
-		case chat.ErrInvalidArgument:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, "internal error")
-		}
+		return nil, err
 	}
 
 	// Конвертер: результат -> pb.Response
@@ -38,16 +28,7 @@ func (s *Service) GetChat(ctx context.Context, request *pb.GetChatRequest) (*pb.
 	// Запуск usecase
 	chatModel, err := s.usecase.GetChat(ctx, dtoReq)
 	if err != nil {
-		switch err {
-		case chat.ErrNotFound:
-			return nil, status.Error(codes.NotFound, err.Error())
-		case chat.ErrPermissionDenied:
-			return nil, status.Error(codes.PermissionDenied, err.Error())
-		case chat.ErrInvalidArgument:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, "internal error")
-		}
+		return nil, err
 	}
 
 	// Конвертер: model -> pb.Chat
@@ -61,12 +42,7 @@ func (s *Service) ListUserChats(ctx context.Context, request *pb.ListUserChatsRe
 	// Запуск usecase
 	chats, err := s.usecase.ListUserChats(ctx, dtoReq)
 	if err != nil {
-		switch err {
-		case chat.ErrInvalidArgument:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, "internal error")
-		}
+		return nil, err
 	}
 
 	// Конвертер: models -> pb.Response
@@ -80,12 +56,7 @@ func (s *Service) ListChatMembers(ctx context.Context, request *pb.ListChatMembe
 	// Запуск usecase
 	userIDs, err := s.usecase.ListChatMembers(ctx, dtoReq)
 	if err != nil {
-		switch err {
-		case chat.ErrInvalidArgument:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, "internal error")
-		}
+		return nil, err
 	}
 
 	// Конвертер: []string -> pb.Response
@@ -99,14 +70,7 @@ func (s *Service) SendMessage(ctx context.Context, request *pb.SendMessageReques
 	// Запуск usecase
 	messageModel, err := s.usecase.SendMessage(ctx, dtoReq)
 	if err != nil {
-		switch err {
-		case chat.ErrInvalidArgument:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		case chat.ErrPermissionDenied:
-			return nil, status.Error(codes.PermissionDenied, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, "internal error")
-		}
+		return nil, err
 	}
 
 	// Конвертер: model -> pb.Message
@@ -120,12 +84,7 @@ func (s *Service) ListMessages(ctx context.Context, request *pb.ListMessagesRequ
 	// Запуск usecase
 	messages, nextCursor, err := s.usecase.ListMessages(ctx, dtoReq)
 	if err != nil {
-		switch err {
-		case chat.ErrInvalidArgument:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, "internal error")
-		}
+		return nil, err
 	}
 
 	// Конвертер: models + cursor -> pb.Response
@@ -138,12 +97,10 @@ func (s *Service) StreamMessages(request *pb.StreamMessagesRequest, stream grpc.
 	messageChan := make(chan *models.Message)
 
 	go func() {
-		// Убираем defer close(messageChan) отсюда, т.к. закрытие канала должно быть ответственностью usecase
+		//  закрытие канала должно быть ответственностью usecase
 		err := s.usecase.StreamMessages(context.Background(), dtoReq, messageChan)
 		if err != nil {
-			// Логировать ошибку, но не прерывать stream
-			// Если usecase не закрывает канал при ошибке, нужно закрыть его здесь
-			// Но лучше изменить usecase, чтобы он всегда закрывал канал
+			defer close(messageChan)
 		}
 	}()
 
