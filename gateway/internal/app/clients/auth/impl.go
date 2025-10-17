@@ -12,10 +12,13 @@ func (c *Client) Register(ctx context.Context, in models.AuthRegisterRequest) (m
 		Email:    in.Email,
 		Password: in.Password,
 	}
+
 	resp, err := c.Client.Register(ctx, req)
+
 	if err != nil {
 		return models.AuthRegisterResponse{}, err
 	}
+
 	return models.AuthRegisterResponse{
 		UserID: resp.UserId,
 	}, nil
@@ -27,9 +30,11 @@ func (c *Client) Login(ctx context.Context, in models.AuthLoginRequest) (models.
 		Password: in.Password,
 	}
 	resp, err := c.Client.Login(ctx, req)
+
 	if err != nil {
 		return models.AuthLoginResponse{}, err
 	}
+
 	return models.AuthLoginResponse{
 		AccessToken:  resp.AccessToken,
 		RefreshToken: resp.RefreshToken,
@@ -41,10 +46,13 @@ func (c *Client) Refresh(ctx context.Context, in models.AuthRefreshRequest) (mod
 	req := &auth.RefreshRequest{
 		RefreshToken: in.RefreshToken,
 	}
+
 	resp, err := c.Client.Refresh(ctx, req)
+
 	if err != nil {
 		return models.AuthRefreshResponse{}, err
 	}
+
 	return models.AuthRefreshResponse{
 		AccessToken:  resp.AccessToken,
 		RefreshToken: resp.RefreshToken,
