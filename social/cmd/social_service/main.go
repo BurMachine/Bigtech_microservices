@@ -10,6 +10,7 @@ import (
 	social_grpc "github.com/BurMachine/Bigtech_microservices/social/internal/app/delivery/grpc"
 	friends_repo "github.com/BurMachine/Bigtech_microservices/social/internal/app/repositories/friends"
 	"github.com/BurMachine/Bigtech_microservices/social/internal/app/usecases/social"
+	middleware_grpc "github.com/BurMachine/Bigtech_microservices/social/internal/middleware/grpc"
 	pb "github.com/BurMachine/Bigtech_microservices/social/pkg/v1/social"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -31,7 +32,19 @@ func main() {
 	var wg sync.WaitGroup
 
 	wg.Go(func() {
-		grpcServer := grpc.NewServer()
+		grpcServer := grpc.NewServer(
+			// Unary интерцепторы (порядок важен!)
+			grpc.ChainUnaryInterceptor(
+				middleware_grpc.RecoveryUnaryServerInterceptor(),
+				middleware_grpc.ErrorUnaryServerInterceptor(),
+			),
+			// Stream интерцепторы
+			grpc.ChainStreamInterceptor(
+				middleware_grpc.RecoveryStreamServerInterceptor(),
+				middleware_grpc.ErrorStreamServerInterceptor(),
+			),
+		)
+		
 		pb.RegisterSocialServiceServer(grpcServer, server)
 
 		reflection.Register(grpcServer)

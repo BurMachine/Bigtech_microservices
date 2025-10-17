@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/di"
+	middleware_grpc "github.com/BurMachine/Bigtech_microservices/users/internal/middleware/grpc"
 	pb "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -29,7 +30,19 @@ func main() {
 	go func() {
 		defer wg.Done()
 
-		grpcServer := grpc.NewServer()
+		grpcServer := grpc.NewServer(
+			// Unary интерцепторы (порядок важен!)
+			grpc.ChainUnaryInterceptor(
+				middleware_grpc.RecoveryUnaryServerInterceptor(),
+				middleware_grpc.ErrorUnaryServerInterceptor(),
+			),
+			// Stream интерцепторы
+			grpc.ChainStreamInterceptor(
+				middleware_grpc.RecoveryStreamServerInterceptor(),
+				middleware_grpc.ErrorStreamServerInterceptor(),
+			),
+		)
+
 		pb.RegisterUserServiceServer(grpcServer, server)
 
 		reflection.Register(grpcServer)

@@ -6,7 +6,8 @@ services:
     image: gateway:latest
     container_name: gateway
     ports:
-      - "8080:8080"
+      - "8078:8078"
+      - "8079:8079"
     environment:
       - ENV_VAR_EXAMPLE=value
     volumes:

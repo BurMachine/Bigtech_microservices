@@ -40,8 +40,8 @@ func main() {
 		),
 		// Stream интерцепторы
 		grpc.ChainStreamInterceptor(
-			middleware_grpc.RecoveryStreamServerInterceptor(), // 1. Recovery для стримов
-			middleware_grpc.ErrorStreamServerInterceptor(),    // 2. Обработка ошибок для стримов
+			middleware_grpc.RecoveryStreamServerInterceptor(),
+			middleware_grpc.ErrorStreamServerInterceptor(),
 		),
 	)
 

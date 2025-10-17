@@ -27,9 +27,10 @@ type Usecases interface {
 }
 
 var (
-	ErrAlreadyExists   = errors.New("profile already exists")
-	ErrInvalidArgument = errors.New("invalid argument")
-	ErrNotFound        = errors.New("profile not found")
+	ErrAlreadyExists    = errors.New("profile already exists")
+	ErrInvalidArgument  = errors.New("invalid argument")
+	ErrNotFound         = errors.New("profile not found")
+	ErrPermissionDenied = errors.New("permission denied")
 )
 
 type userService struct {

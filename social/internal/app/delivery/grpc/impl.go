@@ -3,10 +3,7 @@ package social_grpc
 import (
 	"context"
 
-	"github.com/BurMachine/Bigtech_microservices/social/internal/app/usecases/social"
 	pb "github.com/BurMachine/Bigtech_microservices/social/pkg/v1/social"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func (s *Service) SendFriendRequest(ctx context.Context, request *pb.SendFriendRequestRequest) (*pb.FriendRequest, error) {
@@ -16,16 +13,7 @@ func (s *Service) SendFriendRequest(ctx context.Context, request *pb.SendFriendR
 	// Запуск usecases
 	friendRequest, err := s.usecases.SendFriendRequest(ctx, dtoReq)
 	if err != nil {
-		switch err {
-		case social.ErrInvalidArgument:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		case social.ErrAlreadyExists:
-			return nil, status.Error(codes.AlreadyExists, err.Error())
-		case social.ErrNotFound:
-			return nil, status.Error(codes.NotFound, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, "internal error")
-		}
+		return nil, err
 	}
 
 	// Конвертер: model -> pb.FriendRequest
@@ -39,12 +27,7 @@ func (s *Service) ListRequests(ctx context.Context, request *pb.ListRequestsRequ
 	// Запуск usecases
 	requests, err := s.usecases.ListRequests(ctx, dtoReq)
 	if err != nil {
-		switch err {
-		case social.ErrInvalidArgument:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, "internal error")
-		}
+		return nil, err
 	}
 
 	// Конвертер: models -> pb.ListRequestsResponse
@@ -58,16 +41,7 @@ func (s *Service) AcceptFriendRequest(ctx context.Context, request *pb.AcceptFri
 	// Запуск usecases
 	friendRequest, err := s.usecases.AcceptFriendRequest(ctx, dtoReq)
 	if err != nil {
-		switch err {
-		case social.ErrNotFound:
-			return nil, status.Error(codes.NotFound, err.Error())
-		case social.ErrPermissionDenied:
-			return nil, status.Error(codes.PermissionDenied, err.Error())
-		case social.ErrInvalidArgument:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, "internal error")
-		}
+		return nil, err
 	}
 
 	// Конвертер: model -> pb.FriendRequest
@@ -81,16 +55,7 @@ func (s *Service) DeclineFriendRequest(ctx context.Context, request *pb.DeclineF
 	// Запуск usecases
 	friendRequest, err := s.usecases.DeclineFriendRequest(ctx, dtoReq)
 	if err != nil {
-		switch err {
-		case social.ErrNotFound:
-			return nil, status.Error(codes.NotFound, err.Error())
-		case social.ErrPermissionDenied:
-			return nil, status.Error(codes.PermissionDenied, err.Error())
-		case social.ErrInvalidArgument:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, "internal error")
-		}
+		return nil, err
 	}
 
 	// Конвертер: model -> pb.FriendRequest
@@ -104,14 +69,7 @@ func (s *Service) RemoveFriend(ctx context.Context, request *pb.RemoveFriendRequ
 	// Запуск usecases
 	err := s.usecases.RemoveFriend(ctx, dtoReq)
 	if err != nil {
-		switch err {
-		case social.ErrNotFound:
-			return nil, status.Error(codes.NotFound, err.Error())
-		case social.ErrInvalidArgument:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, "internal error")
-		}
+		return nil, err
 	}
 
 	// Конвертер: пустой -> pb.RemoveFriendResponse
@@ -119,18 +77,12 @@ func (s *Service) RemoveFriend(ctx context.Context, request *pb.RemoveFriendRequ
 }
 
 func (s *Service) ListFriends(ctx context.Context, request *pb.ListFriendsRequest) (*pb.ListFriendsResponse, error) {
-	// Конвертер: pb.Request -> dto.DTO
 	dtoReq := dtoListFriendsFromListFriendsRequest(request)
 
 	// Запуск usecases
 	friendUserIDs, nextCursor, err := s.usecases.ListFriends(ctx, dtoReq)
 	if err != nil {
-		switch err {
-		case social.ErrInvalidArgument:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, "internal error")
-		}
+		return nil, err
 	}
 
 	// Конвертер: []string + cursor -> pb.ListFriendsResponse
