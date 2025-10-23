@@ -1,0 +1,275 @@
+---
+# Раздел app: Глобальные настройки приложения. Опциональный, но полезен для мета-данных.
+#app:
+#  name: my-app                                            # Optional, default: "rk-app" — Имя приложения (используется в заголовках, логах).
+#  version: "v1.0.0"                                       # Optional, default: "v0.0.0" — Версия приложения.
+#  description: "this is description"                      # Optional, default: "" — Описание приложения.
+#  keywords: ["rk", "golang"]                              # Optional, default: [] — Ключевые слова для приложения (для поиска или тегов).
+#  homeUrl: "http://example.com"                           # Optional, default: "" — Домашний URL приложения.
+#  docsUrl: ["http://example.com"]                         # Optional, default: [] — URL-ы документации.
+#  maintainers: ["rk-dev"]                                 # Optional, default: [] — Список мейнтейнеров.
+
+# Раздел logger: Настройки логгера. Можно создать несколько, ссылаться по name. Используется для логирования запросов/ошибок.
+#logger:
+#  - name: my-logger                                       # Required — Уникальное имя логгера.
+#    description: "Description of entry"                   # Optional, default: "" — Описание логгера.
+#    domain: "*"                                           # Optional, default: "*" — Доменный фильтр (для мульти-доменных setup).
+#    default: false                                        # Optional, default: false — Сделать этот логгер дефолтным.
+#    zap:                                                  # Optional — Конфигурация zap-логгера (основной логгер в rk-boot).
+#      level: info                                         # Optional, default: info — Уровень логирования (debug, info, warn, error).
+#      development: true                                   # Optional, default: true — Режим разработки (добавляет стек-трейсы).
+#      disableCaller: false                                # Optional, default: false — Отключить информацию о вызывающем коде.
+#      disableStacktrace: true                             # Optional, default: true — Отключить стек-трейсы в логах.
+#      encoding: console
+# Optional, default: console — Формат вывода (console для читаемого, json для продакшена).
+#      outputPaths: ["stdout"]                             # Optional, default: [stdout] — Пути вывода логов (stdout, stderr или файл).
+#      errorOutputPaths: ["stderr"]                        # Optional, default: [stderr] — Пути для ошибок.
+#      encoderConfig:                                      # Optional — Настройки энкодера.
+#        timeKey: "ts"                                     # Optional, default: ts — Ключ для timestamp.
+#        levelKey: "level"                                 # Optional, default: level — Ключ для уровня.
+#        nameKey: "logger"                                 # Optional, default: logger — Ключ для имени логгера.
+#        callerKey: "caller"                               # Optional, default: caller — Ключ для вызывающего.
+#        messageKey: "msg"                                 # Optional, default: msg — Ключ для сообщения.
+#        stacktraceKey: "stacktrace"                       # Optional, default: stacktrace — Ключ для стек-трейса.
+#        skipLineEnding: false                             # Optional, default: false — Пропустить конец строки.
+#        lineEnding: "\n"                                  # Optional, default: \n — Символ конца строки.
+#        consoleSeparator: "\t"                            # Optional, default: \t — Разделитель в консольном формате.
+#      sampling:                                           # Optional, default: nil — Сэмплинг для высоконагруженных логов.
+#        initial: 0                                        # Optional, default: 0 — Начальный сэмплинг.
+#        thereafter: 0                                     # Optional, default: 0 — Последующий сэмплинг.
+#      initialFields:                                      # Optional, default: {} — Начальные поля в логах (ключ-значение).
+#        key: value
+#    lumberjack:                                           # Optional, default: nil — Ротация файлов (lumberjack hook).
+#      filename: "logs/app.log"                            # Optional — Имя файла лога.
+#      maxsize: 1024                                       # Optional, default: 1024 (MB) — Макс. размер файла.
+#      maxage: 7                                           # Optional, default: 7 (дней) — Макс. возраст файла.
+#      maxbackups: 3                                       # Optional, default: 3 — Макс. количество бэкапов.
+#      localtime: true                                     # Optional, default: true — Использовать локальное время.
+#      compress: true                                      # Optional, default: true — Сжимать бэкапы.
+#    loki:                                                 # Optional — Интеграция с Loki (для отправки логов в Loki).
+#      enabled: true                                       # Optional, default: false — Включить отправку в Loki.
+#      addr: localhost:3100                                # Optional, default: localhost:3100 — Адрес Loki.
+#      path: /loki/api/v1/push                             # Optional, default: /loki/api/v1/push — Путь для пуша.
+#      username: ""                                        # Optional, default: "" — Имя пользователя для auth.
+#      password: ""                                        # Optional, default: "" — Пароль для auth.
+#      maxBatchWaitMs: 3000                                # Optional, default: 3000 — Макс. ожидание батча (ms).
+#      maxBatchSize: 1000                                  # Optional, default: 1000 — Макс. размер батча.
+#      insecureSkipVerify: false                           # Optional, default: false — Пропустить проверку TLS.
+#      labels:                                             # Optional, default: {} — Лейблы для логов.
+#        my_label_key: my_label_value
+
+# Раздел event: Настройки для event-логгера (для трекинга событий, вроде запросов). Похож на logger.
+#event:
+#  - name: my-event                                        # Required — Уникальное имя.
+#    description: "Description of entry"                   # Optional, default: "" — Описание.
+#    domain: "*"                                           # Optional, default: "*" — Доменный фильтр.
+#    encoding: console                                     # Optional, default: console — Формат (console, json, flatten).
+#    default: false                                        # Optional, default: false — Дефолтный event.
+#    outputPaths: ["stdout"]                               # Optional, default: [stdout] — Пути вывода.
+#    lumberjack:                                           # Optional — Ротация, аналогично logger.
+#      filename: "events.log"
+#      maxsize: 1024
+#      maxage: 7
+#      maxbackups: 3
+#      localtime: true
+#      compress: true
+#    loki:                                                 # Optional — Loki, аналогично logger.
+#      enabled: true
+#      addr: localhost:3100
+#      path: /loki/api/v1/push
+#      username: ""
+#      password: ""
+#      maxBatchWaitMs: 3000
+#      maxBatchSize: 1000
+#      insecureSkipVerify: false
+#      labels:
+#        my_label_key: my_label_value
+
+# Раздел cert: Сертификаты для TLS/HTTPS. Ссылается в других entries.
+#cert:
+#  - name: my-cert                                         # Required — Уникальное имя.
+#    description: "Description of entry"                   # Optional, default: "" — Описание.
+#    domain: "*"                                           # Optional, default: "*" — Доменный фильтр.
+#    caPath: "certs/ca.pem"                                # Optional, default: "" — Путь к CA-сертификату.
+#    certPemPath: "certs/server-cert.pem"                  # Optional, default: "" — Путь к серверному сертификату.
+#    keyPemPath: "certs/server-key.pem"                    # Optional, default: "" — Путь к приватному ключу.
+
+# Раздел config: Внешние конфиги (для загрузки из файлов или env).
+#config:
+#  - name: my-config                                       # Required — Уникальное имя.
+#    description: "Description of entry"                   # Optional, default: "" — Описание.
+#    domain: "*"                                           # Optional, default: "*" — Доменный фильтр.
+#    path: "config/config.yaml"                            # Optional — Путь к файлу конфига.
+#    envPrefix: ""                                         # Optional, default: "" — Префикс для env-переменных.
+#    content:                                              # Optional, default: {} — Inline-контент конфига.
+#      key: value
+
+# Раздел grpc: Конфигурация gRPC-сервера(ов). Массив для нескольких инстансов.
+grpc:
+  - name: greeter                                          # Required — Уникальное имя entry.
+    enabled: true                                          # Required — Включить (true/false).
+    port: 8080                                             # Required — Порт gRPC-сервера.
+    gwPort: 8081                                           # Optional, default: port — Отдельный порт для grpc-gateway (HTTP-шлюз).
+    description: "greeter server"                          # Optional, default: "" — Описание.
+    enableReflection: true                                 # Optional, default: false — Включить reflection (для инструментов вроде grpcurl).
+    enableRkGwOption: true                                 # Optional, default: false — Включить RK-специфичные опции для gateway.
+    grpcWeb:                                               # Optional — Конфиг для gRPC-Web (браузерная поддержка).
+      enabled: true                                        # Optional, default: false — Включить gRPC-Web.
+      cors:                                                # Optional — CORS для gRPC-Web.
+        allowOrigins: ["*"]                                # Optional, default: [*] — Разрешенные origins.
+      websocket:                                           # Optional — WebSocket для gRPC-Web.
+        enabled: true                                      # Optional, default: false — Включить WebSocket.
+        pingIntervalMs: 10                                 # Optional, default: disabled — Интервал пинга (ms).
+        messageReadLimitBytes: 32769                       # Optional, default: 32769 — Лимит чтения сообщений (байты).
+    gwOption:                                              # Optional — Опции marshal/unmarshal для gateway.
+      marshal:                                             # Optional — Marshal-опции.
+        multiline: false                                   # Optional, default: false — Многострочный JSON.
+        emitUnpopulated: false                             # Optional, default: false — Выдавать непопуляризированные поля.
+        indent: ""                                         # Optional, default: "" — Индент.
+        allowPartial: false                                # Optional, default: false — Разрешить частичный JSON.
+        useProtoNames: false                               # Optional, default: false — Использовать proto-имена.
+        useEnumNumbers: false                              # Optional, default: false — Использовать номера enum.
+      unmarshal:                                           # Optional — Unmarshal-опции.
+        allowPartial: false                                # Optional, default: false — Разрешить частичный.
+        discardUnknown: false                              # Optional, default: false — Отбрасывать неизвестные поля.
+    noRecvMsgSizeLimit: true                               # Optional, default: false — Отключить лимит размера входящих сообщений.
+    certEntry: my-cert                                     # Optional, default: "" — Ссылка на cert для TLS.
+    loggerEntry: my-logger                                 # Optional, default: "" — Ссылка на logger (иначе STDOUT).
+    eventEntry: my-event                                   # Optional, default: "" — Ссылка на event (иначе STDOUT).
+    sw:                                                    # Optional — Swagger UI.
+      enabled: true                                        # Optional, default: false — Включить Swagger.
+      path: "sw"                                           # Optional, default: "sw" — Путь (/sw).
+      jsonPath: ["docs/swagger.json"]                      # Optional, default: [] — Пути к Swagger JSON.
+      headers: ["key:value"]                               # Optional, default: [] — Заголовки для доступа.
+    docs:                                                  # Optional — Docs UI (RapiDoc).
+      enabled: true                                        # Optional, default: false — Включить Docs.
+      path: "docs"                                         # Optional, default: "docs" — Путь (/docs).
+      specPath: "sw"                                       # Optional, default: "sw" — Путь к спецификации.
+      headers: ["key:value"]                               # Optional, default: [] — Заголовки.
+    prom:                                                  # Optional — Prometheus метрики.
+      enabled: true                                        # Optional, default: false — Включить.
+      path: "metrics"                                      # Optional, default: "metrics" — Путь (/metrics).
+      pusher:                                              # Optional — Пуш в Prometheus Pushgateway.
+        enabled: false                                     # Optional, default: false — Включить пуш.
+        jobName: "greeter-pusher"                          # Optional, default: "" — Имя джоба.
+        remoteAddress: ""                                  # Optional, default: "" — Адрес Pushgateway.
+        basicAuth: ""                                      # Optional, default: "" — Basic auth.
+        intervalMs: 10000                                  # Optional, default: 10000 — Интервал пуша (ms).
+        certEntry: ""                                      # Optional, default: "" — Cert для пуша.
+    commonService:                                         # Optional — Common service эндпоинты (ready, alive и т.д.).
+      enabled: true                                        # Optional, default: false — Включить.
+      pathPrefix: "/rk/v1/"                                # Optional, default: "/rk/v1/" — Префикс путей.
+    tv:                                                    # Optional — TV (web UI для отладки).
+      enabled: true                                        # Optional, default: false — Включить.
+      path: "tv"                                           # Optional, default: "tv" — Путь (/tv).
+    pprof:                                                 # Optional — pprof для профилирования.
+      enabled: true                                        # Optional, default: false — Включить.
+      path: "pprof"                                        # Optional, default: "pprof" — Путь (/pprof).
+    middleware:                                            # Optional — Middleware для всех запросов.
+      ignore: [""]                                         # Optional, default: [] — Игнорировать пути (глобы).
+      logging:                                             # Optional — Логирование.
+        enabled: true                                      # Optional, default: false — Включить.
+        ignore: [""]                                       # Optional, default: [] — Игнорировать пути.
+        loggerEntry: ""                                    # Optional, default: "" — Ссылка на logger.
+        zapLoggerEntry: ""                                 # Optional, default: "" — Ссылка на zap-logger.
+        eventLoggerEntry: ""                               # Optional, default: "" — Ссылка на event.
+      prom:                                                # Optional — Prometheus метрики.
+        enabled: true                                      # Optional, default: false — Включить.
+        ignore: [""]                                       # Optional, default: [] — Игнорировать.
+      auth:                                                # Optional — Аутентификация (Basic или API-key).
+        enabled: true                                      # Optional, default: false — Включить.
+        ignore: [""]                                       # Optional, default: [] — Игнорировать.
+        basic: ["user:pass"]                               # Optional, default: [] — Basic auth пары.
+        apiKey:                                            # Optional — API-key auth.
+          xApiKey: ["key1"]                                # Optional, default: [] — Ключи для X-API-Key.
+      meta:                                                # Optional — Мета-данные (добавляет заголовки вроде X-Request-Id).
+        enabled: true                                      # Optional, default: false — Включить.
+        ignore: [""]                                       # Optional, default: [] — Игнорировать.
+        prefix: "rk"                                       # Optional, default: "rk" — Префикс заголовков.
+      trace:                                               # Optional — Трейсинг (Jaeger или Zipkin).
+        enabled: true                                      # Optional, default: false — Включить.
+        ignore: [""]                                       # Optional, default: [] — Игнорировать.
+        exporter:                                          # Optional — Экспортер трейсов.
+          file:                                            # Optional — Файловый экспортер.
+            enabled: false                                 # Optional, default: false — Включить.
+            outputPath: ""                                 # Optional, default: "" — Путь к файлу.
+          zipkin:                                          # Optional — Zipkin.
+            enabled: false                                 # Optional, default: false — Включить.
+            url: ""                                        # Optional, default: "" — URL Zipkin.
+          jaeger:                                          # Optional — Jaeger.
+            agent:                                         # Optional — Jaeger agent.
+              enabled: false                               # Optional, default: false — Включить.
+              hostname: ""                                 # Optional, default: "" — Хост.
+              port: 0                                      # Optional, default: 0 — Порт.
+            collector:                                     # Optional — Jaeger collector.
+              enabled: false                               # Optional, default: false — Включить.
+              endpoint: ""                                 # Optional, default: "" — Endpoint.
+              username: ""                                 # Optional, default: "" — Username.
+              password: ""                                 # Optional, default: "" — Password.
+      rateLimit:                                           # Optional — Rate limiting.
+        enabled: true                                      # Optional, default: false — Включить.
+        ignore: [""]                                       # Optional, default: [] — Игнорировать.
+        algorithm: "tokenBucket"                           # Optional, default: "tokenBucket" — Алгоритм (tokenBucket или leakyBucket).
+        paths:                                             # Optional — Лимиты по путям.
+          - path: ""                                       # Optional — Путь (глоб).
+            reqPerSec: 100                                 # Optional, default: 100 — Запросов в секунду.
+      timeout:                                             # Optional — Таймауты.
+        enabled: true                                      # Optional, default: false — Включить.
+        ignore: [""]                                       # Optional, default: [] — Игнорировать.
+        timeoutMs: 5000                                    # Optional, default: 5000 — Глобальный таймаут (ms).
+        paths:                                             # Optional — Таймауты по путям.
+          - path: ""                                       # Optional — Путь.
+            timeoutMs: 5000                                # Optional — Таймаут для пути.
+            responseCode: 408                              # Optional, default: 408 — Код ответа при таймауте.
+      jwt:                                                 # Optional — JWT-аутентификация.
+        enabled: true                                      # Optional, default: false — Включить.
+        ignore: [""]                                       # Optional, default: [] — Игнорировать.
+        signerEntry: ""                                    # Optional, default: "" — Ссылка на signer.
+        symmetric:                                         # Optional — Симметричный JWT.
+          algorithm: "HS256"                               # Optional, default: "HS256" — Алгоритм (HS256, HS384, HS512).
+          token: ""                                        # Optional — Токен (base64).
+          tokenPath: ""                                    # Optional — Путь к токену.
+        asymmetric:                                        # Optional — Асимметричный JWT.
+          algorithm: "RS256"                               # Optional, default: "RS256" — Алгоритм (RS256, RS384, RS512, ES256, ES384, ES512).
+          privateKey: ""                                   # Optional — Приватный ключ (base64).
+          privateKeyPath: ""                               # Optional — Путь к приватному ключу.
+          publicKey: ""                                    # Optional — Публичный ключ (base64).
+          publicKeyPath: ""                                # Optional — Путь к публичному ключу.
+        tokenLookup: "Authorization:Bearer"                # Optional, default: "Authorization:Bearer" — Где искать токен.
+        authScheme: "Bearer"                               # Optional, default: "Bearer" — Схема auth.
+      secure:                                              # Optional — Secure заголовки (HSTS, etc.).
+        enabled: true                                      # Optional, default: false — Включить.
+        ignore: [""]                                       # Optional, default: [] — Игнорировать.
+        xssProtection: "1; mode=block"                     # Optional, default: "1; mode=block" — XSS protection.
+        contentTypeNosniff: "nosniff"                      # Optional, default: "nosniff" — Content-Type nosniff.
+        xFrameOptions: "SAMEORIGIN"                        # Optional, default: "SAMEORIGIN" — X-Frame-Options.
+        hstsMaxAge: 0                                      # Optional, default: 0 — HSTS max age.
+        hstsExcludeSubdomains: false                       # Optional, default: false — Исключить субдомены в HSTS.
+        hstsPreloadEnabled: false                          # Optional, default: false — Preload HSTS.
+        contentSecurityPolicy: ""                          # Optional, default: "" — CSP.
+        cspReportOnly: false                               # Optional, default: false — Только отчет CSP.
+        referrerPolicy: "same-origin"                      # Optional, default: "same-origin" — Referrer policy.
+      csrf:                                                # Optional — CSRF защита.
+        enabled: true                                      # Optional, default: false — Включить.
+        ignore: [""]                                       # Optional, default: [] — Игнорировать.
+        tokenLength: 32                                    # Optional, default: 32 — Длина токена.
+        tokenLookup: "header:X-CSRF-Token"                 # Optional, default: "header:X-CSRF-Token" — Где искать токен.
+        cookieName: "_csrf"                                # Optional, default: "_csrf" — Имя куки.
+        cookieDomain: ""                                   # Optional, default: "" — Домен куки.
+        cookiePath: ""                                     # Optional, default: "" — Путь куки.
+        cookieMaxAge: 86400                                # Optional, default: 86400 — Макс. возраст куки (сек).
+        cookieHttpOnly: false                              # Optional, default: false — HttpOnly куки.
+        cookieSameSite: "lax"                              # Optional, default: "lax" — SameSite (lax, strict, none).
+      gzip:                                                # Optional — GZIP сжатие.
+        enabled: true                                      # Optional, default: false — Включить.
+        ignore: [""]                                       # Optional, default: [] — Игнорировать.
+        level: 1                                           # Optional, default: 1 — Уровень сжатия (-1 до 9).
+      cors:                                                # Optional — CORS.
+        enabled: true                                      # Optional, default: false — Включить.
+        ignore: [""]                                       # Optional, default: [] — Игнорировать.
+        allowOrigins: ["http://localhost:*"]               # Optional, default: [] — Разрешенные origins.
+        allowMethods: ["GET"]                              # Optional, default: [] — Методы.
+        allowHeaders: ["key"]                              # Optional, default: [] — Заголовки.
+        allowCredentials: false                            # Optional, default: false — Credentials.
+        exposeHeaders: [""]                                # Optional, default: [] — Expose заголовки.
+        maxAge: 0                                          # Optional, default: 0 — Max age.

@@ -7,7 +7,6 @@ import (
 	"net"
 	"sync"
 
-	"buf.build/go/protovalidate"
 	auth_grpc "github.com/BurMachine/Bigtech_microservices/auth/internal/app/delivery/grpc"
 	auth_repo "github.com/BurMachine/Bigtech_microservices/auth/internal/app/repositories/auth"
 	"github.com/BurMachine/Bigtech_microservices/auth/internal/app/repositories/user_repo"
@@ -16,12 +15,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
-
-type server struct {
-	pb.UnimplementedAuthServiceServer
-
-	validator *protovalidate.Validator
-}
 
 func main() {
 	ctx := context.Background()

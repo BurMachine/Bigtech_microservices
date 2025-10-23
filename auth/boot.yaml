@@ -1,0 +1,24 @@
+---
+app:
+  name: auth-service
+  version: "v1.0.0"
+  description: "auth service"
+
+logger:
+  - name: my-logger
+    zap:
+      level: info
+      development: true
+      encoding: condole
+
+
+grpc:
+  - name: auth-service
+    enabled: true
+    port: 8081
+    enableReflection:  true
+    noRecvMsgSizeLimit: true
+    loggerEntry: my-logger
+    middleware:
+      logging:
+        enabled: true
