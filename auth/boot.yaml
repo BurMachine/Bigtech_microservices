@@ -1,24 +1,37 @@
----
 app:
   name: auth-service
   version: "v1.0.0"
-  description: "auth service"
+
 
 logger:
   - name: my-logger
     zap:
       level: info
-      development: true
-      encoding: condole
-
+      encoding: json
+      outputPaths: ["stdout"]
+      errorOutputPaths: ["stderr"]
+      encoderConfig:
+        timeKey: "time"
+        levelKey: "level"
+        messageKey: "msg"
+        callerKey: "caller"
+        levelEncoder: "lowercase"
+        timeEncoder: "iso8601"
 
 grpc:
   - name: auth-service
     enabled: true
     port: 8081
-    enableReflection:  true
+    enableReflection: true
     noRecvMsgSizeLimit: true
     loggerEntry: my-logger
+    eventEntry: ""        # без event логгера
     middleware:
       logging:
-        enabled: true
+        enabled: false
+      prom:
+        enabled: false
+      meta:
+        enabled: false
+      tracing:
+        enabled: false
