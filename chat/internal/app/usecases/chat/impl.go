@@ -285,22 +285,70 @@ func (s *chatService) StreamMessages(ctx context.Context, dto dto.StreamMessages
 		return fmt.Errorf("%s: %w", api, err)
 	}
 
-	// Проверка, что чат существует и пользователь имеет доступ
+	// Проверка доступа
 	chat, err := s.repo.GetChat(ctx, dto.ChatID)
 	if err != nil {
-		return fmt.Errorf("%s: %w", api, err) // Ошибка мапится на ErrNotFound в репозитории
+		return fmt.Errorf("%s: %w", api, err)
 	}
 
 	if !contains(chat.Participants, currentUserID) {
 		return fmt.Errorf("%s: %w", api, ErrPermissionDenied)
 	}
 
-	err = s.repo.StreamMessages(ctx, dto.ChatID, dto.SinceUnixMs, messageChan)
-	if err != nil {
-		return fmt.Errorf("%s: %w", api, err)
-	}
+	// Запуск асинхронной загрузки
+	go s.streamMessagesAsync(ctx, dto, messageChan)
 
 	return nil
+}
+
+// streamMessagesAsync загружает сообщения порциями и отправляет в канал
+func (s *chatService) streamMessagesAsync(ctx context.Context, dto dto.StreamMessagesDTO, messageChan chan<- *models.Message) {
+	defer close(messageChan) // ВАЖНО: закрываем канал когда закончили
+
+	const (
+		pageSize = 100 // размер батча
+	)
+
+	offset := 0
+
+	for {
+		// Проверка контекста перед каждым запросом
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		// Запрос следующей страницы
+		messages, err := s.repo.GetMessagesPage(ctx, dto.ChatID, dto.SinceUnixMs, pageSize, offset)
+		if err != nil {
+			fmt.Errorf("failed to get messages page", "error", err, "chat_id", dto.ChatID, "offset", offset)
+			return
+		}
+
+		// Если сообщений нет - закончили
+		if len(messages) == 0 {
+			return
+		}
+
+		// Отправляем сообщения в канал
+		for _, msg := range messages {
+			select {
+			case messageChan <- msg:
+				// Успешно отправили
+			case <-ctx.Done():
+				// Клиент отключился
+				return
+			}
+		}
+
+		// Если получили меньше чем pageSize - это последняя страница
+		if len(messages) < pageSize {
+			return
+		}
+
+		offset += pageSize
+	}
 }
 
 // contains проверяет, есть ли элемент в срезе строк

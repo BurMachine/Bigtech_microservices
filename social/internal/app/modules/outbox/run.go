@@ -42,7 +42,7 @@ func (p *Processor) Run(ctx context.Context) {
 					}
 				}
 
-				// Обработка неудачных (ретрей)
+				// Обработка неудачных (ретрай)
 				for _, id := range failed {
 					// Найти событие по ID для retry_count
 					var ev models.Event

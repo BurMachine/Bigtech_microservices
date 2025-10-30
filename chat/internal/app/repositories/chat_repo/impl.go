@@ -45,16 +45,18 @@ func (r *Repository) CreateDirectChat(ctx context.Context, chat *models.Chat) (s
 	}
 
 	// Добавление участников
+	qb = r.qb.Insert(tableChatMembers).
+		Columns(colChatMemberChatID, colChatMemberUserID)
+
 	for _, userID := range chat.Participants {
-		qb = r.qb.Insert(tableChatMembers).
-			Columns(colChatMemberChatID, colChatMemberUserID).
-			Values(chatID, userID)
-		if _, err := conn.Execx(ctx, qb); err != nil {
-			if IsUniqueViolation(err) {
-				return "", fmt.Errorf("%s: %w", api, errRepoAlreadyExists)
-			}
-			return "", fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		qb = qb.Values(chatID, userID) // ← просто добавляем значения
+	}
+
+	if _, err := conn.Execx(ctx, qb); err != nil {
+		if IsUniqueViolation(err) {
+			return "", fmt.Errorf("%s: %w", api, errRepoAlreadyExists)
 		}
+		return "", fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
 	}
 
 	return chatID, nil
@@ -136,22 +138,10 @@ func (r *Repository) ListChatMembers(ctx context.Context, chatID string) ([]stri
 		return nil, fmt.Errorf("%s: invalid chat_id format: %w", api, ErrRepoInvalidArg)
 	}
 
-	// Проверка существования чата
-	var exists int
-	qb := r.qb.Select("1").
-		From(tableChats).
-		Where(squirrel.Eq{colChatID: chatID})
-	conn := r.db.GetQueryEngine(ctx)
-	if err := conn.Getx(ctx, &exists, qb); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("%s: %w", api, errRepoNotFound)
-		}
-		return nil, fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
-	}
-
 	// Получение участников
+	conn := r.db.GetQueryEngine(ctx)
 	var members []string
-	qb = r.qb.Select(colChatMemberUserID).
+	qb := r.qb.Select(colChatMemberUserID).
 		From(tableChatMembers).
 		Where(squirrel.Eq{colChatMemberChatID: chatID})
 	if err := conn.Selectx(ctx, &members, qb); err != nil {
@@ -259,42 +249,35 @@ func (r *Repository) ListMessages(ctx context.Context, chatID string, limit int,
 	return messages, nextCursor, nil
 }
 
-// StreamMessages реализует потоковую передачу сообщений
-func (r *Repository) StreamMessages(ctx context.Context, chatID string, sinceUnixMs int64, messageChan chan<- *models.Message) error {
-	const api = "chat_repo.Repository.StreamMessages"
+// GetMessagesPage получает страницу сообщений
+func (r *Repository) GetMessagesPage(ctx context.Context, chatID string, sinceUnixMs int64, limit, offset int) ([]*models.Message, error) {
+	const api = "chat_repo.Repository.GetMessagesPage"
 
 	if _, err := uuid.Parse(chatID); err != nil {
-		return fmt.Errorf("%s: invalid chat_id format: %w", api, ErrRepoInvalidArg)
+		return nil, fmt.Errorf("%s: invalid chat_id format: %w", api, ErrRepoInvalidArg)
 	}
 
-	// Конвертация sinceUnixMs в time.Time
 	since := time.UnixMilli(sinceUnixMs)
-
 	conn := r.db.GetQueryEngine(ctx)
 
-	// Запрос новых сообщений
-	qb := r.qb.Select(colMessageID, colMessageChatID, colMessageSenderID, colMessageText, colMessageCreatedAt).
+	qb := r.qb.Select(
+		colMessageID,
+		colMessageChatID,
+		colMessageSenderID,
+		colMessageText,
+		colMessageCreatedAt,
+	).
 		From(tableMessages).
 		Where(squirrel.Eq{colMessageChatID: chatID}).
 		Where(squirrel.Gt{colMessageCreatedAt: since}).
-		OrderBy(fmt.Sprintf("%s ASC", colMessageCreatedAt))
+		OrderBy(fmt.Sprintf("%s ASC", colMessageCreatedAt)).
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
-	// Получение сообщений как slice
-	var messages []*models.Message
+	messages := make([]*models.Message, 0, limit)
 	if err := conn.Selectx(ctx, &messages, qb); err != nil {
-		return fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return nil, fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
 	}
 
-	// Отправка в канал
-	for _, msg := range messages {
-		select {
-		case messageChan <- msg:
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
-
-	// Закрытие канала
-	close(messageChan)
-	return nil
+	return messages, nil
 }

@@ -12,7 +12,8 @@ type (
 	FriendRepository interface {
 		SendFriendRequest(ctx context.Context, fromUserID, toUserID string) (string, error) // Возвращает request_id
 		ListRequests(ctx context.Context, userID string) ([]*models.FriendRequest, error)
-		AcceptFriendRequest(ctx context.Context, requestID string) error
+		CreateFriendship(ctx context.Context, userID1, userID2 string) error
+		AcceptFriendRequest(ctx context.Context, requestID string) (*models.FriendRequest, error)
 		DeclineFriendRequest(ctx context.Context, requestID string) error
 		RemoveFriend(ctx context.Context, userID1, userID2 string) error
 		ListFriends(ctx context.Context, userID string, limit int, cursor string) ([]string, string, error)
