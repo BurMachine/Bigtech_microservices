@@ -6,32 +6,14 @@ app:
 logger:
   - name: my-logger
     zap:
-      level: info
-      encoding: json
-      outputPaths: ["stdout"]
-      errorOutputPaths: ["stderr"]
-      encoderConfig:
-        timeKey: "time"
-        levelKey: "level"
-        messageKey: "msg"
-        callerKey: "caller"
-        levelEncoder: "lowercase"
-        timeEncoder: "iso8601"
-
+      level: warn
 grpc:
-  - name: auth-service
+  - name: auth-service-grpc
     enabled: true
     port: 8081
-    enableReflection: true
-    noRecvMsgSizeLimit: true
-    loggerEntry: my-logger
-    eventEntry: ""        # без event логгера
-    middleware:
-      logging:
-        enabled: false
-      prom:
-        enabled: false
-      meta:
-        enabled: false
-      tracing:
-        enabled: false
+    eventEntry: ""
+
+gin:
+  - name: auth-service-http
+    enabled: false
+    port: 8080

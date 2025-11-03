@@ -4,17 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Burmachine/MSA/lib/postgres"
+	"github.com/Burmachine/MSA/lib/postgreslib"
 	"github.com/jackc/pgx/v5"
 )
 
 // TransactionManager - менеджер транзакций: позовляет выполнять функции разных репозиториев ходящих в одну БД в рамках транзакции
 type TransactionManager struct {
-	connection *postgres.Connection
+	connection *postgreslib.Connection
 }
 
 // New constructs TransactionManager
-func New(connection *postgres.Connection) *TransactionManager {
+func New(connection *postgreslib.Connection) *TransactionManager {
 	return &TransactionManager{connection: connection}
 }
 
@@ -26,7 +26,7 @@ const (
 
 func (m *TransactionManager) runTransaction(ctx context.Context, txOpts pgx.TxOptions, fn func(ctx context.Context) error) (err error) {
 	// If it's nested Transaction, skip initiating a new one and return func(ctx context.Context) error
-	tx, ok := ctx.Value(txKey).(*postgres.Transaction)
+	tx, ok := ctx.Value(txKey).(*postgreslib.Transaction)
 	if ok {
 		return fn(ctx)
 	}
@@ -37,7 +37,7 @@ func (m *TransactionManager) runTransaction(ctx context.Context, txOpts pgx.TxOp
 		return fmt.Errorf("can't begin transaction: %v", err)
 	}
 
-	tx = &postgres.Transaction{Tx: pgxTx}
+	tx = &postgreslib.Transaction{Tx: pgxTx}
 	// Set txKey to context
 	ctx = context.WithValue(ctx, txKey, tx)
 
@@ -75,9 +75,9 @@ func (m *TransactionManager) runTransaction(ctx context.Context, txOpts pgx.TxOp
 }
 
 // GetQueryEngine provides QueryEngine
-func (m *TransactionManager) GetQueryEngine(ctx context.Context) postgres.QueryEngine {
+func (m *TransactionManager) GetQueryEngine(ctx context.Context) postgreslib.QueryEngine {
 	// Transaction always runs on node with NodeRoleWrite role
-	if tx, ok := ctx.Value(txKey).(postgres.QueryEngine); ok {
+	if tx, ok := ctx.Value(txKey).(postgreslib.QueryEngine); ok {
 		return tx
 	}
 

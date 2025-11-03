@@ -12,3 +12,8 @@ type Postgres struct {
 	DbPassword string `yaml:"dbPassword" env:"PASSWORD" envDefault:"postgres_pass"`
 	DbName     string `yaml:"dbName" env:"NAME" envDefault:"auth_db"`
 }
+
+type Secrets struct {
+	AppToken string `yaml:"appToken" env:"APP_TOKEN"`
+	AppName  string `yaml:"appName" env:"APP_NAME"`
+}

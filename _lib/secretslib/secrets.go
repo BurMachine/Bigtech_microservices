@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"reflect"
 )
 
 type SecretsProvider interface {
@@ -11,27 +12,47 @@ type SecretsProvider interface {
 	GetBytes(ctx context.Context, key string) ([]byte, error) // бинарь (TLS ключи/серты)
 }
 
-// GetSecretsMap загружает секреты по списку ключей для указанного окружения
-func GetSecretsMap(ctx context.Context, env string, keys []string) (map[string]string, error) {
-	// Создаем провайдер в зависимости от окружения
+// LoadSecrets загружает секреты в структуру по env тегам
+func LoadSecrets[T any](ctx context.Context, env string) (*T, error) {
+	secrets := new(T)
+
+	// Создаем провайдер
 	provider, err := createProvider(env)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create provider: %w", err)
 	}
 
-	// Загружаем все секреты по ключам
-	secretsMap := make(map[string]string, len(keys))
+	// Заполняем поля
+	val := reflect.ValueOf(secrets).Elem()
+	t := val.Type()
 
-	for _, key := range keys {
-		value, err := provider.Get(ctx, key)
-		if err != nil {
-			// Если секрет не найден, возвращаем ошибку
-			return nil, fmt.Errorf("failed to load secret '%s': %w", key, err)
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		fieldVal := val.Field(i)
+
+		if !field.IsExported() {
+			continue
 		}
-		secretsMap[key] = value
+
+		// Получаем имя ключа из тега env
+		envName := field.Tag.Get("env")
+		if envName == "" {
+			continue
+		}
+
+		// Читаем секрет
+		value, err := provider.Get(ctx, envName)
+		if err != nil {
+			continue // Пропускаем если не найден
+		}
+
+		// Устанавливаем значение
+		if fieldVal.CanSet() && fieldVal.Kind() == reflect.String {
+			fieldVal.SetString(value)
+		}
 	}
 
-	return secretsMap, nil
+	return secrets, nil
 }
 
 // GetSecretsMapOptional загружает секреты, пропуская отсутствующие
@@ -88,30 +109,4 @@ func createProvider(env string) (SecretsProvider, error) {
 	default:
 		return nil, fmt.Errorf("unknown environment: %s (supported: local, dev, prod)", env)
 	}
-}
-
-// MustGetSecretsMap загружает секреты или паникует
-func MustGetSecretsMap(ctx context.Context, env string, keys []string) map[string]string {
-	secretsMap, err := GetSecretsMap(ctx, env, keys)
-	if err != nil {
-		panic(fmt.Sprintf("failed to load secrets: %v", err))
-	}
-	return secretsMap
-}
-
-// ValidateSecrets проверяет наличие всех обязательных секретов
-func ValidateSecrets(secretsMap map[string]string, requiredKeys []string) error {
-	missing := make([]string, 0)
-
-	for _, key := range requiredKeys {
-		if value, exists := secretsMap[key]; !exists || value == "" {
-			missing = append(missing, key)
-		}
-	}
-
-	if len(missing) > 0 {
-		return fmt.Errorf("missing required secrets: %v", missing)
-	}
-
-	return nil
 }
