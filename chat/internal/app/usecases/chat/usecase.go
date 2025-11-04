@@ -17,7 +17,7 @@ type (
 		ListChatMembers(ctx context.Context, chatID string) ([]string, error)
 		SendMessage(ctx context.Context, message *models.Message) error
 		ListMessages(ctx context.Context, chatID string, limit int, cursor string) ([]*models.Message, string, error)
-		StreamMessages(ctx context.Context, chatID string, sinceUnixMs int64, messageChan chan<- *models.Message) error // Для стрима, заглушка
+		GetMessagesPage(ctx context.Context, chatID string, sinceUnixMs int64, limit, offset int) ([]*models.Message, error)
 	}
 
 	EventHandler interface {

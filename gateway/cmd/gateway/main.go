@@ -18,7 +18,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Server is used to implement pb.NotesServiceServer.
 
 func main() {
 	ctx := context.Background()
@@ -65,7 +64,6 @@ func Construct(ctx context.Context, cfg *config.Config, secrets *config.Secrets,
 	// 4. Регистрируем HTTP через gRPC-Gateway
 	mux := runtime.NewServeMux()
 
-	// Регистрируем handler напрямую (без сетевого вызова)
 	err = pb.RegisterGatewayServiceHandlerServer(ctx, mux, gatewayService)
 	if err != nil {
 		return nil, err

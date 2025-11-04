@@ -183,12 +183,16 @@ func (s *socialService) AcceptFriendRequest(ctx context.Context, dto dto.AcceptD
 				return fmt.Errorf("check sender exists: %w", err)
 			}
 
-			// Принимаем заявку
-			err = s.repo.AcceptFriendRequest(txCtx, dto.RequestID)
+			request, err = s.repo.AcceptFriendRequest(txCtx, dto.RequestID)
 			if err != nil {
 				return err
 			}
 
+			// 6. Создаём связь в таблице friends
+			err = s.repo.CreateFriendship(txCtx, request.FromUserID, request.ToUserID)
+			if err != nil {
+				return err
+			}
 			// Обновляем статус в локальной модели для возврата
 			request.Status = "ACCEPTED"
 			request.UpdatedAt = time.Now()
