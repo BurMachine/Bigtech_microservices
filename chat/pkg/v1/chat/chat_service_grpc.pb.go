@@ -38,7 +38,7 @@ type ChatServiceClient interface {
 	CreateDirectChat(ctx context.Context, in *CreateDirectChatRequest, opts ...grpc.CallOption) (*CreateDirectChatResponse, error)
 	// Get information about a specific chat.
 	GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*Chat, error)
-	// List all chats for a user.
+	// List all chats for a user_repo.
 	ListUserChats(ctx context.Context, in *ListUserChatsRequest, opts ...grpc.CallOption) (*ListUserChatsResponse, error)
 	// List members of a chat.
 	ListChatMembers(ctx context.Context, in *ListChatMembersRequest, opts ...grpc.CallOption) (*ListChatMembersResponse, error)
@@ -147,7 +147,7 @@ type ChatServiceServer interface {
 	CreateDirectChat(context.Context, *CreateDirectChatRequest) (*CreateDirectChatResponse, error)
 	// Get information about a specific chat.
 	GetChat(context.Context, *GetChatRequest) (*Chat, error)
-	// List all chats for a user.
+	// List all chats for a user_repo.
 	ListUserChats(context.Context, *ListUserChatsRequest) (*ListUserChatsResponse, error)
 	// List members of a chat.
 	ListChatMembers(context.Context, *ListChatMembersRequest) (*ListChatMembersResponse, error)

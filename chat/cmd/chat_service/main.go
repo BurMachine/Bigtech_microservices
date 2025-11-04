@@ -2,78 +2,70 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
 	"log"
 	"net"
-	"sync"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"buf.build/go/protovalidate"
+	chat_grpc "github.com/BurMachine/Bigtech_microservices/chat/internal/app/controllers/grpc"
+	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/repositories/chat_repo"
+	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/usecases/chat"
+	middleware_grpc "github.com/BurMachine/Bigtech_microservices/chat/internal/middleware/grpc"
 	pb "github.com/BurMachine/Bigtech_microservices/chat/pkg/v1/chat"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
-
-type server struct {
-	pb.UnimplementedChatServiceServer
-
-	validator *protovalidate.Validator
-}
-
-func NewServer() (*server, error) {
-	srv := &server{}
-
-	validator, err := protovalidate.New(
-		protovalidate.WithDisableLazy(),
-		protovalidate.WithMessages(
-			// Добавляем сюда все запросы наши
-			&pb.CreateDirectChatRequest{},
-			&pb.GetChatRequest{},
-			&pb.ListUserChatsRequest{},
-			&pb.ListChatMembersRequest{},
-			&pb.SendMessageRequest{},
-			&pb.ListMessagesRequest{},
-			&pb.StreamMessagesRequest{},
-		),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize validator: %w", err)
-	}
-
-	srv.validator = &validator
-	return srv, nil
-}
 
 func main() {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	server, err := NewServer()
+	// Construct
+	repo := chat_repo.NewRepo(&sql.DB{})
+	uc := chat.NewUsecases(repo)
+	server, err := chat_grpc.NewServer(uc)
 	if err != nil {
 		log.Fatalf("failed to create server: %v", err)
 	}
 
-	var wg sync.WaitGroup
+	// Создаем gRPC сервер со всеми интерцепторами
+	grpcServer := grpc.NewServer(
+		// Unary интерцепторы (порядок важен!)
+		grpc.ChainUnaryInterceptor(
+			middleware_grpc.RecoveryUnaryServerInterceptor(),
+			middleware_grpc.ErrorUnaryServerInterceptor(),
+		),
+		// Stream интерцепторы
+		grpc.ChainStreamInterceptor(
+			middleware_grpc.RecoveryStreamServerInterceptor(),
+			middleware_grpc.ErrorStreamServerInterceptor(),
+		),
+	)
 
-	wg.Add(1)
+	pb.RegisterChatServiceServer(grpcServer, server)
+	reflection.Register(grpcServer)
+
+	lis, err := net.Listen("tcp", ":8082")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	// Graceful shutdown
 	go func() {
-		defer wg.Done()
+		sigChan := make(chan os.Signal, 1)
+		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+		<-sigChan
 
-		grpcServer := grpc.NewServer()
-		pb.RegisterChatServiceServer(grpcServer, server)
-
-		reflection.Register(grpcServer)
-
-		lis, err := net.Listen("tcp", ":8082")
-		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
-		}
-
-		log.Printf("server listening at %v", lis.Addr())
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
-		}
+		log.Println("shutting down gracefully...")
+		grpcServer.GracefulStop()
+		cancel()
 	}()
 
-	wg.Wait()
+	log.Printf("server listening at %v", lis.Addr())
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

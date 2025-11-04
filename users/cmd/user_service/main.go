@@ -2,53 +2,26 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"sync"
 
-	"buf.build/go/protovalidate"
+	"github.com/BurMachine/Bigtech_microservices/users/internal/app/di"
+	middleware_grpc "github.com/BurMachine/Bigtech_microservices/users/internal/middleware/grpc"
 	pb "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
-
-type server struct {
-	pb.UnimplementedUserServiceServer
-
-	validator *protovalidate.Validator
-}
-
-func NewServer() (*server, error) {
-	srv := &server{}
-
-	validator, err := protovalidate.New(
-		protovalidate.WithDisableLazy(),
-		protovalidate.WithMessages(
-			// Добавляем сюда все запросы наши
-			&pb.CreateProfileRequest{},
-			&pb.UpdateProfileRequest{},
-			&pb.GetProfileByIDRequest{},
-			&pb.GetProfileByNicknameRequest{},
-			&pb.SearchByNicknameRequest{},
-		),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize validator: %w", err)
-	}
-
-	srv.validator = &validator
-	return srv, nil
-}
 
 func main() {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	server, err := NewServer()
+	// construct
+	server, err := di.Wire("dsn")
 	if err != nil {
-		log.Fatalf("failed to create server: %v", err)
+		log.Fatalf("failed to inject dependencies: %v", err)
 	}
 
 	var wg sync.WaitGroup
@@ -57,7 +30,19 @@ func main() {
 	go func() {
 		defer wg.Done()
 
-		grpcServer := grpc.NewServer()
+		grpcServer := grpc.NewServer(
+			// Unary интерцепторы (порядок важен!)
+			grpc.ChainUnaryInterceptor(
+				middleware_grpc.RecoveryUnaryServerInterceptor(),
+				middleware_grpc.ErrorUnaryServerInterceptor(),
+			),
+			// Stream интерцепторы
+			grpc.ChainStreamInterceptor(
+				middleware_grpc.RecoveryStreamServerInterceptor(),
+				middleware_grpc.ErrorStreamServerInterceptor(),
+			),
+		)
+
 		pb.RegisterUserServiceServer(grpcServer, server)
 
 		reflection.Register(grpcServer)

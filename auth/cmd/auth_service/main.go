@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
 	"log"
 	"net"
 	"sync"
 
 	"buf.build/go/protovalidate"
+	auth_grpc "github.com/BurMachine/Bigtech_microservices/auth/internal/app/delivery/grpc"
+	auth_repo "github.com/BurMachine/Bigtech_microservices/auth/internal/app/repositories/auth"
+	"github.com/BurMachine/Bigtech_microservices/auth/internal/app/repositories/user_repo"
+	"github.com/BurMachine/Bigtech_microservices/auth/internal/app/usecases/auth"
 	pb "github.com/BurMachine/Bigtech_microservices/auth/pkg/v1/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -19,44 +23,32 @@ type server struct {
 	validator *protovalidate.Validator
 }
 
-func NewServer() (*server, error) {
-	srv := &server{}
-
-	validator, err := protovalidate.New(
-		protovalidate.WithDisableLazy(),
-		protovalidate.WithMessages(
-			// Добавляем сюда все запросы наши
-			&pb.RegisterRequest{},
-			&pb.LoginRequest{},
-			&pb.RefreshRequest{},
-		),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize validator: %w", err)
-	}
-
-	srv.validator = &validator
-	return srv, nil
-}
-
 func main() {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	server, err := NewServer()
+	db := &sql.DB{}
+
+	// Конструкторы
+	authRepo := auth_repo.NewRepository(db)
+	userRepo := user_repo.NewRepository(db)
+	authUsecases := auth.NewAuthUsecases(userRepo, authRepo)
+	grpcService, err := auth_grpc.New(authUsecases)
+
 	if err != nil {
-		log.Fatalf("failed to create server: %v", err)
+		log.Fatalf("failed to create service: %v", err)
 	}
 
 	var wg sync.WaitGroup
 
+	// Запуск
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 
 		grpcServer := grpc.NewServer()
-		pb.RegisterAuthServiceServer(grpcServer, server)
+		pb.RegisterAuthServiceServer(grpcServer, grpcService)
 
 		reflection.Register(grpcServer)
 

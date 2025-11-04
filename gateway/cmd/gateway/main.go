@@ -2,185 +2,145 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
+	"time"
 
-	"buf.build/go/protovalidate"
-	"github.com/BurMachine/Bigtech_microservices/auth/pkg/v1/auth"
-	"github.com/BurMachine/Bigtech_microservices/chat/pkg/v1/chat"
-	"github.com/BurMachine/Bigtech_microservices/social/pkg/v1/social"
-	"github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
-	"google.golang.org/grpc/credentials/insecure"
-
+	"github.com/BurMachine/Bigtech_microservices/gateway/internal/app/clients"
+	grpc_gateway "github.com/BurMachine/Bigtech_microservices/gateway/internal/app/delivery/grpc"
+	"github.com/BurMachine/Bigtech_microservices/gateway/internal/app/usecases/gateway"
+	middleware_grpc "github.com/BurMachine/Bigtech_microservices/gateway/internal/middleware/grpc"
 	pb "github.com/BurMachine/Bigtech_microservices/gateway/pkg/v1/gateway"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
-// Server is used to implement pb.NotesServiceServer.
-type Server struct {
-	pb.UnimplementedGatewayServiceServer
-	validator *protovalidate.Validator
-
-	authClient   auth.AuthServiceClient
-	chatClient   chat.ChatServiceClient
-	socialClient social.SocialServiceClient
-	userClient   user.UserServiceClient
-
-	conns []*grpc.ClientConn
-}
-
 func main() {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	server, err := NewServer()
+	// Construct
+	clientsGroup, err := clients.NewGroup("8081", "8082", "8083", "8084")
+	if err != nil {
+		log.Fatal(err)
+	}
+	uc := gateway.NewUsecase(clientsGroup.AuthClient, clientsGroup.UserClient, clientsGroup.SocialClient, clientsGroup.ChatClient)
+	server, err := grpc_gateway.NewServer(uc)
 	if err != nil {
 		log.Fatalf("failed to create Server: %v", err)
 	}
 
 	var wg sync.WaitGroup
 
+	// ========== gRPC Server ==========
+	grpcServer := grpc.NewServer(
+		grpc.Creds(insecure.NewCredentials()),
+		grpc.ChainUnaryInterceptor(
+			middleware_grpc.RecoveryUnaryServerInterceptor(),
+			middleware_grpc.LoggingUnaryServerInterceptor(),
+			middleware_grpc.ErrorUnaryServerInterceptor(),
+		),
+	)
+	pb.RegisterGatewayServiceServer(grpcServer, server)
+	reflection.Register(grpcServer)
+
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		grpcServer := grpc.NewServer()
-		pb.RegisterGatewayServiceServer(grpcServer, server)
-
-		reflection.Register(grpcServer)
 
 		lis, err := net.Listen("tcp", ":8079")
 		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
+			log.Fatalf("failed to listen on :8079: %v", err)
 		}
 
-		log.Printf("Server listening at %v", lis.Addr())
+		log.Printf("gRPC server listening at %v", lis.Addr())
 		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
+			log.Printf("gRPC server stopped: %v", err)
 		}
 	}()
+
+	// ========== HTTP Server ==========
+	mux := runtime.NewServeMux()
+	if err = pb.RegisterGatewayServiceHandlerServer(ctx, mux, server); err != nil {
+		log.Fatalf("failed to register gateway handler: %v", err)
+	}
+
+	httpServer := &http.Server{
+		Handler:      mux,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		// Register gRPC Server endpoint
-		// Note: Make sure the gRPC Server is running properly and accessible
-		mux := runtime.NewServeMux()
-		if err = pb.RegisterGatewayServiceHandlerServer(ctx, mux, server); err != nil {
-			log.Fatalf("failed to serve: %v", err)
-		}
-		httpServer := &http.Server{Handler: mux}
 
-		lis, err := net.Listen("tcp", ":8080")
+		lis, err := net.Listen("tcp", ":8078")
 		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
+			log.Fatalf("failed to listen on :8078: %v", err)
 		}
 
-		// Start HTTP Server (and proxy calls to gRPC Server endpoint)
-		log.Printf("Server listening at %v", lis.Addr())
-		if err := httpServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
+		log.Printf("HTTP server listening at %v", lis.Addr())
+		if err := httpServer.Serve(lis); err != nil && err != http.ErrServerClosed {
+			log.Printf("HTTP server stopped: %v", err)
 		}
 	}()
 
-	wg.Wait()
+	gracefulShutdown(cancel, httpServer, grpcServer, &wg)
 }
 
-func NewServer() (*Server, error) {
-	srv := &Server{}
+func gracefulShutdown(cancel context.CancelFunc, httpServer *http.Server, grpcServer *grpc.Server, wg *sync.WaitGroup) {
+	// ========== Graceful Shutdown ==========
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	<-sigChan
 
-	validator, err := protovalidate.New(
-		protovalidate.WithDisableLazy(),
-		protovalidate.WithMessages(
-			// Auth Service requests
-			&pb.RegisterRequest{},
-			&pb.LoginRequest{},
-			&pb.RefreshRequest{},
+	log.Println("Shutdown signal received, shutting down gracefully...")
 
-			// User Service requests
-			&pb.CreateProfileRequest{},
-			&pb.UpdateProfileRequest{},
-			&pb.GetProfileByIDRequest{},
-			&pb.GetProfileByNicknameRequest{},
-			&pb.SearchByNicknameRequest{},
+	// Создаем контекст с таймаутом для shutdown
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
 
-			// Social Service requests
-			&pb.SendFriendRequestRequest{},
-			&pb.ListRequestsRequest{},
-			&pb.AcceptFriendRequestRequest{},
-			&pb.DeclineFriendRequestRequest{},
-			&pb.RemoveFriendRequest{},
-			&pb.ListFriendsRequest{},
-
-			// Chat Service requests
-			&pb.CreateDirectChatRequest{},
-			&pb.GetChatRequest{},
-			&pb.ListUserChatsRequest{},
-			&pb.ListChatMembersRequest{},
-			&pb.SendMessageRequest{},
-			&pb.ListMessagesRequest{},
-			&pb.StreamMessagesRequest{},
-		),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize validator: %w", err)
+	// Останавливаем HTTP сервер
+	log.Println("Stopping HTTP server...")
+	if err := httpServer.Shutdown(shutdownCtx); err != nil {
+		log.Printf("HTTP server shutdown error: %v", err)
+	} else {
+		log.Println("HTTP server stopped")
 	}
 
-	srv.validator = &validator
+	// Останавливаем gRPC сервер
+	log.Println("Stopping gRPC server...")
+	stopped := make(chan struct{})
+	go func() {
+		grpcServer.GracefulStop() // Блокирующий вызов
+		close(stopped)
+	}()
 
-	authAddr := os.Getenv("AUTH_ADDR")
-	if authAddr == "" {
-		authAddr = "localhost:8081" // Default
-	}
-	chatAddr := os.Getenv("CHAT_ADDR")
-	if chatAddr == "" {
-		chatAddr = "localhost:8082"
-	}
-	socialAddr := os.Getenv("SOCIAL_ADDR")
-	if socialAddr == "" {
-		socialAddr = "localhost:8083"
-	}
-	userAddr := os.Getenv("USER_ADDR")
-	if userAddr == "" {
-		userAddr = "localhost:8084"
+	// Ждем либо graceful stop, либо таймаут
+	select {
+	case <-stopped:
+		log.Println("gRPC server stopped gracefully")
+	case <-shutdownCtx.Done():
+		log.Println("Shutdown timeout, forcing stop...")
+		grpcServer.Stop() // Принудительная остановка
 	}
 
-	// Создаём conn для каждого сервиса
-	authConn, err := grpc.NewClient(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to dial auth service: %w", err)
-	}
-	srv.conns = append(srv.conns, authConn)
-	srv.authClient = auth.NewAuthServiceClient(authConn)
+	// Отменяем основной контекст
+	cancel()
 
-	chatConn, err := grpc.NewClient(chatAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to dial chat service: %w", err)
-	}
-	srv.conns = append(srv.conns, chatConn)
-	srv.chatClient = chat.NewChatServiceClient(chatConn)
+	// Ждем завершения всех goroutines
+	log.Println("Waiting for all goroutines to finish...")
+	wg.Wait()
 
-	socialConn, err := grpc.NewClient(socialAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to dial social service: %w", err)
-	}
-	srv.conns = append(srv.conns, socialConn)
-	srv.socialClient = social.NewSocialServiceClient(socialConn)
-
-	userConn, err := grpc.NewClient(userAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to dial user service: %w", err)
-	}
-	srv.conns = append(srv.conns, userConn)
-	srv.userClient = user.NewUserServiceClient(userConn)
-
-	return srv, nil
+	log.Println("Server shutdown complete")
 }
