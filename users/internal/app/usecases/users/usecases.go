@@ -16,6 +16,9 @@ type (
 		GetProfileByNickname(ctx context.Context, nickname string) (*models.UserProfile, error)
 		SearchByNickname(ctx context.Context, query string, limit int) ([]*models.UserProfile, error)
 	}
+	TransactionManager interface {
+		RunReadCommitted(ctx context.Context, f func(ctx context.Context) error) error
+	}
 )
 
 type Usecases interface {
@@ -35,10 +38,11 @@ var (
 
 type userService struct {
 	repo UserRepository
+	tm   TransactionManager
 }
 
 var _ Usecases = (*userService)(nil)
 
-func NewUsecases(repo UserRepository) Usecases {
-	return &userService{repo: repo}
+func NewUsecases(repo UserRepository, tm TransactionManager) Usecases {
+	return &userService{repo: repo, tm: tm}
 }

@@ -19,6 +19,7 @@ type UserCreateProfileInputDTO struct {
 	Nickname  string
 	Bio       string
 	AvatarURL string
+	Email     string
 }
 
 type UserUpdateProfileInputDTO struct {

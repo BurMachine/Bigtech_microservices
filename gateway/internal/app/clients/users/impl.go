@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/BurMachine/Bigtech_microservices/gateway/internal/app/models"
-	"github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
+	user_pb "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
 )
 
 // Вспомогательная функция для проверки подключения
@@ -15,11 +15,12 @@ func (c *Client) CreateProfile(ctx context.Context, in models.UserProfile) (mode
 	if in.UserID == "" || in.Nickname == "" {
 		return models.UserProfile{}, errors.New("userID and nickname are required")
 	}
-	req := &user_repo.CreateProfileRequest{
+	req := &user_pb.CreateProfileRequest{
 		UserId:    in.UserID,
 		Nickname:  in.Nickname,
 		Bio:       &in.Bio,
 		AvatarUrl: &in.AvatarURL,
+		//Email:     in.Email,
 	}
 	resp, err := c.Client.CreateProfile(ctx, req)
 	if err != nil {
@@ -39,7 +40,7 @@ func (c *Client) UpdateProfile(ctx context.Context, in models.UserProfile) (mode
 	if in.UserID == "" {
 		return models.UserProfile{}, errors.New("userID is required")
 	}
-	req := &user_repo.UpdateProfileRequest{
+	req := &user_pb.UpdateProfileRequest{
 		UserId:    in.UserID,
 		Nickname:  &in.Nickname,
 		Bio:       &in.Bio,
@@ -63,7 +64,7 @@ func (c *Client) GetProfileByID(ctx context.Context, id string) (models.UserProf
 	if id == "" {
 		return models.UserProfile{}, errors.New("id is required")
 	}
-	req := &user_repo.GetProfileByIDRequest{Id: id}
+	req := &user_pb.GetProfileByIDRequest{Id: id}
 	resp, err := c.Client.GetProfileByID(ctx, req)
 	if err != nil {
 		return models.UserProfile{}, err
@@ -82,7 +83,7 @@ func (c *Client) GetProfileByNickname(ctx context.Context, nickname string) (mod
 	if nickname == "" {
 		return models.UserProfile{}, errors.New("nickname is required")
 	}
-	req := &user_repo.GetProfileByNicknameRequest{Nickname: nickname}
+	req := &user_pb.GetProfileByNicknameRequest{Nickname: nickname}
 	resp, err := c.Client.GetProfileByNickname(ctx, req)
 	if err != nil {
 		return models.UserProfile{}, err
@@ -101,7 +102,7 @@ func (c *Client) SearchByNickname(ctx context.Context, query string, limit int32
 	if query == "" || limit <= 0 {
 		return models.UserSearchResult{}, errors.New("query and positive limit are required")
 	}
-	req := &user_repo.SearchByNicknameRequest{Query: query, Limit: limit}
+	req := &user_pb.SearchByNicknameRequest{Query: query, Limit: limit}
 	resp, err := c.Client.SearchByNickname(ctx, req)
 	if err != nil {
 		return models.UserSearchResult{}, err

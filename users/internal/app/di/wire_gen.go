@@ -7,23 +7,29 @@
 package di
 
 import (
-	"database/sql"
+	"context"
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/delivery/grpc"
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/repositories/user"
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/usecases/users"
+	"github.com/BurMachine/Bigtech_microservices/users/pkg/postgres"
+	"github.com/BurMachine/Bigtech_microservices/users/pkg/postgres/transaction_manager"
 	"github.com/google/wire"
 )
 
 // Injectors from provider.go:
 
-// Wire — генерируемая функция (не пиши тело!)
+// Wire — генерируемая функция
 func Wire(dbDSN string) (*user_grpc.Service, error) {
-	db, err := NewDB(dbDSN)
+	context := ProvideContext()
+	v := ProvideConnectionPoolOptions()
+	connection, err := postgres.NewConnectionPool(context, dbDSN, v...)
 	if err != nil {
 		return nil, err
 	}
-	userRepository := user_repo.New(db)
-	usecases := users.NewUsecases(userRepository)
+	transactionManager := transaction_manager.New(connection)
+	queryEngineProvider := ProvideQueryEngineProvider(transactionManager)
+	userRepository := users_repo.NewRepository(queryEngineProvider)
+	usecases := users.NewUsecases(userRepository, transactionManager)
 	service, err := user_grpc.NewServer(usecases)
 	if err != nil {
 		return nil, err
@@ -33,13 +39,24 @@ func Wire(dbDSN string) (*user_grpc.Service, error) {
 
 // provider.go:
 
-// NewDB — провайдер для DB (теперь здесь, чтобы импорт использовался)
-func NewDB(dbDSN string) (*sql.DB, error) {
+// Провайдер для контекста
+func ProvideContext() context.Context {
+	return context.Background()
+}
 
-	return &sql.DB{}, nil
+// Провайдер для опций пула соединений (пустой слайс)
+func ProvideConnectionPoolOptions() []postgres.ConnectionPoolOption {
+	return []postgres.ConnectionPoolOption{}
+}
+
+// Провайдер для QueryEngineProvider
+func ProvideQueryEngineProvider(tm *transaction_manager.TransactionManager) postgres.QueryEngineProvider {
+	return tm
 }
 
 // ProviderSet — сет зависимостей
 var ProviderSet = wire.NewSet(
-	NewDB, user_repo.New, users.NewUsecases, user_grpc.NewServer,
+	ProvideContext,
+	ProvideConnectionPoolOptions,
+	ProvideQueryEngineProvider, postgres.NewConnectionPool, transaction_manager.New, wire.Bind(new(users.TransactionManager), new(*transaction_manager.TransactionManager)), users_repo.NewRepository, users.NewUsecases, user_grpc.NewServer,
 )

@@ -772,6 +772,9 @@
         },
         "avatarUrl": {
           "type": "string"
+        },
+        "email": {
+          "type": "string"
         }
       }
     },

@@ -3,7 +3,10 @@ package user_grpc
 import (
 	"context"
 
+	"github.com/BurMachine/Bigtech_microservices/users/internal/app/usecases/users"
 	pb "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (s *Service) CreateProfile(ctx context.Context, request *pb.CreateProfileRequest) (*pb.UserProfile, error) {
@@ -13,7 +16,14 @@ func (s *Service) CreateProfile(ctx context.Context, request *pb.CreateProfileRe
 	// Запуск usecase
 	profile, err := s.usecases.CreateProfile(ctx, dtoReq)
 	if err != nil {
-		return nil, err
+		switch err {
+		case users.ErrAlreadyExists:
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		case users.ErrInvalidArgument:
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
+		}
 	}
 
 	// Конвертер: model -> pb.UserProfile
@@ -27,7 +37,16 @@ func (s *Service) UpdateProfile(ctx context.Context, request *pb.UpdateProfileRe
 	// Запуск usecase
 	profile, err := s.usecases.UpdateProfile(ctx, dtoReq)
 	if err != nil {
-		return nil, err
+		switch err {
+		case users.ErrAlreadyExists:
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		case users.ErrNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		case users.ErrInvalidArgument:
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
+		}
 	}
 
 	// Конвертер: model -> pb.UserProfile
@@ -41,7 +60,14 @@ func (s *Service) GetProfileByID(ctx context.Context, request *pb.GetProfileByID
 	// Запуск usecase
 	profile, err := s.usecases.GetProfileByID(ctx, dtoReq)
 	if err != nil {
-		return nil, err
+		switch err {
+		case users.ErrNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		case users.ErrInvalidArgument:
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
+		}
 	}
 
 	// Конвертер: model -> pb.UserProfile
@@ -55,7 +81,14 @@ func (s *Service) GetProfileByNickname(ctx context.Context, request *pb.GetProfi
 	// Запуск usecase
 	profile, err := s.usecases.GetProfileByNickname(ctx, dtoReq)
 	if err != nil {
-		return nil, err
+		switch err {
+		case users.ErrNotFound:
+			return nil, status.Error(codes.NotFound, err.Error())
+		case users.ErrInvalidArgument:
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
+		}
 	}
 
 	// Конвертер: model -> pb.UserProfile
@@ -69,7 +102,12 @@ func (s *Service) SearchByNickname(ctx context.Context, request *pb.SearchByNick
 	// Запуск usecase
 	profiles, err := s.usecases.SearchByNickname(ctx, dtoReq)
 	if err != nil {
-		return nil, err
+		switch err {
+		case users.ErrInvalidArgument:
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, "internal error: "+err.Error())
+		}
 	}
 
 	// Конвертер: models -> pb.SearchByNicknameResponse

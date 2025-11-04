@@ -1,15 +1,20 @@
-package user_repo
+package users_repo
 
 import (
-	"database/sql"
-
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/usecases/users"
+	"github.com/BurMachine/Bigtech_microservices/users/pkg/postgres"
+	"github.com/Masterminds/squirrel"
 )
 
-type Repo struct {
-	db *sql.DB
+type Repository struct {
+	db postgres.QueryEngineProvider
+	qb squirrel.StatementBuilderType
 }
 
-func New(db *sql.DB) users.UserRepository {
-	return &Repo{db: db}
+// NewRepository конструктор Repository
+func NewRepository(p postgres.QueryEngineProvider) users.UserRepository {
+	return &Repository{
+		db: p,
+		qb: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
+	}
 }

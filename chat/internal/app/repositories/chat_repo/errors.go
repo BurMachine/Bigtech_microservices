@@ -8,5 +8,5 @@ var (
 	errRepoAlreadyExists  = errors.New("already exists") // Заглушка для ALREADY_EXISTS
 	errRepoNotFound       = errors.New("not found")
 	errRepoPermission     = errors.New("permission denied")
-	errRepoInvalidArg     = errors.New("invalid argument")
+	ErrRepoInvalidArg     = errors.New("invalid argument")
 )

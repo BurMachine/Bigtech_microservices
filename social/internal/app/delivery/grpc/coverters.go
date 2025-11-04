@@ -11,7 +11,6 @@ import (
 func dtoSendFriendRequestFromSendFriendRequestRequest(r *pb.SendFriendRequestRequest) dto.SendFriendRequestDTO {
 	return dto.SendFriendRequestDTO{
 		ToUserID: r.UserId,
-		Message:  "", // Предполагаем, что в proto нет сообщения, можно добавить в запрос, если нужно
 	}
 }
 

@@ -134,7 +134,7 @@ func (s *Service) RemoveFriend(ctx context.Context, request *pb.RemoveFriendRequ
 	if err != nil {
 		return nil, err
 	}
-	return &pb.RemoveFriendResponse{}, nil // Пустой ответ, так как нет entity
+	return &pb.RemoveFriendResponse{}, nil
 }
 
 // ListFriends реализация метода получения списка друзей
@@ -208,15 +208,15 @@ func (s *Service) ListMessages(ctx context.Context, request *pb.ListMessagesRequ
 }
 
 // StreamMessages реализация метода стриминга сообщений
-func (s *Service) StreamMessages(request *pb.StreamMessagesRequest, g grpc.ServerStreamingServer[pb.Message]) error {
-	ctx := context.Context(context.Background())
+func (s *Service) StreamMessages(request *pb.StreamMessagesRequest, stream grpc.ServerStreamingServer[pb.Message]) error {
+	ctx := stream.Context()
 	dto := FromStreamMessagesRequestPBToDTO(request)
 	entityChan, err := s.usecases.StreamMessages(ctx, dto)
 	if err != nil {
 		return err
 	}
 	for msg := range entityChan {
-		if err := g.Send(FromMessageEntityToPB(msg)); err != nil {
+		if err := stream.Send(FromMessageEntityToPB(msg)); err != nil {
 			return err
 		}
 	}

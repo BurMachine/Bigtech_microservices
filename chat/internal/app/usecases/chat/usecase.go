@@ -17,7 +17,15 @@ type (
 		ListChatMembers(ctx context.Context, chatID string) ([]string, error)
 		SendMessage(ctx context.Context, message *models.Message) error
 		ListMessages(ctx context.Context, chatID string, limit int, cursor string) ([]*models.Message, string, error)
-		StreamMessages(ctx context.Context, chatID string, sinceUnixMs int64, messageChan chan<- *models.Message) error // Для стрима, заглушка
+		GetMessagesPage(ctx context.Context, chatID string, sinceUnixMs int64, limit, offset int) ([]*models.Message, error)
+	}
+
+	EventHandler interface {
+		HandleEvent(ctx context.Context, event *models.Event) (err error)
+	}
+
+	TransactionManager interface {
+		RunReadCommitted(ctx context.Context, f func(ctx context.Context) error) error
 	}
 )
 
@@ -40,11 +48,13 @@ var (
 )
 
 type chatService struct {
-	repo ChatRepository
+	repo         ChatRepository
+	eventHandler EventHandler
+	tm           TransactionManager
 }
 
 var _ Usecases = (*chatService)(nil)
 
-func NewUsecases(repo ChatRepository) *chatService {
-	return &chatService{repo: repo}
+func NewUsecases(repo ChatRepository, eventHandler EventHandler, tm TransactionManager) *chatService {
+	return &chatService{repo: repo, eventHandler: eventHandler, tm: tm}
 }

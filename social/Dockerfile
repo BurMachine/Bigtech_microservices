@@ -1,5 +1,5 @@
 # Этап сборки
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 RUN apk add --no-cache git make protobuf-dev build-base
 
@@ -11,11 +11,16 @@ RUN go mod download
 
 COPY . .
 
+# Синхронизируем зависимости
+RUN go mod tidy
+
 # Ручная сборка бинарника
 RUN go build -o /app/bin/social_service ./cmd/social_service/main.go
 
 # Финальный этап (минимальный образ)
 FROM alpine:3.20
+
+RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /app/bin /usr/local/bin
 

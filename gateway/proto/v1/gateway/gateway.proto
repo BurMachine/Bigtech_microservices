@@ -199,6 +199,7 @@ message CreateProfileRequest {
   ];
   optional string bio = 3;
   optional string avatar_url = 4;
+  string email = 5;
 }
 
 message UpdateProfileRequest {

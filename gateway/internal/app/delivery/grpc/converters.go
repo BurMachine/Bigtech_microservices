@@ -54,11 +54,22 @@ func FromRefreshResponseEntityToPB(entity *models.AuthRefreshResponse) *pb.Refre
 
 // FromCreateProfileRequestPBToDTO конвертирует gRPC-запрос в DTO
 func FromCreateProfileRequestPBToDTO(req *pb.CreateProfileRequest) dto.UserCreateProfileInputDTO {
+	bio := ""
+	if req.Bio != nil {
+		bio = *req.Bio
+	}
+
+	avatarURL := ""
+	if req.AvatarUrl != nil {
+		avatarURL = *req.AvatarUrl
+	}
+
 	return dto.UserCreateProfileInputDTO{
 		UserID:    req.UserId,
 		Nickname:  req.Nickname,
-		Bio:       *req.Bio,
-		AvatarURL: *req.AvatarUrl,
+		Bio:       bio,
+		AvatarURL: avatarURL,
+		Email:     req.Email,
 	}
 }
 
@@ -76,11 +87,26 @@ func FromUserProfileEntityToPB(entity *models.UserProfile) *pb.UserProfile {
 
 // FromUpdateProfileRequestPBToDTO конвертирует gRPC-запрос в DTO
 func FromUpdateProfileRequestPBToDTO(req *pb.UpdateProfileRequest) dto.UserUpdateProfileInputDTO {
+	nickname := ""
+	if req.Nickname != nil {
+		nickname = *req.Nickname
+	}
+
+	bio := ""
+	if req.Bio != nil {
+		bio = *req.Bio
+	}
+
+	avatarURL := ""
+	if req.AvatarUrl != nil {
+		avatarURL = *req.AvatarUrl
+	}
+
 	return dto.UserUpdateProfileInputDTO{
 		UserID:    req.UserId,
-		Nickname:  *req.Nickname,
-		Bio:       *req.Bio,
-		AvatarURL: *req.AvatarUrl,
+		Nickname:  nickname,
+		Bio:       bio,
+		AvatarURL: avatarURL,
 	}
 }
 
@@ -103,7 +129,9 @@ func FromSearchByNicknameRequestPBToDTO(req *pb.SearchByNicknameRequest) dto.Use
 func FromSearchByNicknameResponseEntityToPB(entity []*models.UserProfile) *pb.SearchByNicknameResponse {
 	var results []*pb.UserProfile
 	for _, p := range entity {
-		results = append(results, FromUserProfileEntityToPB(p))
+		if p != nil {
+			results = append(results, FromUserProfileEntityToPB(p))
+		}
 	}
 	return &pb.SearchByNicknameResponse{Results: results}
 }
@@ -148,7 +176,9 @@ func FromListRequestsRequestPBToDTO(req *pb.ListRequestsRequest) dto.SocialListR
 func FromListRequestsResponseEntityToPB(entity []*models.SocialFriendRequest) *pb.ListRequestsResponse {
 	var requests []*pb.FriendRequest
 	for _, r := range entity {
-		requests = append(requests, FromFriendRequestEntityToPB(r))
+		if r != nil {
+			requests = append(requests, FromFriendRequestEntityToPB(r))
+		}
 	}
 	return &pb.ListRequestsResponse{Requests: requests}
 }
@@ -213,7 +243,9 @@ func FromListUserChatsRequestPBToDTO(req *pb.ListUserChatsRequest) dto.ChatListU
 func FromListUserChatsResponseEntityToPB(entity []*models.Chat) *pb.ListUserChatsResponse {
 	var chats []*pb.Chat
 	for _, ch := range entity {
-		chats = append(chats, FromChatEntityToPB(ch))
+		if ch != nil {
+			chats = append(chats, FromChatEntityToPB(ch))
+		}
 	}
 	return &pb.ListUserChatsResponse{Chats: chats}
 }
@@ -253,7 +285,9 @@ func FromListMessagesRequestPBToDTO(req *pb.ListMessagesRequest) dto.ChatListMes
 func FromListMessagesResponseEntityToPB(entity *models.ChatListMessagesResponse) *pb.ListMessagesResponse {
 	var messages []*pb.Message
 	for _, msg := range entity.Messages {
-		messages = append(messages, FromMessageEntityToPB(msg))
+		if msg != nil {
+			messages = append(messages, FromMessageEntityToPB(msg))
+		}
 	}
 	return &pb.ListMessagesResponse{
 		Messages:   messages,

@@ -2,14 +2,15 @@ package dto
 
 type CreateUpdateProfileDTO struct {
 	UserID    string
+	Email     string
 	Nickname  string
-	Bio       string // Опционально
-	AvatarURL string // Опционально
+	Bio       string
+	AvatarURL string
 }
 
 type GetProfileDTO struct {
-	ID       string // Для GetProfileByID
-	Nickname string // Для GetProfileByNickname
+	ID       string
+	Nickname string
 }
 
 type SearchByNicknameDTO struct {

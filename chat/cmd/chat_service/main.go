@@ -2,70 +2,71 @@ package main
 
 import (
 	"context"
-	"database/sql"
+	"fmt"
 	"log"
 	"net"
-	"os"
-	"os/signal"
-	"syscall"
+	"sync"
 
+	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/adapters/chat_event_handler"
 	chat_grpc "github.com/BurMachine/Bigtech_microservices/chat/internal/app/controllers/grpc"
 	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/repositories/chat_repo"
 	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/usecases/chat"
-	middleware_grpc "github.com/BurMachine/Bigtech_microservices/chat/internal/middleware/grpc"
+	"github.com/BurMachine/Bigtech_microservices/chat/internal/config"
+	"github.com/BurMachine/Bigtech_microservices/chat/pkg/postgres"
+	"github.com/BurMachine/Bigtech_microservices/chat/pkg/postgres/transaction_manager"
 	pb "github.com/BurMachine/Bigtech_microservices/chat/pkg/v1/chat"
+	"github.com/caarlos0/env/v6"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
 func main() {
+	cfg := config.Config{}
+
+	// Парсим конфигурацию из переменных окружения
+	var err error
+	if err = env.Parse(&cfg); err != nil {
+		fmt.Printf("error parsing config: %v\n", err)
+	}
+
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	// Construct
-	repo := chat_repo.NewRepo(&sql.DB{})
-	uc := chat.NewUsecases(repo)
+	eventHandler := chat_event_handler.NewKafkaEventsHandler(cfg.Kafka.Brokers, cfg.Kafka.Topic)
+
+	dsn := DSN(&cfg.Postgres)
+	conn, err := postgres.NewConnectionPool(ctx, dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	txMngr := transaction_manager.New(conn)
+	repo := chat_repo.NewRepository(txMngr)
+	uc := chat.NewUsecases(repo, eventHandler, txMngr)
 	server, err := chat_grpc.NewServer(uc)
 	if err != nil {
 		log.Fatalf("failed to create server: %v", err)
 	}
 
-	// Создаем gRPC сервер со всеми интерцепторами
-	grpcServer := grpc.NewServer(
-		// Unary интерцепторы (порядок важен!)
-		grpc.ChainUnaryInterceptor(
-			middleware_grpc.RecoveryUnaryServerInterceptor(),
-			middleware_grpc.ErrorUnaryServerInterceptor(),
-		),
-		// Stream интерцепторы
-		grpc.ChainStreamInterceptor(
-			middleware_grpc.RecoveryStreamServerInterceptor(),
-			middleware_grpc.ErrorStreamServerInterceptor(),
-		),
-	)
+	var wg sync.WaitGroup
 
-	pb.RegisterChatServiceServer(grpcServer, server)
-	reflection.Register(grpcServer)
+	wg.Go(func() {
+		grpcServer := grpc.NewServer()
+		pb.RegisterChatServiceServer(grpcServer, server)
 
-	lis, err := net.Listen("tcp", ":8082")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
+		reflection.Register(grpcServer)
 
-	// Graceful shutdown
-	go func() {
-		sigChan := make(chan os.Signal, 1)
-		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
-		<-sigChan
+		lis, err := net.Listen("tcp", ":8082")
+		if err != nil {
+			log.Fatalf("failed to listen: %v", err)
+		}
 
-		log.Println("shutting down gracefully...")
-		grpcServer.GracefulStop()
-		cancel()
-	}()
+		log.Printf("server listening at %v", lis.Addr())
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("failed to serve: %v", err)
+		}
+	})
 
-	log.Printf("server listening at %v", lis.Addr())
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
+	wg.Wait()
 }

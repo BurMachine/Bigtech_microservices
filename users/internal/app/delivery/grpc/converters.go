@@ -21,6 +21,7 @@ func dtoCreateUpdateProfileFromCreateProfileRequest(r *user.CreateProfileRequest
 	return dto.CreateUpdateProfileDTO{
 		UserID:    r.UserId,
 		Nickname:  r.Nickname,
+		Email:     r.Email,
 		Bio:       b,
 		AvatarURL: a,
 	}
@@ -76,8 +77,10 @@ func userProfileFromModelUserProfile(model *models.UserProfile) *user.UserProfil
 		UserId:    model.UserID,
 		Nickname:  model.Nickname,
 		Bio:       &model.Bio,
+		Email:     model.Email,
 		AvatarUrl: &model.AvatarURL,
-		// CreatedAt и UpdatedAt можно добавить, если нужно: model.CreatedAt.UnixMilli(), model.UpdatedAt.UnixMilli()
+		CreatedAt: model.CreatedAt.UnixMilli(),
+		UpdatedAt: model.UpdatedAt.UnixMilli(),
 	}
 }
 

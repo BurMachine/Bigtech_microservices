@@ -1,0 +1,37 @@
+version: '3.8'
+
+networks:
+  messenger:
+    external: true
+
+services:
+
+  # СЕРВИС использует свою БД + Kafka
+  notification:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: notification
+    ports:
+      - "8086:8086"
+    environment:
+      GRPC_PORT: 8086
+      DB_HOST: postgres-notification
+      DB_PORT: 5436
+      DB_USER: notification_user
+      DB_PASSWORD: notification_pass
+      DB_NAME: notification_db
+      DB_SSLMODE: disable
+      # Kafka
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_TOPIC_MESSAGE_SENT: notification.message.sent
+      # Outbox worker
+      OUTBOX_POLL_INTERVAL: 3s
+      OUTBOX_BATCH_SIZE: 200
+      LOG_LEVEL: debug
+    networks:
+      - messenger
+    restart: unless-stopped
+
+volumes:
+  postgres-notification-data:
