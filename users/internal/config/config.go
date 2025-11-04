@@ -13,3 +13,8 @@ type Postgres struct {
 	DbPassword string `env:"PASSWORD" envDefault:"postgres_pass"`
 	DbName     string `env:"NAME" envDefault:"users_db"`
 }
+
+type Secrets struct {
+	AppToken string `yaml:"appToken" env:"APP_TOKEN"`
+	AppName  string `yaml:"appName" env:"APP_NAME"`
+}

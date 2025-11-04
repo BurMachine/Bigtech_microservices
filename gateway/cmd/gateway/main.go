@@ -3,19 +3,19 @@ package main
 import (
 	"context"
 	"log"
-	"net"
-	"net/http"
-	"sync"
+	"os"
 
 	"github.com/BurMachine/Bigtech_microservices/gateway/internal/app/clients"
 	grpc_gateway "github.com/BurMachine/Bigtech_microservices/gateway/internal/app/delivery/grpc"
 	"github.com/BurMachine/Bigtech_microservices/gateway/internal/app/usecases/gateway"
+	"github.com/BurMachine/Bigtech_microservices/gateway/internal/config"
 	pb "github.com/BurMachine/Bigtech_microservices/gateway/pkg/v1/gateway"
-	"google.golang.org/grpc/credentials/insecure"
-
+	"github.com/Burmachine/MSA/lib/platform"
+	"github.com/gin-gonic/gin"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
+	rkgrpc "github.com/rookie-ninja/rk-grpc/v2/boot"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 // Server is used to implement pb.NotesServiceServer.
@@ -25,61 +25,57 @@ func main() {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	// Construct
-	clientsGroup, err := clients.NewGroup("8081", "8082", "8083", "8084")
+	app, err := platform.Init[config.Config, config.Secrets](
+		ctx,
+		os.Getenv("APP_MODE"),
+		"gateway-service",
+		Construct,
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
-	uc := gateway.NewUsecase(clientsGroup.AuthClient, clientsGroup.UserClient, clientsGroup.SocialClient, clientsGroup.ChatClient)
-	server, err := grpc_gateway.NewServer(uc)
+
+	if err := app.Run(ctx); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func Construct(ctx context.Context, cfg *config.Config, secrets *config.Secrets,
+	entryGrpc *rkgrpc.GrpcEntry, entryHttp *rkgin.GinEntry) (*platform.RegisteredServices, error) {
+
+	// 1. Создаем клиенты
+	clientsGroup, err := clients.NewGroup(cfg.AuthPort, cfg.ChatPort, cfg.SocialPort, cfg.UserPort)
 	if err != nil {
-		log.Fatalf("failed to create Server: %v", err)
+		return nil, err
 	}
 
-	var wg sync.WaitGroup
+	// 2. Создаем use case и gRPC сервис
+	uc := gateway.NewUsecase(clientsGroup.AuthClient, clientsGroup.UserClient,
+		clientsGroup.SocialClient, clientsGroup.ChatClient)
+	gatewayService, err := grpc_gateway.NewServer(uc)
+	if err != nil {
+		return nil, err
+	}
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	// 3. Регистрируем gRPC
+	entryGrpc.AddRegFuncGrpc(func(server *grpc.Server) {
+		pb.RegisterGatewayServiceServer(server, gatewayService)
+	})
 
-		grpcServer := grpc.NewServer(grpc.Creds(insecure.NewCredentials()))
-		pb.RegisterGatewayServiceServer(grpcServer, server)
+	// 4. Регистрируем HTTP через gRPC-Gateway
+	mux := runtime.NewServeMux()
 
-		reflection.Register(grpcServer)
+	// Регистрируем handler напрямую (без сетевого вызова)
+	err = pb.RegisterGatewayServiceHandlerServer(ctx, mux, gatewayService)
+	if err != nil {
+		return nil, err
+	}
 
-		lis, err := net.Listen("tcp", ":8079")
-		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
-		}
+	// 5. Подключаем gateway mux к gin router
+	entryHttp.Router.Any("/*any", gin.WrapH(mux))
 
-		log.Printf("Server listening at %v", lis.Addr())
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
-		}
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		// Register gRPC Server endpoint
-		// Note: Make sure the gRPC Server is running properly and accessible
-		mux := runtime.NewServeMux()
-		if err = pb.RegisterGatewayServiceHandlerServer(ctx, mux, server); err != nil {
-			log.Fatalf("failed to serve: %v", err)
-		}
-		httpServer := &http.Server{Handler: mux}
-
-		lis, err := net.Listen("tcp", ":8078")
-		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
-		}
-
-		// Start HTTP Server (and proxy calls to gRPC Server endpoint)
-		log.Printf("Server listening at %v", lis.Addr())
-		if err := httpServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
-		}
-	}()
-
-	wg.Wait()
+	return &platform.RegisteredServices{
+		GRPC: true,
+		HTTP: true,
+	}, nil
 }

@@ -1,5 +1,5 @@
 app:
-  name: auth-service
+  name: users-service
   version: "v1.0.0"
 
 
@@ -8,13 +8,13 @@ logger:
     zap:
       level: warn
 grpc:
-  - name: auth-service-grpc
+  - name: users-service-grpc
     enabled: true
     enableReflection: true
-    port: 8081
+    port: 8084
     eventEntry: ""
 
-gin:
-  - name: auth-service-http
-    enabled: false
-    port: 8080
+#gin:
+#  - name: users-service-http
+#    enabled: false
+#    port: 8080

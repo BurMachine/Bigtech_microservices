@@ -1,5 +1,5 @@
 app:
-  name: auth-service
+  name: chat-service
   version: "v1.0.0"
 
 
@@ -8,13 +8,13 @@ logger:
     zap:
       level: warn
 grpc:
-  - name: auth-service-grpc
+  - name: chat-service-grpc
     enabled: true
-    enableReflection: true
-    port: 8081
+    enableReflection: true                         
+    port: 8082
     eventEntry: ""
 
 gin:
-  - name: auth-service-http
+  - name: chat-service-http
     enabled: false
     port: 8080
