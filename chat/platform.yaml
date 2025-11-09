@@ -1,0 +1,33 @@
+client:
+  grpc:
+    timeout: 2s
+    retry:
+      maxAttempts: 3
+      backoff:
+        base: 100ms
+        max: 2s
+        jitter: true
+      retryableCodes: ["UNAVAILABLE","DEADLINE_EXCEEDED","RESOURCE_EXHAUSTED","ABORTED"]
+    circuitBreaker:
+      failuresForOpen: 10
+      window: 30s
+      halfOpenMaxCalls: 10
+      openStateFor: 60s
+    metrics: true
+server:
+  timeout:
+    enabled: true
+    ignore: [""]
+    timeoutMs: 5000
+    paths:
+      - path: "/github.com.BurMachine.Bigtech_microservices.auth.AuthService/Register"
+        timeoutMs: 1000
+  rateLimit:
+    enabled: true
+    ignore: [""]
+    reqPerSec: 1000
+    paths:
+      - path: "/github.com.BurMachine.Bigtech_microservices.auth.AuthService/Register" # http
+        reqPerSec: 12
+shutdown:
+  gracePeriod: 30s

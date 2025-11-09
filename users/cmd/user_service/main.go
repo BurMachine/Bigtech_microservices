@@ -9,6 +9,7 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/di"
 	"github.com/BurMachine/Bigtech_microservices/users/internal/config"
 	pb "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
+	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/Burmachine/MSA/lib/platform"
 	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
 	rkgrpc "github.com/rookie-ninja/rk-grpc/v2/boot"
@@ -37,7 +38,14 @@ func main() {
 	}
 }
 
-func Construct(ctx context.Context, cfg *config.Config, secrets *config.Secrets, entryGrpc *rkgrpc.GrpcEntry, entryHttp *rkgin.GinEntry) (*platform.RegisteredServices, error) {
+func Construct(
+	ctx context.Context,
+	cfg *config.Config,
+	secrets *config.Secrets,
+	platformCfg *platform_middleware.ClientGRPCConfig,
+	entryGrpc *rkgrpc.GrpcEntry,
+	entryHttp *rkgin.GinEntry,
+) (*platform.RegisteredServices, []func() error, error) {
 	grpcService, err := di.Wire(DSN(&cfg.Postgres))
 	if err != nil {
 		log.Fatalf("failed to inject dependencies: %v", err)
@@ -50,7 +58,7 @@ func Construct(ctx context.Context, cfg *config.Config, secrets *config.Secrets,
 	return &platform.RegisteredServices{
 		GRPC: true,
 		HTTP: false,
-	}, nil
+	}, nil, nil
 }
 
 func DSN(conf *config.Postgres) string {

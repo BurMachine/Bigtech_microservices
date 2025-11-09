@@ -8,13 +8,13 @@ logger:
     zap:
       level: warn
 grpc:
-  - name: auth-service-grpc
+  - name: notification-service-grpc
     enabled: true
     enableReflection: true
     port: 8081
     eventEntry: ""
 
 gin:
-  - name: auth-service-http
+  - name: notification-service-http
     enabled: true
     port: 8071

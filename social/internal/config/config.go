@@ -1,9 +1,9 @@
 package config
 
 type Config struct {
-	AddrGrpc string `env:"GRPC" envDefault:":8082"`
-
-	Postgres Postgres `envPrefix:"PG_"`
+	AddrGrpc        string   `env:"GRPC" envDefault:":8082"`
+	UserServicePort string   `env:"USER_SERVICE_PORT" envDefault:":8084"`
+	Postgres        Postgres `envPrefix:"PG_"`
 
 	Kafka Kafka `envPrefix:"KAFKA_"`
 }
@@ -18,6 +18,7 @@ type Postgres struct {
 
 type Kafka struct {
 	Brokers []string `env:"BROKERS" envDefault:"localhost:9092"`
+	Topic   string   `env:"TOPIC" envDefault:"social"`
 }
 
 type Secrets struct {

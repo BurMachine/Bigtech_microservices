@@ -18,5 +18,10 @@ type Kafka struct {
 	Brokers       []string `env:"BROKERS" envDefault:"localhost:9092"`
 	ConsumerGroup string   `env:"KAFKA_CONSUMER_GROUP" envDefault:"notification-service-group"`
 	ConsumerName  string   `env:"KAFKA_CONSUMER_NAME" envDefault:"notification-service-consumer"`
-	ConsumerTopic string   `env:"KAFKA_CONSUMER_TOPIC" envDefault:"test"`
+	ConsumerTopic string   `env:"KAFKA_CONSUMER_TOPIC" envDefault:"messages"`
+}
+
+type Secrets struct {
+	AppToken string `yaml:"appToken" env:"APP_TOKEN"`
+	AppName  string `yaml:"appName" env:"APP_NAME"`
 }

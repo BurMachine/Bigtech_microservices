@@ -3,53 +3,48 @@ package social_event_handler
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/BurMachine/Bigtech_microservices/social/internal/app/models"
+	kafkalib "github.com/Burmachine/MSA/lib/kafka"
 	"github.com/google/uuid"
 	"github.com/segmentio/kafka-go"
 )
 
 type KafkaEventsHandler struct {
-	writer *kafka.Writer
+	producer *kafkalib.Producer
 }
 
-func NewKafkaEventsHandler(brokers []string) *KafkaEventsHandler {
-	writer := &kafka.Writer{
-		Addr:         kafka.TCP(brokers...), // ← БЕЗ Topic
-		Balancer:     &kafka.Hash{},         // Партиционирование по ключу
-		BatchSize:    100,
-		BatchTimeout: 10 * time.Millisecond,
-		MaxAttempts:  3,
-		RequiredAcks: kafka.RequireAll,
-		Compression:  kafka.Snappy,
+func NewKafkaEventsHandler(producer *kafkalib.Producer) *KafkaEventsHandler {
+	return &KafkaEventsHandler{
+		producer: producer,
 	}
-
-	return &KafkaEventsHandler{writer: writer}
 }
 
 func (h *KafkaEventsHandler) HandleBatch(ctx context.Context, events []*models.Event) (succeeded []uuid.UUID, failed []uuid.UUID, err error) {
 	succeeded = make([]uuid.UUID, 0, len(events))
 	failed = make([]uuid.UUID, 0, len(events))
 
+	if len(events) == 0 {
+		return succeeded, failed, nil
+	}
+
+	// Формируем kafka.Message для батча
 	messages := make([]kafka.Message, 0, len(events))
 	for _, ev := range events {
 		messages = append(messages, kafka.Message{
-			Topic: ev.Topic, // ← Теперь работает
+			Topic: ev.Topic,
 			Key:   []byte(ev.ID.String()),
 			Value: ev.Payload,
 			Time:  ev.CreatedAt,
 		})
 	}
 
-	// Отправляем батчем (эффективнее)
-	writeErr := h.writer.WriteMessages(ctx, messages...)
+	// Отправляем батчем через платформенный продюсер
+	writeErr := h.producer.PublishBatch(ctx, messages)
 	if writeErr != nil {
-		// Определяем какие сообщения провалились
-		for i, ev := range events {
-			if i < len(messages) {
-				failed = append(failed, ev.ID)
-			}
+		// При ошибке все сообщения считаем неудачными
+		for _, ev := range events {
+			failed = append(failed, ev.ID)
 		}
 		return succeeded, failed, fmt.Errorf("failed to write batch: %w", writeErr)
 	}
@@ -63,5 +58,7 @@ func (h *KafkaEventsHandler) HandleBatch(ctx context.Context, events []*models.E
 }
 
 func (h *KafkaEventsHandler) Close() error {
-	return h.writer.Close()
+	// Продюсер закрывается через cleanup функции платформы
+	// Здесь ничего не делаем
+	return nil
 }

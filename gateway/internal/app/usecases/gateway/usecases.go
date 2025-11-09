@@ -14,6 +14,7 @@ type (
 		Register(ctx context.Context, in models.AuthRegisterRequest) (models.AuthRegisterResponse, error)
 		Login(ctx context.Context, in models.AuthLoginRequest) (models.AuthLoginResponse, error)
 		Refresh(ctx context.Context, in models.AuthRefreshRequest) (models.AuthRefreshResponse, error)
+		Close() error
 	}
 
 	UserClient interface {
@@ -22,6 +23,7 @@ type (
 		GetProfileByID(ctx context.Context, id string) (models.UserProfile, error)
 		GetProfileByNickname(ctx context.Context, nickname string) (models.UserProfile, error)
 		SearchByNickname(ctx context.Context, query string, limit int32) (models.UserSearchResult, error)
+		Close() error
 	}
 
 	SocialClient interface {
@@ -31,6 +33,7 @@ type (
 		DeclineFriendRequest(ctx context.Context, requestID string) (models.SocialFriendRequest, error)
 		RemoveFriend(ctx context.Context, userID string) (models.SocialRemoveFriendResponse, error)
 		ListFriends(ctx context.Context, userID string, limit int32, cursor string) (models.SocialListFriendsResponse, error)
+		Close() error
 	}
 
 	ChatClient interface {
@@ -41,6 +44,7 @@ type (
 		SendMessage(ctx context.Context, chatID, text string) (models.ChatMessage, error)
 		ListMessages(ctx context.Context, chatID string, limit int32, cursor string) (models.ChatListMessagesResponse, error)
 		StreamMessages(ctx context.Context, chatID string, sinceUnixMs int64) (<-chan *models.ChatMessage, error)
+		Close() error
 	}
 )
 

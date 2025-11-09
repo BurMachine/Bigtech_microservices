@@ -12,6 +12,7 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/auth/internal/app/usecases/auth"
 	"github.com/BurMachine/Bigtech_microservices/auth/internal/config"
 	pb "github.com/BurMachine/Bigtech_microservices/auth/pkg/v1/auth"
+	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/Burmachine/MSA/lib/platform"
 	"github.com/Burmachine/MSA/lib/postgreslib"
 	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
@@ -21,8 +22,6 @@ import (
 
 func main() {
 	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 
 	app, err := platform.Init[config.Config, config.Secrets](
 		ctx,
@@ -35,30 +34,44 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Запускаем приложение
 	if err := app.Run(ctx); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func Construct(ctx context.Context, cfg *config.Config, secrets *config.Secrets, entryGrpc *rkgrpc.GrpcEntry, entryHttp *rkgin.GinEntry) (*platform.RegisteredServices, error) {
-	// Подключаемся к БД
+func Construct(
+	ctx context.Context,
+	cfg *config.Config,
+	secrets *config.Secrets,
+	platformCfg *platform_middleware.ClientGRPCConfig,
+	entryGrpc *rkgrpc.GrpcEntry,
+	entryHttp *rkgin.GinEntry,
+) (*platform.RegisteredServices, []func() error, error) {
+	// Массив cleanup функций
+	cleanups := make([]func() error, 0)
+
+	// 1. Подключение к БД
 	dbConn, err := postgreslib.NewConnectionPool(ctx, DSN(&cfg.Postgres))
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
+	cleanups = append(cleanups, func() error {
+		log.Println("closing database connection")
+		dbConn.Pool.Close()
+		return nil
+	})
 
-	// Создаем репозитории
+	// 2. Репозитории
 	authRepo := auth_repo.NewRepository(dbConn.Pool)
 	userRepo := user_repo.NewRepository(dbConn.Pool)
 
-	// Создаем use cases
+	// 3. Use cases
 	authUsecases := auth.NewAuthUsecases(userRepo, authRepo)
 
-	// Создаем gRPC сервис
+	// 4. gRPC сервис
 	grpcService, err := auth_grpc.New(authUsecases)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create grpc service: %w", err)
+		return nil, nil, fmt.Errorf("failed to create grpc service: %w", err)
 	}
 
 	entryGrpc.AddRegFuncGrpc(func(server *grpc.Server) {
@@ -68,7 +81,7 @@ func Construct(ctx context.Context, cfg *config.Config, secrets *config.Secrets,
 	return &platform.RegisteredServices{
 		GRPC: true,
 		HTTP: false,
-	}, nil
+	}, cleanups, nil
 }
 
 func DSN(conf *config.Postgres) string {

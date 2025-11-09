@@ -16,6 +16,7 @@ import (
 
 type Client struct {
 	Client users.UserServiceClient
+	conn   *grpc.ClientConn
 }
 
 func NewClient(port string) (*Client, error) {
@@ -26,7 +27,7 @@ func NewClient(port string) (*Client, error) {
 
 	client := users.NewUserServiceClient(grpcConn)
 
-	return &Client{Client: client}, nil
+	return &Client{Client: client, conn: grpcConn}, nil
 }
 
 func (c *Client) GetProfileByID(ctx context.Context, id string) (models.UserProfile, error) {
@@ -50,4 +51,12 @@ func (c *Client) GetProfileByID(ctx context.Context, id string) (models.UserProf
 		CreatedAt: time.Unix(0, resp.CreatedAt*int64(time.Millisecond)),
 		UpdatedAt: time.Unix(0, resp.UpdatedAt*int64(time.Millisecond)),
 	}, nil
+}
+
+func (c *Client) Close() error {
+	err := c.conn.Close()
+	if err != nil {
+		return err
+	}
+	return nil
 }

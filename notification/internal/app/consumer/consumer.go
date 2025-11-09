@@ -1,101 +1,142 @@
-package consumer
+package inbox_consumer
 
 import (
 	"context"
-	"errors"
-	"log"
 	"time"
 
 	"github.com/BurMachine/Bigtech_microservices/notification/internal/app/handler"
 	"github.com/BurMachine/Bigtech_microservices/notification/internal/app/inbox_repo"
+	kafkalib "github.com/Burmachine/MSA/lib/kafka"
 	"github.com/segmentio/kafka-go"
+	"go.uber.org/zap"
 )
 
 type InboxConsumer struct {
-	reader       *kafka.Reader
+	consumer     *kafkalib.Consumer
 	repo         inbox_repo.InboxRepo
-	handler      handler.Handler
 	batchSize    int
 	batchTimeout time.Duration
 	consumerName string
+	logger       *zap.Logger
+
+	batch      []kafka.Message
+	batchTimer *time.Timer
 }
 
-func NewInboxConsumer(brokers []string, groupID string, consumerName string, topic string, repo inbox_repo.InboxRepo, h handler.Handler) (*InboxConsumer, error) {
-	// Создаем Reader с указанием топика при инициализации
-	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:     brokers,
-		GroupID:     groupID,
-		Topic:       topic, // Топик устанавливается здесь
-		MinBytes:    10e3,  // 10KB
-		MaxBytes:    10e6,  // 10MB
-		StartOffset: kafka.FirstOffset,
-	})
-
-	return &InboxConsumer{
-		reader:       reader,
+func NewInboxConsumer(
+	brokers []string,
+	groupID string,
+	consumerName string,
+	topic string,
+	repo inbox_repo.InboxRepo,
+	logger *zap.Logger,
+) (*InboxConsumer, error) {
+	ic := &InboxConsumer{
 		repo:         repo,
-		handler:      h,
 		batchSize:    128,
 		batchTimeout: 300 * time.Millisecond,
 		consumerName: consumerName,
-	}, nil
+		logger:       logger,
+		batch:        make([]kafka.Message, 0, 128),
+	}
+
+	// Создаем consumer с MANUAL COMMIT
+	consumer := kafkalib.NewConsumer(
+		kafkalib.ConsumerConfig{
+			Brokers:      brokers,
+			GroupID:      groupID,
+			Topic:        topic,
+			ManualCommit: true, // Важно!
+		},
+		ic.messageHandler,
+		logger,
+	)
+
+	ic.consumer = consumer
+	return ic, nil
 }
 
-func (c *InboxConsumer) Close() error {
-	return c.reader.Close()
+func (ic *InboxConsumer) messageHandler(ctx context.Context, msg kafka.Message) error {
+	// Добавляем в batch
+	ic.batch = append(ic.batch, msg)
+
+	// Если batch заполнен - флашим
+	if len(ic.batch) >= ic.batchSize {
+		return ic.flushInbox(ctx)
+	}
+
+	return nil
 }
 
-func (c *InboxConsumer) Run(ctx context.Context) error {
-	batch := make([]kafka.Message, 0, c.batchSize)
-	timer := time.NewTimer(c.batchTimeout)
-	defer timer.Stop()
+func (ic *InboxConsumer) Run(ctx context.Context) error {
+	ic.logger.Info("starting inbox consumer",
+		zap.String("consumer", ic.consumerName),
+		zap.Int("batchSize", ic.batchSize),
+		zap.Duration("batchTimeout", ic.batchTimeout),
+	)
 
-	for {
-		select {
-		case <-ctx.Done():
-			c.flushInbox(ctx, batch) // Flush перед выходом
-			return ctx.Err()
-		default:
-			msg, err := c.reader.ReadMessage(ctx)
-			if err != nil {
-				if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-					return err
+	// Таймер для периодического flush
+	ic.batchTimer = time.NewTimer(ic.batchTimeout)
+	defer ic.batchTimer.Stop()
+
+	// Горутина для таймера
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ic.batchTimer.C:
+				if len(ic.batch) > 0 {
+					if err := ic.flushInbox(ctx); err != nil {
+						ic.logger.Error("error flushing on timer", zap.Error(err))
+					}
 				}
-				log.Printf("[kafka-reader] error: %v", err)
-				continue
+				ic.batchTimer.Reset(ic.batchTimeout)
 			}
+		}
+	}()
 
-			batch = append(batch, msg)
-			if len(batch) >= c.batchSize {
-				c.flushInbox(ctx, batch)
-				batch = batch[:0]
-				timer.Reset(c.batchTimeout)
-			}
-		case <-timer.C:
-			if len(batch) > 0 {
-				c.flushInbox(ctx, batch)
-				batch = batch[:0]
-			}
-			timer.Reset(c.batchTimeout)
+	// Запускаем consumer
+	return ic.consumer.Start(ctx)
+}
+
+func (ic *InboxConsumer) Close() error {
+	ic.logger.Info("closing inbox consumer")
+
+	// Флашим остатки
+	if len(ic.batch) > 0 {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := ic.flushInbox(ctx); err != nil {
+			ic.logger.Error("error flushing on close", zap.Error(err))
 		}
 	}
+
+	// Закрываем consumer
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	return ic.consumer.Stop(ctx)
 }
 
-// flushInbox: Batch insert в БД, затем commit successful
-func (c *InboxConsumer) flushInbox(ctx context.Context, batch []kafka.Message) {
-	if len(batch) == 0 {
-		return
+func (ic *InboxConsumer) flushInbox(ctx context.Context) error {
+	if len(ic.batch) == 0 {
+		return nil
 	}
 
-	var inboxMsgs []inbox_repo.InboxMessage
-	var toCommit []kafka.Message
+	ic.logger.Debug("flushing batch", zap.Int("size", len(ic.batch)))
 
-	for _, msg := range batch {
+	var inboxMsgs []inbox_repo.InboxMessage
+
+	for _, msg := range ic.batch {
 		id := handler.ExtractID(&msg)
 		if id == "" {
-			// Без ID: скип + commit (или DLQ)
-			log.Printf("skip message without ID: topic=%s p=%d off=%d", msg.Topic, msg.Partition, msg.Offset)
-			toCommit = append(toCommit, msg)
+			ic.logger.Warn("skipping message without ID",
+				zap.String("topic", msg.Topic),
+				zap.Int("partition", msg.Partition),
+				zap.Int64("offset", msg.Offset),
+			)
 			continue
 		}
 
@@ -108,16 +149,30 @@ func (c *InboxConsumer) flushInbox(ctx context.Context, batch []kafka.Message) {
 		})
 	}
 
-	// Batch insert в БД (ON CONFLICT DO NOTHING)
+	// Batch insert в БД
 	if len(inboxMsgs) > 0 {
-		if err := c.repo.BatchInsert(ctx, inboxMsgs); err != nil {
-			log.Printf("batch insert failed: %v — will retry", err)
-			return // НЕ commit — retry от Kafka
+		if err := ic.repo.BatchInsert(ctx, inboxMsgs); err != nil {
+			ic.logger.Error("batch insert failed", zap.Error(err))
+			// НЕ очищаем batch и НЕ коммитим - retry от Kafka
+			return err
 		}
+
+		ic.logger.Info("batch inserted", zap.Int("count", len(inboxMsgs)))
 	}
 
-	// Успех: commit все сообщения из батча
-	if err := c.reader.CommitMessages(ctx, batch...); err != nil {
-		log.Printf("commit failed: %v", err)
+	// Коммитим ВСЕ сообщения из батча
+	if err := ic.consumer.CommitMessages(ctx, ic.batch...); err != nil {
+		ic.logger.Error("commit failed", zap.Error(err))
+		return err
 	}
+
+	// Очищаем batch
+	ic.batch = ic.batch[:0]
+
+	// Сбрасываем таймер
+	if ic.batchTimer != nil {
+		ic.batchTimer.Reset(ic.batchTimeout)
+	}
+
+	return nil
 }
