@@ -6,6 +6,8 @@ import (
 
 	"github.com/BurMachine/Bigtech_microservices/social/internal/app/models"
 	"github.com/google/martian/log"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 )
 
 func (p *Processor) Run(ctx context.Context) {
@@ -17,7 +19,12 @@ func (p *Processor) Run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			err := p.tm.RunReadCommitted(ctx, func(txCtx context.Context) error {
+			span, batchCtx := opentracing.StartSpanFromContext(ctx, "Outbox/ProcessBatch")
+			//batchCtx := opentracing.ContextWithSpan(ctx, span)
+
+			span.SetTag("component", "outbox-worker")
+
+			err := p.tm.RunReadCommitted(batchCtx, func(txCtx context.Context) error {
 				events, err := p.outboxRepo.GetPendingEvents(txCtx, 100) // батч лимит
 				if err != nil {
 					return err // или log и continue
@@ -69,11 +76,26 @@ func (p *Processor) Run(ctx context.Context) {
 			if err != nil {
 				log.Errorf("%v failed to process outbox events: %w", err)
 			}
+
+			span.Finish()
 		}
 	}
 }
 
 func (p *Processor) Cleanup(ctx context.Context) error {
-	before := time.Now().Add(-7 * 24 * time.Hour) // retention 7 дней
-	return p.outboxRepo.DeleteOldPublished(ctx, before)
+	span := opentracing.StartSpan("Outbox/Cleanup")
+	defer span.Finish()
+
+	ctx = opentracing.ContextWithSpan(ctx, span)
+	span.SetTag("component", "outbox-worker")
+
+	before := time.Now().Add(-7 * 24 * time.Hour)
+
+	err := p.outboxRepo.DeleteOldPublished(ctx, before)
+	if err != nil {
+		ext.Error.Set(span, true)
+		span.LogKV("error", err.Error())
+	}
+
+	return err
 }

@@ -10,13 +10,14 @@ type Config struct {
 	Client struct {
 		GRPC ClientGRPCConfig `yaml:"grpc"`
 	} `yaml:"client"`
-	Server   ServerConfig `yaml:"server"`
+	Server   ServerConfig  `yaml:"server"`
+	Tracing  TracingConfig `yaml:"tracing"`
 	Shutdown struct {
-		GracePeriod string `yaml:"gracePeriod"` // e.g., "30s" (добавьте для shutdown)
+		GracePeriod string `yaml:"gracePeriod"`
 	} `yaml:"shutdown"`
 }
 
-// ClientGRPCConfig как в моём предыдущем ответе (timeout, retry, circuitBreaker, metrics)
+// ClientGRPCConfig конфигурация для gRPC клиента
 type ClientGRPCConfig struct {
 	Timeout string `yaml:"timeout"`
 	Retry   struct {
@@ -37,6 +38,7 @@ type ClientGRPCConfig struct {
 	Metrics bool `yaml:"metrics"`
 }
 
+// ServerConfig_Timeout конфигурация timeout для сервера
 type ServerConfig_Timeout struct {
 	Enabled   bool     `yaml:"enabled"`
 	Ignore    []string `yaml:"ignore"`
@@ -47,7 +49,7 @@ type ServerConfig_Timeout struct {
 	} `yaml:"paths"`
 }
 
-// ServerConfig_RateLimit вложенный тип для rate limit конфига
+// ServerConfig_RateLimit конфигурация rate limit для сервера
 type ServerConfig_RateLimit struct {
 	Enabled   bool     `yaml:"enabled"`
 	Ignore    []string `yaml:"ignore"`
@@ -58,10 +60,20 @@ type ServerConfig_RateLimit struct {
 	} `yaml:"paths"`
 }
 
-// ServerConfig как в ДЗ (timeout, rateLimit)
+// ServerConfig конфигурация для gRPC/HTTP сервера
 type ServerConfig struct {
 	Timeout   ServerConfig_Timeout   `yaml:"timeout"`
 	RateLimit ServerConfig_RateLimit `yaml:"rateLimit"`
+}
+
+// TracingConfig конфигурация для Jaeger трейсинга
+type TracingConfig struct {
+	Enabled      bool    `yaml:"enabled"`
+	AgentHost    string  `yaml:"agentHost"`  // UDP порт для spans (6831)
+	HealthHost   string  `yaml:"healthHost"` // TCP порт для health check (14271)
+	SamplerType  string  `yaml:"samplerType"`
+	SamplerParam float64 `yaml:"samplerParam"`
+	LogSpans     bool    `yaml:"logSpans"`
 }
 
 func Load(filePath string) (*Config, error) {
@@ -86,10 +98,26 @@ func Load(filePath string) (*Config, error) {
 }
 
 func ApplyDefaults(cfg *Config) {
+	// Client defaults
 	if cfg.Client.GRPC.Timeout == "" {
 		cfg.Client.GRPC.Timeout = "5s"
 	}
 
+	// Tracing defaults
+	if cfg.Tracing.AgentHost == "" {
+		cfg.Tracing.AgentHost = "localhost:6831"
+	}
+	if cfg.Tracing.HealthHost == "" {
+		cfg.Tracing.HealthHost = "localhost:14271"
+	}
+	if cfg.Tracing.SamplerType == "" {
+		cfg.Tracing.SamplerType = "const"
+	}
+	if cfg.Tracing.SamplerParam == 0 {
+		cfg.Tracing.SamplerParam = 1.0
+	}
+
+	// Shutdown defaults
 	if cfg.Shutdown.GracePeriod == "" {
 		cfg.Shutdown.GracePeriod = "30s"
 	}

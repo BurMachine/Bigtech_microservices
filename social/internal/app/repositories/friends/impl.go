@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/BurMachine/Bigtech_microservices/social/internal/app/models"
-	"github.com/BurMachine/Bigtech_microservices/social/pkg/postgres"
+	"github.com/Burmachine/MSA/lib/postgreslib"
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 )
@@ -47,7 +47,7 @@ func (r *Repository) GetFriendRequest(ctx context.Context, requestID string) (*m
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("%s: %w", api, errRepoNotFound)
 		}
-		return nil, fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return nil, fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	return &request, nil
@@ -63,7 +63,7 @@ func (r *Repository) SendFriendRequest(ctx context.Context, fromUserID, toUserID
 
 	conn := r.db.GetQueryEngine(ctx)
 	if _, err := conn.Execx(ctx, qb); err != nil {
-		return "", fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return "", fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	return requestID, nil
@@ -83,7 +83,7 @@ func (r *Repository) ListRequests(ctx context.Context, userID string) ([]*models
 	conn := r.db.GetQueryEngine(ctx)
 	var requests []*models.FriendRequest
 	if err := conn.Selectx(ctx, &requests, qb); err != nil {
-		return nil, fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return nil, fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	return requests, nil
@@ -100,7 +100,7 @@ func (r *Repository) AcceptFriendRequest(ctx context.Context, requestID string) 
 	conn := r.db.GetQueryEngine(ctx)
 	result, err := conn.Execx(ctx, qb)
 	if err != nil {
-		return fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 	rowsAffected := result.RowsAffected()
 	if rowsAffected == 0 {
@@ -119,7 +119,7 @@ func (r *Repository) AcceptFriendRequest(ctx context.Context, requestID string) 
 		if err == sql.ErrNoRows {
 			return fmt.Errorf("%s: %w", api, errRepoNotFound)
 		}
-		return fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	userID1, userID2 := req.FromUserID, req.ToUserID
@@ -131,7 +131,7 @@ func (r *Repository) AcceptFriendRequest(ctx context.Context, requestID string) 
 		Columns(colUserID, colFriendUserID, colCreatedAt).
 		Values(userID1, userID2, time.Now().UTC())
 	if _, err := conn.Execx(ctx, qbInsert); err != nil {
-		return fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	return nil
@@ -148,7 +148,7 @@ func (r *Repository) DeclineFriendRequest(ctx context.Context, requestID string)
 	conn := r.db.GetQueryEngine(ctx)
 	result, err := conn.Execx(ctx, qb)
 	if err != nil {
-		return fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 	rowsAffected := result.RowsAffected()
 	if rowsAffected == 0 {
@@ -172,7 +172,7 @@ func (r *Repository) RemoveFriend(ctx context.Context, userID1, userID2 string) 
 	conn := r.db.GetQueryEngine(ctx)
 	result, err := conn.Execx(ctx, qb)
 	if err != nil {
-		return fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 	rowsAffected := result.RowsAffected()
 	if rowsAffected == 0 {
@@ -212,7 +212,7 @@ func (r *Repository) ListFriends(ctx context.Context, userID string, limit int, 
 			if err == sql.ErrNoRows {
 				return nil, "", fmt.Errorf("%s: %w", api, errRepoNotFound)
 			}
-			return nil, "", fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+			return nil, "", fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 		}
 		qb = qb.Where(squirrel.Lt{colCreatedAt: row.CreatedAt})
 	}
@@ -220,7 +220,7 @@ func (r *Repository) ListFriends(ctx context.Context, userID string, limit int, 
 	conn := r.db.GetQueryEngine(ctx)
 	var friendIDs []string
 	if err := conn.Selectx(ctx, &friendIDs, qb); err != nil {
-		return nil, "", fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return nil, "", fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	// TODO Протестировать nextCursor кошда будет интеграция с users_service

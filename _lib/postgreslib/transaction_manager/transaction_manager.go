@@ -6,6 +6,7 @@ import (
 
 	"github.com/Burmachine/MSA/lib/postgreslib"
 	"github.com/jackc/pgx/v5"
+	"github.com/opentracing/opentracing-go"
 )
 
 // TransactionManager - менеджер транзакций: позовляет выполнять функции разных репозиториев ходящих в одну БД в рамках транзакции
@@ -30,6 +31,15 @@ func (m *TransactionManager) runTransaction(ctx context.Context, txOpts pgx.TxOp
 	if ok {
 		return fn(ctx)
 	}
+
+	// Tracing
+	span, ctx := opentracing.StartSpanFromContext(ctx, "TransactionManager/BeginTx")
+	defer span.Finish()
+
+	// Добавляем теги (опционально, но полезно)
+	span.SetTag("db.system", "postgresql")
+	span.SetTag("db.isolation_level", txOpts.IsoLevel)
+	span.SetTag("db.access_mode", txOpts.AccessMode)
 
 	// Begin runTransaction
 	pgxTx, err := m.connection.BeginTx(ctx, txOpts)

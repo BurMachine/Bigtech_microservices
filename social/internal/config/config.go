@@ -2,7 +2,7 @@ package config
 
 type Config struct {
 	AddrGrpc        string   `env:"GRPC" envDefault:":8082"`
-	UserServicePort string   `env:"USER_SERVICE_PORT" envDefault:":8084"`
+	UserServicePort string   `env:"USER_SERVICE_PORT" envDefault:"localhost:8084"`
 	Postgres        Postgres `envPrefix:"PG_"`
 
 	Kafka Kafka `envPrefix:"KAFKA_"`

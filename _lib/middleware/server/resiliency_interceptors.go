@@ -2,26 +2,29 @@ package platform_server
 
 import (
 	"context"
+	"runtime/debug"
 	"time"
 
+	loggerlib "github.com/Burmachine/MSA/lib/logger"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	"go.uber.org/zap"
 	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func NewServerInterceptors(logger *zap.Logger, cfg platform_middleware.ServerConfig) []grpc.UnaryServerInterceptor {
+func NewServerResiliencyInterceptors(log *loggerlib.Logger, cfg platform_middleware.ServerConfig) []grpc.UnaryServerInterceptor {
 	var interceptors []grpc.UnaryServerInterceptor
 
 	// 1. Panic recovery: всегда первый (должен обернуть все остальные)
 	interceptors = append(interceptors, grpc_recovery.UnaryServerInterceptor(
 		grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
-			logger.Error("panic recovered",
-				zap.Any("panic", p),
-				zap.Stack("stack"),
+			// Создаем фоновый контекст для логирования panic
+			ctx := context.Background()
+			log.Error(ctx, "panic recovered",
+				"panic", p,
+				"stack", string(debug.Stack()),
 			)
 			return status.Error(codes.Internal, "internal server error")
 		}),
@@ -29,19 +32,19 @@ func NewServerInterceptors(logger *zap.Logger, cfg platform_middleware.ServerCon
 
 	// 2. Timeout interceptor
 	if cfg.Timeout.Enabled && cfg.Timeout.TimeoutMs > 0 {
-		interceptors = append(interceptors, createTimeoutInterceptor(logger, cfg.Timeout))
+		interceptors = append(interceptors, createTimeoutInterceptor(log, cfg.Timeout))
 	}
 
 	// 3. Rate limit interceptor
 	if cfg.RateLimit.Enabled && cfg.RateLimit.ReqPerSec > 0 {
-		interceptors = append(interceptors, createRateLimitInterceptor(logger, cfg.RateLimit))
+		interceptors = append(interceptors, createRateLimitInterceptor(log, cfg.RateLimit))
 	}
 
 	return interceptors
 }
 
 // createTimeoutInterceptor создает интерсептор для управления таймаутами
-func createTimeoutInterceptor(logger *zap.Logger, cfg platform_middleware.ServerConfig_Timeout) grpc.UnaryServerInterceptor {
+func createTimeoutInterceptor(log *loggerlib.Logger, cfg platform_middleware.ServerConfig_Timeout) grpc.UnaryServerInterceptor {
 	// Кэшируем таймауты для конкретных путей
 	pathTimeouts := make(map[string]time.Duration, len(cfg.Paths))
 	for _, p := range cfg.Paths {
@@ -73,14 +76,13 @@ func createTimeoutInterceptor(logger *zap.Logger, cfg platform_middleware.Server
 		}
 
 		// Создаем контекст с таймаутом
-		// Если у клиента уже есть deadline, будет использован min(server timeout, client deadline)
 		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 
-		// Логируем для отладки (опционально)
-		logger.Debug("timeout applied",
-			zap.String("method", info.FullMethod),
-			zap.Duration("timeout", timeout),
+		// Логируем для отладки
+		log.Debug(ctx, "timeout applied",
+			"method", info.FullMethod,
+			"timeout", timeout,
 		)
 
 		return handler(ctx, req)
@@ -88,18 +90,19 @@ func createTimeoutInterceptor(logger *zap.Logger, cfg platform_middleware.Server
 }
 
 // createRateLimitInterceptor создает интерсептор для rate limiting
-func createRateLimitInterceptor(logger *zap.Logger, cfg platform_middleware.ServerConfig_RateLimit) grpc.UnaryServerInterceptor {
+func createRateLimitInterceptor(log *loggerlib.Logger, cfg platform_middleware.ServerConfig_RateLimit) grpc.UnaryServerInterceptor {
 	// Глобальный лимитер
 	globalLimiter := rate.NewLimiter(rate.Limit(cfg.ReqPerSec), cfg.ReqPerSec)
 
 	// Per-path лимитеры
 	pathLimiters := make(map[string]*rate.Limiter, len(cfg.Paths))
+	ctx := context.Background()
 	for _, p := range cfg.Paths {
 		if p.ReqPerSec > 0 {
 			pathLimiters[p.Path] = rate.NewLimiter(rate.Limit(p.ReqPerSec), p.ReqPerSec)
-			logger.Info("per-path rate limiter configured",
-				zap.String("path", p.Path),
-				zap.Int("reqPerSec", p.ReqPerSec),
+			log.Info(ctx, "per-path rate limiter configured",
+				"path", p.Path,
+				"reqPerSec", p.ReqPerSec,
 			)
 		}
 	}
@@ -126,8 +129,8 @@ func createRateLimitInterceptor(logger *zap.Logger, cfg platform_middleware.Serv
 
 		// Проверяем лимит
 		if !limiter.Allow() {
-			logger.Warn("rate limit exceeded",
-				zap.String("method", info.FullMethod),
+			log.Warn(ctx, "rate limit exceeded",
+				"method", info.FullMethod,
 			)
 			return nil, status.Error(codes.ResourceExhausted, "rate limit exceeded")
 		}
@@ -136,14 +139,15 @@ func createRateLimitInterceptor(logger *zap.Logger, cfg platform_middleware.Serv
 	}
 }
 
-// NewServerStreamInterceptors для stream - только panic recovery
-func NewServerStreamInterceptors(logger *zap.Logger) []grpc.StreamServerInterceptor {
+// NewServerResiliencyStreamInterceptors для stream - только panic recovery
+func NewServerResiliencyStreamInterceptors(log *loggerlib.Logger) []grpc.StreamServerInterceptor {
 	return []grpc.StreamServerInterceptor{
 		grpc_recovery.StreamServerInterceptor(
 			grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
-				logger.Error("panic recovered in stream",
-					zap.Any("panic", p),
-					zap.Stack("stack"),
+				ctx := context.Background()
+				log.Error(ctx, "panic recovered in stream",
+					"panic", p,
+					"stack", string(debug.Stack()),
 				)
 				return status.Error(codes.Internal, "internal server error")
 			}),

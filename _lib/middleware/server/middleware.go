@@ -6,43 +6,48 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/Burmachine/MSA/lib/logger"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"golang.org/x/time/rate"
 )
 
-// NewHTTPMiddlewares создает цепочку HTTP middleware
-func NewHTTPMiddlewares(logger *zap.Logger, cfg platform_middleware.ServerConfig) []gin.HandlerFunc {
+func NewHTTPMiddlewares(log *loggerlib.Logger, cfg platform_middleware.ServerConfig) []gin.HandlerFunc {
 	var middlewares []gin.HandlerFunc
 
 	// 1. Panic recovery: всегда первый
-	middlewares = append(middlewares, createPanicRecoveryMiddleware(logger))
+	middlewares = append(middlewares, createPanicRecoveryMiddleware(log))
 
-	// 2. Timeout middleware
+	// 2. Tracing (создает span для всей цепочки)
+	middlewares = append(middlewares, createHTTPTracingMiddleware())
+
+	// 3. Timeout middleware
 	if cfg.Timeout.Enabled && cfg.Timeout.TimeoutMs > 0 {
-		middlewares = append(middlewares, createHTTPTimeoutMiddleware(logger, cfg.Timeout))
+		middlewares = append(middlewares, createHTTPTimeoutMiddleware(log, cfg.Timeout))
 	}
 
-	// 3. Rate limit middleware
+	// 4. Rate limit middleware
 	if cfg.RateLimit.Enabled && cfg.RateLimit.ReqPerSec > 0 {
-		middlewares = append(middlewares, createHTTPRateLimitMiddleware(logger, cfg.RateLimit))
+		middlewares = append(middlewares, createHTTPRateLimitMiddleware(log, cfg.RateLimit))
 	}
+
+	// 5. Logging (последним - логирует финальный результат)
+	middlewares = append(middlewares, createHTTPLoggingMiddleware(log))
 
 	return middlewares
 }
 
 // createPanicRecoveryMiddleware перехватывает panic и возвращает 500
-func createPanicRecoveryMiddleware(logger *zap.Logger) gin.HandlerFunc {
+func createPanicRecoveryMiddleware(log *loggerlib.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				// Логируем panic с полным stack trace
-				logger.Error("panic recovered",
-					zap.Any("panic", err),
-					zap.String("path", c.Request.URL.Path),
-					zap.String("method", c.Request.Method),
-					zap.ByteString("stack", debug.Stack()),
+				log.Error(c.Request.Context(), "panic recovered",
+					"panic", err,
+					"path", c.Request.URL.Path,
+					"method", c.Request.Method,
+					"stack", string(debug.Stack()),
 				)
 
 				// Возвращаем 500 Internal Server Error
@@ -57,7 +62,7 @@ func createPanicRecoveryMiddleware(logger *zap.Logger) gin.HandlerFunc {
 }
 
 // createHTTPTimeoutMiddleware создает middleware для управления таймаутами
-func createHTTPTimeoutMiddleware(logger *zap.Logger, cfg platform_middleware.ServerConfig_Timeout) gin.HandlerFunc {
+func createHTTPTimeoutMiddleware(log *loggerlib.Logger, cfg platform_middleware.ServerConfig_Timeout) gin.HandlerFunc {
 	// Кэшируем таймауты для конкретных путей
 	pathTimeouts := make(map[string]time.Duration, len(cfg.Paths))
 	for _, p := range cfg.Paths {
@@ -100,9 +105,9 @@ func createHTTPTimeoutMiddleware(logger *zap.Logger, cfg platform_middleware.Ser
 		c.Request = c.Request.WithContext(ctx)
 
 		// Логируем для отладки
-		logger.Debug("timeout applied",
-			zap.String("path", fullPath),
-			zap.Duration("timeout", timeout),
+		log.Debug(ctx, "timeout applied",
+			"path", fullPath,
+			"timeout", timeout,
 		)
 
 		// Канал для отслеживания завершения запроса
@@ -115,13 +120,11 @@ func createHTTPTimeoutMiddleware(logger *zap.Logger, cfg platform_middleware.Ser
 		// Ждем либо завершения запроса, либо таймаута
 		select {
 		case <-finished:
-			// Запрос завершился нормально
 			return
 		case <-ctx.Done():
-			// Таймаут истек
-			logger.Warn("request timeout",
-				zap.String("path", fullPath),
-				zap.Duration("timeout", timeout),
+			log.Warn(ctx, "request timeout",
+				"path", fullPath,
+				"timeout", timeout,
 			)
 			c.AbortWithStatusJSON(http.StatusGatewayTimeout, gin.H{
 				"error": "request timeout",
@@ -131,18 +134,19 @@ func createHTTPTimeoutMiddleware(logger *zap.Logger, cfg platform_middleware.Ser
 }
 
 // createHTTPRateLimitMiddleware создает middleware для rate limiting
-func createHTTPRateLimitMiddleware(logger *zap.Logger, cfg platform_middleware.ServerConfig_RateLimit) gin.HandlerFunc {
+func createHTTPRateLimitMiddleware(log *loggerlib.Logger, cfg platform_middleware.ServerConfig_RateLimit) gin.HandlerFunc {
 	// Глобальный лимитер
 	globalLimiter := rate.NewLimiter(rate.Limit(cfg.ReqPerSec), cfg.ReqPerSec)
 
 	// Per-path лимитеры
 	pathLimiters := make(map[string]*rate.Limiter, len(cfg.Paths))
+	ctx := context.Background()
 	for _, p := range cfg.Paths {
 		if p.ReqPerSec > 0 {
 			pathLimiters[p.Path] = rate.NewLimiter(rate.Limit(p.ReqPerSec), p.ReqPerSec)
-			logger.Info("per-path rate limiter configured",
-				zap.String("path", p.Path),
-				zap.Int("reqPerSec", p.ReqPerSec),
+			log.Info(ctx, "per-path rate limiter configured",
+				"path", p.Path,
+				"reqPerSec", p.ReqPerSec,
 			)
 		}
 	}
@@ -173,8 +177,8 @@ func createHTTPRateLimitMiddleware(logger *zap.Logger, cfg platform_middleware.S
 
 		// Проверяем лимит
 		if !limiter.Allow() {
-			logger.Warn("rate limit exceeded",
-				zap.String("path", fullPath),
+			log.Warn(c.Request.Context(), "rate limit exceeded",
+				"path", fullPath,
 			)
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
 				"error": "rate limit exceeded",

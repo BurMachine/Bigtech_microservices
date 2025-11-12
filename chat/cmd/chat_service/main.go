@@ -12,15 +12,16 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/repositories/chat_repo"
 	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/usecases/chat"
 	"github.com/BurMachine/Bigtech_microservices/chat/internal/config"
-	"github.com/BurMachine/Bigtech_microservices/chat/pkg/postgres"
-	"github.com/BurMachine/Bigtech_microservices/chat/pkg/postgres/transaction_manager"
+	"github.com/Burmachine/MSA/lib/postgreslib"
+	"github.com/Burmachine/MSA/lib/postgreslib/transaction_manager"
+
 	pb "github.com/BurMachine/Bigtech_microservices/chat/pkg/v1/chat"
 	kafkalib "github.com/Burmachine/MSA/lib/kafka"
+	loggerlib "github.com/Burmachine/MSA/lib/logger"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/Burmachine/MSA/lib/platform"
 	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
 	rkgrpc "github.com/rookie-ninja/rk-grpc/v2/boot"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -29,8 +30,11 @@ func main() {
 
 	app, err := platform.Init[config.Config, config.Secrets](
 		ctx,
-		os.Getenv("APP_MODE"),
-		"chat-service",
+		platform.BaseConfig{
+			AppMode:     os.Getenv("APP_MODE"),
+			ServiceName: "chat-service",
+			LogLevel:    getEnvOrDefault("LOG_LEVEL", "info"),
+		},
 		Construct,
 	)
 
@@ -48,22 +52,32 @@ func Construct(
 	cfg *config.Config,
 	secrets *config.Secrets,
 	platformCfg *platform_middleware.ClientGRPCConfig,
+	logger *loggerlib.Logger,
 	entryGrpc *rkgrpc.GrpcEntry,
 	entryHttp *rkgin.GinEntry,
 ) (*platform.RegisteredServices, []func() error, error) {
 	cleanups := make([]func() error, 0)
 
-	// Получаем logger
-	logger := entryGrpc.LoggerEntry.Logger
+	logger.Info(ctx, "initializing chat service",
+		"postgres.host", cfg.Postgres.DbHost,
+		"kafka.brokers", cfg.Kafka.Brokers,
+	)
 
 	// 1. Подключение к БД
 	dsn := DSN(&cfg.Postgres)
-	conn, err := postgres.NewConnectionPool(ctx, dsn)
+	conn, err := postgreslib.NewConnectionPool(ctx, dsn)
 	if err != nil {
+		logger.Error(ctx, "failed to connect to database",
+			"error", err,
+			"dsn", dsn,
+		)
 		return nil, nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
+
+	logger.Info(ctx, "database connection established")
+
 	cleanups = append(cleanups, func() error {
-		logger.Info("closing database connection")
+		logger.Info(ctx, "closing database connection")
 		conn.Close()
 		return nil
 	})
@@ -77,29 +91,42 @@ func Construct(
 		MaxAttempts:  3,
 	}, logger)
 
+	logger.Info(ctx, "kafka producer initialized",
+		"brokers", cfg.Kafka.Brokers,
+		"topic", cfg.Kafka.Topic,
+	)
+
 	cleanups = append(cleanups, func() error {
-		logger.Info("flushing and closing kafka producer")
+		logger.Info(ctx, "flushing and closing kafka producer")
+
 		// Flush с таймаутом
 		flushCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
+
 		if err := kafkaProducer.Flush(flushCtx); err != nil {
-			logger.Warn("error flushing kafka", zap.Error(err))
+			logger.Warn(ctx, "error flushing kafka", "error", err)
 		}
+
 		return kafkaProducer.Close()
 	})
 
-	// 3. Инициализация use cases
+	// 3. Transaction Manager и репозитории
 	txMngr := transaction_manager.New(conn)
 	repo := chat_repo.NewRepository(txMngr)
 
-	// Адаптер для event handler (обертка над kafkaProducer)
-	eventHandler := &ChatEventHandler{producer: kafkaProducer}
+	// 4. Адаптер для event handler
+	eventHandler := &ChatEventHandler{
+		producer: kafkaProducer,
+		logger:   logger,
+	}
 
+	// 5. Use cases
 	uc := chat.NewUsecases(repo, eventHandler, txMngr)
 
-	// 4. gRPC сервис
+	// 6. gRPC сервис
 	grpcService, err := chat_grpc.NewServer(uc)
 	if err != nil {
+		logger.Error(ctx, "failed to create grpc service", "error", err)
 		return nil, nil, fmt.Errorf("failed to create grpc service: %w", err)
 	}
 
@@ -107,23 +134,48 @@ func Construct(
 		pb.RegisterChatServiceServer(server, grpcService)
 	})
 
+	logger.Info(ctx, "chat service initialized successfully")
+
 	return &platform.RegisteredServices{
 		GRPC: true,
 		HTTP: false,
 	}, cleanups, nil
 }
 
-// ChatEventHandler адаптер для использования kafkalib в вашем коде
+// ChatEventHandler адаптер для использования kafkalib
 type ChatEventHandler struct {
 	producer *kafkalib.Producer
+	logger   *loggerlib.Logger
 }
 
 func (h *ChatEventHandler) HandleEvent(ctx context.Context, event *models.Event) error {
-	return h.producer.PublishMessage(ctx, []byte(event.ID.String()), event.Payload)
+	h.logger.Debug(ctx, "handling chat event",
+		"event_id", event.ID,
+		"event_type", event.EventType,
+	)
+
+	err := h.producer.PublishMessage(ctx, []byte(event.ID.String()), event.Payload)
+	if err != nil {
+		h.logger.Error(ctx, "failed to publish event",
+			"event_id", event.ID,
+			"error", err,
+		)
+		return err
+	}
+
+	h.logger.Debug(ctx, "event published successfully", "event_id", event.ID)
+	return nil
 }
 
 func DSN(conf *config.Postgres) string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		conf.DbUser, conf.DbPassword, conf.DbHost, conf.DbPort, conf.DbName,
 	)
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }

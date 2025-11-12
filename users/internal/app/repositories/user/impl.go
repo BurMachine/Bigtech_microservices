@@ -9,7 +9,7 @@ import (
 
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/models"
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/usecases/users"
-	"github.com/BurMachine/Bigtech_microservices/users/pkg/postgres"
+	"github.com/Burmachine/MSA/lib/postgreslib"
 	"github.com/Masterminds/squirrel"
 	"github.com/georgysavva/scany/v2/pgxscan"
 )
@@ -44,7 +44,7 @@ func (r *Repository) CreateProfile(ctx context.Context, profile *models.UserProf
 
 	conn := r.db.GetQueryEngine(ctx)
 	if _, err := conn.Execx(ctx, qb); err != nil {
-		return fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	return nil
@@ -77,7 +77,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile *models.UserProf
 	conn := r.db.GetQueryEngine(ctx)
 	result, err := conn.Execx(ctx, qb)
 	if err != nil {
-		return fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 	if rowsAffected := result.RowsAffected(); rowsAffected == 0 {
 		return fmt.Errorf("%s: %w", api, errRepoNotFound)
@@ -103,7 +103,7 @@ func (r *Repository) GetProfileByID(ctx context.Context, userID string) (*models
 		if pgxscan.NotFound(err) {
 			return nil, fmt.Errorf("%s: %w", api, models.ErrNotFound)
 		}
-		return nil, fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return nil, fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	return &profile, nil
@@ -126,7 +126,7 @@ func (r *Repository) GetProfileByNickname(ctx context.Context, nickname string) 
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("%s: %w", api, errRepoNotFound)
 		}
-		return nil, fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return nil, fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	return &profile, nil
@@ -152,7 +152,7 @@ func (r *Repository) SearchByNickname(ctx context.Context, query string, limit i
 	conn := r.db.GetQueryEngine(ctx)
 	var profiles []*models.UserProfile
 	if err := conn.Selectx(ctx, &profiles, qb); err != nil {
-		return nil, fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return nil, fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	return profiles, nil

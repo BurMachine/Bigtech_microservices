@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/BurMachine/Bigtech_microservices/social/internal/app/models"
-	"github.com/BurMachine/Bigtech_microservices/social/pkg/postgres"
+	"github.com/Burmachine/MSA/lib/postgreslib"
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 )
@@ -41,12 +41,12 @@ const (
 )
 
 type OutboxRepo struct {
-	db postgres.QueryEngineProvider
+	db postgreslib.QueryEngineProvider
 	qb squirrel.StatementBuilderType
 }
 
 // NewRepository конструктор Repository
-func NewRepository(p postgres.QueryEngineProvider) *OutboxRepo {
+func NewRepository(p postgreslib.QueryEngineProvider) *OutboxRepo {
 	return &OutboxRepo{
 		db: p,
 		qb: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
@@ -97,7 +97,7 @@ func (r *OutboxRepo) SaveFriendsRequestCreated(ctx context.Context, request mode
 
 	conn := r.db.GetQueryEngine(ctx)
 	if _, err := conn.Execx(ctx, qb); err != nil {
-		return fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	return nil
@@ -154,7 +154,7 @@ func (r *OutboxRepo) SaveFriendsRequestUpdated(ctx context.Context, request mode
 
 	conn := r.db.GetQueryEngine(ctx)
 	if _, err := conn.Execx(ctx, qb); err != nil {
-		return fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	return nil
@@ -191,7 +191,7 @@ func (r *OutboxRepo) GetPendingEvents(ctx context.Context, limit int) ([]models.
 	conn := r.db.GetQueryEngine(ctx)
 	var events []models.Event
 	if err := conn.Selectx(ctx, &events, qb); err != nil {
-		return nil, fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return nil, fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	return events, nil
@@ -210,7 +210,7 @@ func (r *OutboxRepo) MarkPublished(ctx context.Context, id uuid.UUID, publishedA
 	conn := r.db.GetQueryEngine(ctx)
 	result, err := conn.Execx(ctx, qb)
 	if err != nil {
-		return fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 	if result.RowsAffected() == 0 {
 		return fmt.Errorf("%s: no rows affected", api)
@@ -232,7 +232,7 @@ func (r *OutboxRepo) MarkFailed(ctx context.Context, id uuid.UUID, retryCount in
 	conn := r.db.GetQueryEngine(ctx)
 	result, err := conn.Execx(ctx, qb)
 	if err != nil {
-		return fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 	if result.RowsAffected() == 0 {
 		return fmt.Errorf("%s: no rows affected", api)
@@ -252,7 +252,7 @@ func (r *OutboxRepo) DeleteOldPublished(ctx context.Context, before time.Time) e
 
 	conn := r.db.GetQueryEngine(ctx)
 	if _, err := conn.Execx(ctx, qb); err != nil {
-		return fmt.Errorf("%s: %w", api, postgres.ConvertPGError(err))
+		return fmt.Errorf("%s: %w", api, postgreslib.ConvertPGError(err))
 	}
 
 	return nil

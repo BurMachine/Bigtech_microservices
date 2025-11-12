@@ -9,10 +9,11 @@ import (
 	"time"
 
 	configlib "github.com/Burmachine/MSA/lib/config"
-	"github.com/Burmachine/MSA/lib/interceptors"
+	loggerlib "github.com/Burmachine/MSA/lib/logger"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	platform_server "github.com/Burmachine/MSA/lib/middleware/server"
 	"github.com/Burmachine/MSA/lib/secretslib"
+	"github.com/Burmachine/MSA/lib/tracing"
 	rkboot "github.com/rookie-ninja/rk-boot/v2"
 	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
 	rkgrpc "github.com/rookie-ninja/rk-grpc/v2/boot"
@@ -23,13 +24,20 @@ const PlatformConfPath = "./platform.yaml"
 
 type App struct {
 	boot         *rkboot.Boot
-	logger       *zap.Logger
+	logger       *loggerlib.Logger
+	tracer       *tracing.Tracer
 	grpcEntry    *rkgrpc.GrpcEntry
 	httpEntry    *rkgin.GinEntry
 	grpcActive   bool
 	httpActive   bool
 	cleanupFuncs []func() error
 	gracePeriod  time.Duration
+}
+
+type BaseConfig struct {
+	AppMode     string
+	ServiceName string
+	LogLevel    string
 }
 
 type RegisteredServices struct {
@@ -39,16 +47,18 @@ type RegisteredServices struct {
 
 func Init[Config any, Secrets any](
 	ctx context.Context,
-	appMode string,
-	serviceName string,
-	fn func(ctx context.Context, cfg *Config, secrets *Secrets, platformCfg *platform_middleware.ClientGRPCConfig, grpc *rkgrpc.GrpcEntry, http *rkgin.GinEntry) (*RegisteredServices, []func() error, error),
+	BaseCfg BaseConfig,
+	fn func(ctx context.Context, cfg *Config, secrets *Secrets, platformCfg *platform_middleware.ClientGRPCConfig, logger *loggerlib.Logger,
+		grpc *rkgrpc.GrpcEntry, http *rkgin.GinEntry) (*RegisteredServices, []func() error, error),
 ) (*App, error) {
+
+	// --------------- Configs loading ------------------
 	cfg, err := configlib.Load[Config]("config.yaml")
 	if err != nil {
 		return nil, err
 	}
 
-	secrets, err := secretslib.LoadSecrets[Secrets](ctx, appMode)
+	secrets, err := secretslib.LoadSecrets[Secrets](ctx, BaseCfg.AppMode)
 	if err != nil {
 		return nil, err
 	}
@@ -65,29 +75,68 @@ func Init[Config any, Secrets any](
 
 	boot := rkboot.NewBoot()
 
-	grpcEntry := rkgrpc.GetGrpcEntry(serviceName + "-grpc")
-	httpEntry := rkgin.GetGinEntry(serviceName + "-http")
+	grpcEntry := rkgrpc.GetGrpcEntry(BaseCfg.ServiceName + "-grpc")
+	httpEntry := rkgin.GetGinEntry(BaseCfg.ServiceName + "-http")
 
 	if grpcEntry == nil && httpEntry == nil {
-		return nil, fmt.Errorf("no server entries found in boot.yaml")
+		return nil, fmt.Errorf("no server entries found in boot.yaml for: %s", BaseCfg.ServiceName)
 	}
 
-	var logger *zap.Logger
+	// Получаем zap logger из rk-boot
+	var zapLogger *zap.Logger
 	if grpcEntry != nil && grpcEntry.LoggerEntry != nil {
-		logger = grpcEntry.LoggerEntry.Logger
+		zapLogger = grpcEntry.LoggerEntry.Logger
 	} else if httpEntry != nil && httpEntry.LoggerEntry != nil {
-		logger = httpEntry.LoggerEntry.Logger
+		zapLogger = httpEntry.LoggerEntry.Logger
 	} else {
 		return nil, fmt.Errorf("logger not initialized in boot.yaml")
 	}
 
+	// Создаем платформенный logger
+	logger := loggerlib.NewFromZap(zapLogger, loggerlib.Config{
+		ServiceName: BaseCfg.ServiceName,
+		Version:     getVersion(),
+		Environment: BaseCfg.AppMode,
+		Level:       BaseCfg.LogLevel,
+	})
+
+	// --------------- Tracing initialization ------------------
+	tracer, err := tracing.NewTracer(tracing.Config{
+		Enabled:      platformCfg.Tracing.Enabled,
+		ServiceName:  BaseCfg.ServiceName,
+		AgentHost:    platformCfg.Tracing.AgentHost,
+		SamplerType:  platformCfg.Tracing.SamplerType,
+		SamplerParam: platformCfg.Tracing.SamplerParam,
+		LogSpans:     platformCfg.Tracing.LogSpans,
+	}, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize tracing: %w", err)
+	}
+
+	// Логируем инициализацию трейсинга
+	if platformCfg.Tracing.Enabled {
+		logger.Info(ctx, "Jaeger tracing initialized",
+			"agent", platformCfg.Tracing.AgentHost,
+			"sampler", platformCfg.Tracing.SamplerType,
+			"sampling_param", platformCfg.Tracing.SamplerParam,
+		)
+	} else {
+		logger.Info(ctx, "tracing disabled")
+	}
+
 	// GRPC Middleware
 	if grpcEntry != nil {
-		grpcEntry.AddUnaryInterceptors(platform_server.NewServerInterceptors(logger, platformCfg.Server)...)
-		grpcEntry.AddStreamInterceptors(platform_server.NewServerStreamInterceptors(logger)...)
-		loggingInterceptor := interceptors.NewLoggingInterceptor(logger)
-		grpcEntry.AddUnaryInterceptors(loggingInterceptor.UnaryServerInterceptor())
-		grpcEntry.AddStreamInterceptors(loggingInterceptor.StreamServerInterceptor())
+		// 1. Resiliency (panic recovery, timeout, rate limit)
+		grpcEntry.AddUnaryInterceptors(platform_server.NewServerResiliencyInterceptors(logger, platformCfg.Server)...)
+		grpcEntry.AddStreamInterceptors(platform_server.NewServerResiliencyStreamInterceptors(logger)...)
+
+		// 2. Tracing (создание spans)
+		grpcEntry.AddUnaryInterceptors(platform_server.NewServerTracingInterceptors(logger)...)
+		grpcEntry.AddStreamInterceptors(platform_server.NewServerTracingStreamInterceptors(logger)...)
+
+		// 3. Observability (logging)
+		grpcEntry.AddUnaryInterceptors(platform_server.NewServerObservabilityInterceptors(logger)...)
+		grpcEntry.AddStreamInterceptors(platform_server.NewServerObservabilityStreamInterceptors(logger)...)
 	}
 
 	// HTTP Middleware
@@ -96,7 +145,7 @@ func Init[Config any, Secrets any](
 	}
 
 	// Вызываем конструктор
-	registered, cleanupFuncs, err := fn(ctx, cfg, secrets, &platformCfg.Client.GRPC, grpcEntry, httpEntry)
+	registered, cleanupFuncs, err := fn(ctx, cfg, secrets, &platformCfg.Client.GRPC, logger, grpcEntry, httpEntry)
 	if err != nil {
 		return nil, err
 	}
@@ -104,6 +153,7 @@ func Init[Config any, Secrets any](
 	app := &App{
 		boot:         boot,
 		logger:       logger,
+		tracer:       tracer,
 		grpcEntry:    grpcEntry,
 		httpEntry:    httpEntry,
 		cleanupFuncs: cleanupFuncs,
@@ -112,81 +162,97 @@ func Init[Config any, Secrets any](
 
 	if grpcEntry != nil && registered.GRPC {
 		app.grpcActive = true
-		logger.Info("gRPC server registered", zap.Uint64("port", grpcEntry.Port))
+		logger.Info(ctx, "gRPC server registered", "port", grpcEntry.Port)
 	}
 	if httpEntry != nil && registered.HTTP {
 		app.httpActive = true
-		logger.Info("HTTP server registered", zap.Uint64("port", httpEntry.Port))
+		logger.Info(ctx, "HTTP server registered", "port", httpEntry.Port)
 	}
 
 	return app, nil
 }
 
 func (app *App) Run(ctx context.Context) error {
-	app.logger.Info("service starting")
+	app.logger.Info(ctx, "service starting")
 
-	// Создаем контекст для shutdown
 	shutdownCtx, shutdownCancel := context.WithCancel(ctx)
 	defer shutdownCancel()
 
-	// Запускаем bootstrap в горутине
 	go func() {
 		app.boot.Bootstrap(shutdownCtx)
 	}()
 
-	app.logger.Info("service started", zap.Duration("gracePeriod", app.gracePeriod))
+	app.logger.Info(ctx, "service started", "gracePeriod", app.gracePeriod)
 
-	// Ждем сигнал остановки
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	select {
 	case sig := <-sigChan:
-		app.logger.Info("received shutdown signal", zap.String("signal", sig.String()))
+		app.logger.Info(ctx, "received shutdown signal", "signal", sig.String())
 	case <-ctx.Done():
-		app.logger.Info("context cancelled")
+		app.logger.Info(ctx, "context cancelled")
 	}
 
-	// Начинаем graceful shutdown
 	return app.shutdown(shutdownCancel)
 }
 
 func (app *App) shutdown(cancelBootstrap context.CancelFunc) error {
-	app.logger.Info("initiating graceful shutdown", zap.Duration("gracePeriod", app.gracePeriod))
+	ctx := context.Background()
 
-	// Создаем контекст с таймаутом для cleanup
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), app.gracePeriod)
+	app.logger.Info(ctx, "initiating graceful shutdown", "gracePeriod", app.gracePeriod)
+
+	shutdownCtx, cancel := context.WithTimeout(ctx, app.gracePeriod)
 	defer cancel()
 
-	// 1. Останавливаем rk-boot (он сам gracefully остановит серверы)
-	app.logger.Info("stopping servers via rk-boot")
-	cancelBootstrap() // Это вызовет graceful shutdown серверов
-
-	// Даем время серверам остановиться
+	// 1. Останавливаем rk-boot
+	app.logger.Info(ctx, "stopping servers via rk-boot")
+	cancelBootstrap()
 	time.Sleep(1 * time.Second)
 
 	// 2. Вызываем cleanup функции в обратном порядке (LIFO)
-	app.logger.Info("running cleanup functions", zap.Int("count", len(app.cleanupFuncs)))
+	app.logger.Info(ctx, "running cleanup functions", "count", len(app.cleanupFuncs))
 
 	errors := make([]error, 0)
 	for i := len(app.cleanupFuncs) - 1; i >= 0; i-- {
 		if err := app.cleanupFuncs[i](); err != nil {
-			app.logger.Error("cleanup function failed", zap.Int("index", i), zap.Error(err))
+			app.logger.Error(ctx, "cleanup function failed", "index", i, "error", err)
 			errors = append(errors, err)
 		}
 	}
 
-	// 3. Проверяем таймаут
+	// 3. Закрываем tracer (отправляем оставшиеся spans)
+	if app.tracer != nil {
+		app.logger.Info(ctx, "closing Jaeger tracer")
+		if err := app.tracer.Close(); err != nil {
+			app.logger.Error(ctx, "error closing tracer", "error", err)
+			errors = append(errors, err)
+		}
+	}
+
+	// 4. Синхронизируем логи перед выходом
+	if err := app.logger.Sync(); err != nil {
+		// Игнорируем ошибки sync для stderr/stdout
+	}
+
+	// 5. Проверяем таймаут
 	select {
 	case <-shutdownCtx.Done():
-		app.logger.Warn("shutdown timeout exceeded")
+		app.logger.Warn(ctx, "shutdown timeout exceeded")
 		return fmt.Errorf("shutdown timeout exceeded")
 	default:
 		if len(errors) > 0 {
-			app.logger.Error("shutdown completed with errors", zap.Int("errorCount", len(errors)))
+			app.logger.Error(ctx, "shutdown completed with errors", "errorCount", len(errors))
 			return fmt.Errorf("shutdown errors: %v", errors)
 		}
-		app.logger.Info("graceful shutdown completed successfully")
+		app.logger.Info(ctx, "graceful shutdown completed successfully")
 		return nil
 	}
+}
+
+func getVersion() string {
+	if v := os.Getenv("SERVICE_VERSION"); v != "" {
+		return v
+	}
+	return "v1.0.0"
 }

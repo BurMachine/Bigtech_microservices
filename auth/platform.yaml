@@ -14,6 +14,7 @@ client:
       halfOpenMaxCalls: 10
       openStateFor: 60s
     metrics: true
+
 server:
   timeout:
     enabled: true
@@ -27,7 +28,16 @@ server:
     ignore: [""]
     reqPerSec: 1000
     paths:
-      - path: "/github.com.BurMachine.Bigtech_microservices.auth.AuthService/Register" # http
+      - path: "/github.com.BurMachine.Bigtech_microservices.auth.AuthService/Register"
         reqPerSec: 12
+
+tracing:
+  enabled: true
+  agentHost: localhost:6831    # UDP для отправки spans
+  healthHost: localhost:14271  # TCP для health check (опционально)
+  samplerType: const
+  samplerParam: 1.0
+  logSpans: false
+
 shutdown:
   gracePeriod: 30s

@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Burmachine/MSA/lib/logger"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 	"github.com/segmentio/kafka-go"
-	"go.uber.org/zap"
 )
 
 type Config struct {
@@ -15,14 +17,15 @@ type Config struct {
 	BatchSize    int
 	BatchTimeout time.Duration
 	MaxAttempts  int
+	Compression  kafka.CompressionCodec // snappy, gzip, lz4, zstd
 }
 
 type Producer struct {
 	writer *kafka.Writer
-	logger *zap.Logger
+	logger *loggerlib.Logger
 }
 
-func NewProducer(cfg Config, logger *zap.Logger) *Producer {
+func NewProducer(cfg Config, log *loggerlib.Logger) *Producer {
 	// Применяем дефолты
 	if cfg.BatchSize == 0 {
 		cfg.BatchSize = 100
@@ -47,11 +50,21 @@ func NewProducer(cfg Config, logger *zap.Logger) *Producer {
 
 	return &Producer{
 		writer: writer,
-		logger: logger,
+		logger: log,
 	}
 }
 
 func (p *Producer) PublishMessage(ctx context.Context, key, value []byte) error {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "Kafka/Publish")
+	defer span.Finish()
+
+	// Теги
+	span.SetTag("messaging.system", "kafka")
+	span.SetTag("messaging.destination", p.writer.Topic)
+	span.SetTag("messaging.operation", "publish")
+	span.SetTag("messaging.message_id", string(key))
+	ext.SpanKindProducer.Set(span)
+
 	message := kafka.Message{
 		Key:   key,
 		Value: value,
@@ -59,16 +72,17 @@ func (p *Producer) PublishMessage(ctx context.Context, key, value []byte) error 
 	}
 
 	if err := p.writer.WriteMessages(ctx, message); err != nil {
-		p.logger.Error("failed to publish message",
-			zap.Error(err),
-			zap.String("key", string(key)),
+		p.logger.Error(ctx, "failed to publish message",
+			"error", err,
+			"key", string(key),
+			"topic", p.writer.Topic,
 		)
 		return fmt.Errorf("failed to write message: %w", err)
 	}
 
-	p.logger.Debug("message published",
-		zap.String("topic", p.writer.Topic),
-		zap.String("key", string(key)),
+	p.logger.Debug(ctx, "message published",
+		"topic", p.writer.Topic,
+		"key", string(key),
 	)
 
 	return nil
@@ -79,6 +93,15 @@ func (p *Producer) PublishBatch(ctx context.Context, messages []kafka.Message) e
 		return nil
 	}
 
+	span, ctx := opentracing.StartSpanFromContext(ctx, "Kafka/Publish")
+	defer span.Finish()
+
+	// Теги
+	span.SetTag("messaging.system", "kafka")
+	span.SetTag("messaging.destination", p.writer.Topic)
+	span.SetTag("messaging.operation", "publish_batch")
+	ext.SpanKindProducer.Set(span)
+
 	// Добавляем timestamp если не указан
 	for i := range messages {
 		if messages[i].Time.IsZero() {
@@ -87,16 +110,17 @@ func (p *Producer) PublishBatch(ctx context.Context, messages []kafka.Message) e
 	}
 
 	if err := p.writer.WriteMessages(ctx, messages...); err != nil {
-		p.logger.Error("failed to publish batch",
-			zap.Error(err),
-			zap.Int("count", len(messages)),
+		p.logger.Error(ctx, "failed to publish batch",
+			"error", err,
+			"count", len(messages),
+			"topic", p.writer.Topic,
 		)
 		return fmt.Errorf("failed to write batch: %w", err)
 	}
 
-	p.logger.Debug("batch published",
-		zap.String("topic", p.writer.Topic),
-		zap.Int("count", len(messages)),
+	p.logger.Debug(ctx, "batch published",
+		"topic", p.writer.Topic,
+		"count", len(messages),
 	)
 
 	return nil
@@ -104,24 +128,24 @@ func (p *Producer) PublishBatch(ctx context.Context, messages []kafka.Message) e
 
 // Flush принудительно отправляет все буферизованные сообщения
 func (p *Producer) Flush(ctx context.Context) error {
-	p.logger.Info("flushing kafka producer")
-
-	// kafka-go Writer не имеет явного Flush, но Close делает это автоматически
-	// Можно отправить пустой батч для синхронизации
+	p.logger.Info(ctx, "flushing kafka producer")
+	// kafka-go Writer не имеет явного Flush
+	// Все сообщения отправляются синхронно (Async: false)
 	return nil
 }
 
 // Close корректное закрытие с автоматическим flush
 func (p *Producer) Close() error {
-	p.logger.Info("closing kafka producer")
+	ctx := context.Background()
+	p.logger.Info(ctx, "closing kafka producer")
 
-	// Writer.Close() автоматически делает flush всех буферизованных сообщений
+	// Writer.Close() автоматически делает flush
 	if err := p.writer.Close(); err != nil {
-		p.logger.Error("error closing kafka producer", zap.Error(err))
+		p.logger.Error(ctx, "error closing kafka producer", "error", err)
 		return err
 	}
 
-	p.logger.Info("kafka producer closed")
+	p.logger.Info(ctx, "kafka producer closed")
 	return nil
 }
 

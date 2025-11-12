@@ -12,6 +12,7 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/auth/internal/app/usecases/auth"
 	"github.com/BurMachine/Bigtech_microservices/auth/internal/config"
 	pb "github.com/BurMachine/Bigtech_microservices/auth/pkg/v1/auth"
+	loggerlib "github.com/Burmachine/MSA/lib/logger"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/Burmachine/MSA/lib/platform"
 	"github.com/Burmachine/MSA/lib/postgreslib"
@@ -25,8 +26,11 @@ func main() {
 
 	app, err := platform.Init[config.Config, config.Secrets](
 		ctx,
-		os.Getenv("APP_MODE"),
-		"auth-service",
+		platform.BaseConfig{
+			AppMode:     os.Getenv("APP_MODE"),
+			ServiceName: "auth-service",
+			LogLevel:    "debug",
+		},
 		Construct,
 	)
 
@@ -44,6 +48,7 @@ func Construct(
 	cfg *config.Config,
 	secrets *config.Secrets,
 	platformCfg *platform_middleware.ClientGRPCConfig,
+	logger *loggerlib.Logger,
 	entryGrpc *rkgrpc.GrpcEntry,
 	entryHttp *rkgin.GinEntry,
 ) (*platform.RegisteredServices, []func() error, error) {

@@ -11,6 +11,7 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/gateway/internal/app/usecases/gateway"
 	"github.com/BurMachine/Bigtech_microservices/gateway/internal/config"
 	pb "github.com/BurMachine/Bigtech_microservices/gateway/pkg/v1/gateway"
+	loggerlib "github.com/Burmachine/MSA/lib/logger"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/Burmachine/MSA/lib/platform"
 	"github.com/gin-gonic/gin"
@@ -26,8 +27,11 @@ func main() {
 
 	app, err := platform.Init[config.Config, config.Secrets](
 		ctx,
-		os.Getenv("APP_MODE"),
-		"gateway-service",
+		platform.BaseConfig{
+			AppMode:     os.Getenv("APP_MODE"),
+			ServiceName: "gateway-service",
+			LogLevel:    getEnvOrDefault("LOG_LEVEL", "debug"),
+		},
 		Construct,
 	)
 
@@ -45,13 +49,11 @@ func Construct(
 	cfg *config.Config,
 	secrets *config.Secrets,
 	platformCfg *platform_middleware.ClientGRPCConfig,
+	logger *loggerlib.Logger,
 	entryGrpc *rkgrpc.GrpcEntry,
 	entryHttp *rkgin.GinEntry,
 ) (*platform.RegisteredServices, []func() error, error) {
 	cleanups := make([]func() error, 0)
-
-	// Получаем logger
-	logger := entryGrpc.LoggerEntry.Logger
 
 	// 1. Создаем клиенты к downstream сервисам
 	clientsGroup, err := clients.NewGroup(
@@ -67,36 +69,36 @@ func Construct(
 
 	// Регистрируем закрытие клиентов (в обратном порядке создания)
 	cleanups = append(cleanups, func() error {
-		logger.Info("closing chat client")
+		logger.Info(ctx, "closing chat client")
 		if err := clientsGroup.ChatClient.Close(); err != nil {
-			logger.Error("error closing chat client", zap.Error(err))
+			logger.Error(ctx, "error closing chat client", zap.Error(err))
 			return err
 		}
 		return nil
 	})
 
 	cleanups = append(cleanups, func() error {
-		logger.Info("closing social client")
+		logger.Info(ctx, "closing social client")
 		if err := clientsGroup.SocialClient.Close(); err != nil {
-			logger.Error("error closing social client", zap.Error(err))
+			logger.Error(ctx, "error closing social client", zap.Error(err))
 			return err
 		}
 		return nil
 	})
 
 	cleanups = append(cleanups, func() error {
-		logger.Info("closing user client")
+		logger.Info(ctx, "closing user client")
 		if err := clientsGroup.UserClient.Close(); err != nil {
-			logger.Error("error closing user client", zap.Error(err))
+			logger.Error(ctx, "error closing user client", zap.Error(err))
 			return err
 		}
 		return nil
 	})
 
 	cleanups = append(cleanups, func() error {
-		logger.Info("closing auth client")
+		logger.Info(ctx, "closing auth client")
 		if err := clientsGroup.AuthClient.Close(); err != nil {
-			logger.Error("error closing auth client", zap.Error(err))
+			logger.Error(ctx, "error closing auth client", zap.Error(err))
 			return err
 		}
 		return nil
@@ -133,4 +135,11 @@ func Construct(
 		GRPC: true,
 		HTTP: true,
 	}, cleanups, nil
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }

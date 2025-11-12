@@ -15,12 +15,13 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/social/internal/app/repositories/outbox_repo"
 	"github.com/BurMachine/Bigtech_microservices/social/internal/app/usecases/social"
 	"github.com/BurMachine/Bigtech_microservices/social/internal/config"
-	"github.com/BurMachine/Bigtech_microservices/social/pkg/postgres"
-	"github.com/BurMachine/Bigtech_microservices/social/pkg/postgres/transaction_manager"
 	pb "github.com/BurMachine/Bigtech_microservices/social/pkg/v1/social"
 	kafkalib "github.com/Burmachine/MSA/lib/kafka"
+	loggerlib "github.com/Burmachine/MSA/lib/logger"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/Burmachine/MSA/lib/platform"
+	"github.com/Burmachine/MSA/lib/postgreslib"
+	"github.com/Burmachine/MSA/lib/postgreslib/transaction_manager"
 	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
 	rkgrpc "github.com/rookie-ninja/rk-grpc/v2/boot"
 	"go.uber.org/zap"
@@ -32,8 +33,11 @@ func main() {
 
 	app, err := platform.Init[config.Config, config.Secrets](
 		ctx,
-		os.Getenv("APP_MODE"),
-		"social-service",
+		platform.BaseConfig{
+			AppMode:     os.Getenv("APP_MODE"),
+			ServiceName: "social-service",
+			LogLevel:    getEnvOrDefault("LOG_LEVEL", "debug"),
+		},
 		Construct,
 	)
 
@@ -51,22 +55,22 @@ func Construct(
 	cfg *config.Config,
 	secrets *config.Secrets,
 	platformCfg *platform_middleware.ClientGRPCConfig,
+	logger *loggerlib.Logger,
 	entryGrpc *rkgrpc.GrpcEntry,
 	entryHttp *rkgin.GinEntry,
 ) (*platform.RegisteredServices, []func() error, error) {
 	cleanups := make([]func() error, 0)
 
 	// Получаем logger
-	logger := entryGrpc.LoggerEntry.Logger
 
 	// 1. Подключение к БД
 	dsn := DSN(&cfg.Postgres)
-	conn, err := postgres.NewConnectionPool(ctx, dsn)
+	conn, err := postgreslib.NewConnectionPool(ctx, dsn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 	cleanups = append(cleanups, func() error {
-		logger.Info("closing database connection")
+		logger.Info(ctx, "closing database connection")
 		conn.Close()
 		return nil
 	})
@@ -81,11 +85,11 @@ func Construct(
 	}, logger)
 
 	cleanups = append(cleanups, func() error {
-		logger.Info("flushing and closing kafka producer")
+		logger.Info(ctx, "flushing and closing kafka producer")
 		flushCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		if err := kafkaProducer.Flush(flushCtx); err != nil {
-			logger.Warn("error flushing kafka", zap.Error(err))
+			logger.Warn(ctx, "error flushing kafka", zap.Error(err))
 		}
 		return kafkaProducer.Close()
 	})
@@ -99,13 +103,13 @@ func Construct(
 	friendsRepo := friends_repo.NewRepository(txMngr)
 
 	// 5. User service client
-	userService, err := users_client.NewClient(cfg.UserServicePort)
+	userService, err := users_client.NewClient(cfg.UserServicePort, platformCfg)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create user client: %w", err)
 	}
 
 	cleanups = append(cleanups, func() error {
-		logger.Info("closing user service client")
+		logger.Info(ctx, "closing user service client")
 		return userService.Close()
 	})
 
@@ -114,19 +118,19 @@ func Construct(
 
 	workerCtx, workerCancel := context.WithCancel(ctx)
 	go func() {
-		logger.Info("starting outbox worker")
+		logger.Info(ctx, "starting outbox worker")
 		worker.Run(workerCtx)
-		logger.Info("outbox worker stopped")
+		logger.Info(ctx, "outbox worker stopped")
 	}()
 
 	cleanups = append(cleanups, func() error {
-		logger.Info("stopping outbox worker")
+		logger.Info(ctx, "stopping outbox worker")
 		workerCancel()
 
 		// Даем время на завершение текущего батча
 		time.Sleep(1 * time.Second)
 
-		logger.Info("outbox worker stopped")
+		logger.Info(ctx, "outbox worker stopped")
 		return nil
 	})
 
@@ -152,4 +156,11 @@ func DSN(conf *config.Postgres) string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		conf.DbUser, conf.DbPassword, conf.DbHost, conf.DbPort, conf.DbName,
 	)
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }

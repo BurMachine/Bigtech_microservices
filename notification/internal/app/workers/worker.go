@@ -6,6 +6,8 @@ import (
 
 	"github.com/BurMachine/Bigtech_microservices/notification/internal/app/handler"
 	"github.com/BurMachine/Bigtech_microservices/notification/internal/app/inbox_repo"
+	loggerlib "github.com/Burmachine/MSA/lib/logger"
+	"github.com/opentracing/opentracing-go"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 )
@@ -13,13 +15,13 @@ import (
 type Worker struct {
 	repo         inbox_repo.InboxRepo
 	handler      handler.Handler
-	logger       *zap.Logger // Добавили только logger
+	logger       *loggerlib.Logger // Добавили только logger
 	pollInterval time.Duration
 	maxAttempts  int
 	batchSize    int
 }
 
-func NewWorker(repo inbox_repo.InboxRepo, h handler.Handler, logger *zap.Logger) *Worker {
+func NewWorker(repo inbox_repo.InboxRepo, h handler.Handler, logger *loggerlib.Logger) *Worker {
 	return &Worker{
 		repo:         repo,
 		handler:      h,
@@ -45,10 +47,13 @@ func (w *Worker) Run(ctx context.Context) {
 }
 
 func (w *Worker) processBatch(ctx context.Context) {
-	// SELECT ids для обработки
+	span, ctx := opentracing.StartSpanFromContext(ctx, "InboxWorker")
+	span.SetTag("component", "inbox-worker")
+	defer span.Finish()
+
 	ids, err := w.repo.SelectForProcessing(ctx, w.maxAttempts, w.batchSize)
 	if err != nil {
-		w.logger.Error("select failed", zap.Error(err)) // Заменили log.Printf на logger
+		w.logger.Error(ctx, "select failed", zap.Error(err)) // Заменили log.Printf на logger
 		return
 	}
 	if len(ids) == 0 {
@@ -59,7 +64,7 @@ func (w *Worker) processBatch(ctx context.Context) {
 		// Для каждого: транзакция
 		err := w.processOne(ctx, id)
 		if err != nil {
-			w.logger.Error("process failed", zap.String("id", id), zap.Error(err)) // Заменили log.Printf на logger
+			w.logger.Error(ctx, "process failed", zap.String("id", id), zap.Error(err)) // Заменили log.Printf на logger
 		}
 	}
 }

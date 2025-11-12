@@ -33,5 +33,14 @@ server:
         reqPerSec: 11
       - path: "POST /v1/register" # http
         reqPerSec: 12
+
+tracing:
+  enabled: true
+  agentHost: localhost:6831    # UDP для отправки spans
+  healthHost: localhost:14271  # TCP для health check (опционально)
+  samplerType: const
+  samplerParam: 1.0
+  logSpans: false
+
 shutdown:
   gracePeriod: 30s

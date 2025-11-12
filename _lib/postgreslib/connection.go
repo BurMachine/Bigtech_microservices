@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/opentracing/opentracing-go"
 	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 )
 
@@ -159,6 +160,12 @@ func (c *Connection) BeginTx(ctx context.Context, txOptions pgx.TxOptions) (*Tra
 
 // SendBatch - pgx.SendBatch
 func (c *Connection) SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "PostgreSQL/SendBatch")
+	defer span.Finish()
+
+	span.SetTag("db.system", "postgresql")
+	span.SetTag("db.operation", "BATCH")
+	span.SetTag("db.batch_size", b.Len())
 	return c.Pool.SendBatch(ctx, b)
 }
 
@@ -172,32 +179,50 @@ type Sqlizer interface {
 	ToSql() (sql string, args []interface{}, err error)
 }
 
-// Getx - aka QueryRow
+// Getx - aka QueryRow с трейсингом
 func (c *Connection) Getx(ctx context.Context, dest interface{}, sqlizer Sqlizer) error {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "PostgreSQL/Getx")
+	defer span.Finish()
+
 	query, args, err := sqlizer.ToSql()
 	if err != nil {
 		return fmt.Errorf("postgres: to sql: %w", err)
 	}
+
+	span.SetTag("db.statement", query)
+	span.SetTag("db.system", "postgresql") // ← Полезно для мониторинга
 
 	return pgxscan.Get(ctx, c.Pool, dest, query, args...)
 }
 
-// Selectx - aka Query
+// Selectx - aka Query с трейсингом
 func (c *Connection) Selectx(ctx context.Context, dest interface{}, sqlizer Sqlizer) error {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "PostgreSQL/Selectx")
+	defer span.Finish()
+
 	query, args, err := sqlizer.ToSql()
 	if err != nil {
 		return fmt.Errorf("postgres: to sql: %w", err)
 	}
 
+	span.SetTag("db.statement", query)
+	span.SetTag("db.system", "postgresql")
+
 	return pgxscan.Select(ctx, c.Pool, dest, query, args...)
 }
 
-// Execx - aka Exec
+// Execx - aka Exec с трейсингом
 func (c *Connection) Execx(ctx context.Context, sqlizer Sqlizer) (pgconn.CommandTag, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "PostgreSQL/Execx")
+	defer span.Finish()
+
 	query, args, err := sqlizer.ToSql()
 	if err != nil {
 		return pgconn.CommandTag{}, fmt.Errorf("postgres: to sql: %w", err)
 	}
+
+	span.SetTag("db.statement", query)
+	span.SetTag("db.system", "postgresql")
 
 	return c.Pool.Exec(ctx, query, args...)
 }

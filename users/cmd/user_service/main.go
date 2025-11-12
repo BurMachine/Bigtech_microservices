@@ -9,6 +9,7 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/di"
 	"github.com/BurMachine/Bigtech_microservices/users/internal/config"
 	pb "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
+	loggerlib "github.com/Burmachine/MSA/lib/logger"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/Burmachine/MSA/lib/platform"
 	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
@@ -23,8 +24,11 @@ func main() {
 
 	app, err := platform.Init[config.Config, config.Secrets](
 		ctx,
-		os.Getenv("APP_MODE"),
-		"users-service",
+		platform.BaseConfig{
+			AppMode:     os.Getenv("APP_MODE"),
+			ServiceName: "users-service",
+			LogLevel:    getEnvOrDefault("LOG_LEVEL", "debug"),
+		},
 		Construct,
 	)
 
@@ -43,6 +47,7 @@ func Construct(
 	cfg *config.Config,
 	secrets *config.Secrets,
 	platformCfg *platform_middleware.ClientGRPCConfig,
+	logger *loggerlib.Logger,
 	entryGrpc *rkgrpc.GrpcEntry,
 	entryHttp *rkgin.GinEntry,
 ) (*platform.RegisteredServices, []func() error, error) {
@@ -65,4 +70,11 @@ func DSN(conf *config.Postgres) string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		conf.DbUser, conf.DbPassword, conf.DbHost, conf.DbPort, conf.DbName,
 	)
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }

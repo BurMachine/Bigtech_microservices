@@ -8,9 +8,10 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/social/internal/app/models"
 	user_pb "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
 	users "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
+	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
+	platform_client "github.com/Burmachine/MSA/lib/middleware/client"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 )
 
@@ -19,8 +20,8 @@ type Client struct {
 	conn   *grpc.ClientConn
 }
 
-func NewClient(port string) (*Client, error) {
-	grpcConn, err := grpc.NewClient("localhost:"+port, grpc.WithTransportCredentials(insecure.NewCredentials()))
+func NewClient(addr string, platform *platform_middleware.ClientGRPCConfig) (*Client, error) {
+	grpcConn, err := platform_client.NewClientConn(addr, platform)
 	if err != nil {
 		return nil, err
 	}

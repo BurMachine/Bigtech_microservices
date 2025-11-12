@@ -11,8 +11,9 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/delivery/grpc"
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/repositories/user"
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/usecases/users"
-	"github.com/BurMachine/Bigtech_microservices/users/pkg/postgres"
-	"github.com/BurMachine/Bigtech_microservices/users/pkg/postgres/transaction_manager"
+	"github.com/Burmachine/MSA/lib/postgreslib"
+	"github.com/Burmachine/MSA/lib/postgreslib/transaction_manager"
+
 	"github.com/google/wire"
 )
 
@@ -22,7 +23,7 @@ import (
 func Wire(dbDSN string) (*user_grpc.Service, error) {
 	context := ProvideContext()
 	v := ProvideConnectionPoolOptions()
-	connection, err := postgres.NewConnectionPool(context, dbDSN, v...)
+	connection, err := postgreslib.NewConnectionPool(context, dbDSN, v...)
 	if err != nil {
 		return nil, err
 	}
@@ -45,12 +46,12 @@ func ProvideContext() context.Context {
 }
 
 // Провайдер для опций пула соединений (пустой слайс)
-func ProvideConnectionPoolOptions() []postgres.ConnectionPoolOption {
-	return []postgres.ConnectionPoolOption{}
+func ProvideConnectionPoolOptions() []postgreslib.ConnectionPoolOption {
+	return []postgreslib.ConnectionPoolOption{}
 }
 
 // Провайдер для QueryEngineProvider
-func ProvideQueryEngineProvider(tm *transaction_manager.TransactionManager) postgres.QueryEngineProvider {
+func ProvideQueryEngineProvider(tm *transaction_manager.TransactionManager) postgreslib.QueryEngineProvider {
 	return tm
 }
 
@@ -58,5 +59,5 @@ func ProvideQueryEngineProvider(tm *transaction_manager.TransactionManager) post
 var ProviderSet = wire.NewSet(
 	ProvideContext,
 	ProvideConnectionPoolOptions,
-	ProvideQueryEngineProvider, postgres.NewConnectionPool, transaction_manager.New, wire.Bind(new(users.TransactionManager), new(*transaction_manager.TransactionManager)), users_repo.NewRepository, users.NewUsecases, user_grpc.NewServer,
+	ProvideQueryEngineProvider, postgreslib.NewConnectionPool, transaction_manager.New, wire.Bind(new(users.TransactionManager), new(*transaction_manager.TransactionManager)), users_repo.NewRepository, users.NewUsecases, user_grpc.NewServer,
 )

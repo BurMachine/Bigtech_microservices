@@ -23,6 +23,8 @@ func NewClientConn(addr string, cfg *platform_middleware.ClientGRPCConfig) (*grp
 
 	var unaryClientInterceptors []grpc.UnaryClientInterceptor
 
+	unaryClientInterceptors = append(unaryClientInterceptors, NewClientTracingInterceptor())
+
 	// Retry: проверка maxAttempts > 0, codes len > 0, baseDur > 0
 	if cfg.Retry.MaxAttempts > 0 && len(cfg.Retry.RetryableCodes) > 0 && baseDur > 0 {
 		var retryCodes []codes.Code
