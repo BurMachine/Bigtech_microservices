@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Burmachine/MSA/lib/adminserver"
 	configlib "github.com/Burmachine/MSA/lib/config"
 	loggerlib "github.com/Burmachine/MSA/lib/logger"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
@@ -28,6 +29,8 @@ type App struct {
 	tracer       *tracing.Tracer
 	grpcEntry    *rkgrpc.GrpcEntry
 	httpEntry    *rkgin.GinEntry
+	adminEntry   *rkgin.GinEntry
+	adminServer  *adminserver.Server
 	grpcActive   bool
 	httpActive   bool
 	cleanupFuncs []func() error
@@ -73,12 +76,15 @@ func Init[Config any, Secrets any](
 		gracePeriod = 30 * time.Second
 	}
 
+	// Создаем boot (читает boot.yaml)
 	boot := rkboot.NewBoot()
 
+	// Получаем entries из boot.yaml
 	grpcEntry := rkgrpc.GetGrpcEntry(BaseCfg.ServiceName + "-grpc")
 	httpEntry := rkgin.GetGinEntry(BaseCfg.ServiceName + "-http")
+	adminEntry := rkgin.GetGinEntry(BaseCfg.ServiceName + "-admin") // ← Из boot.yaml!
 
-	if grpcEntry == nil && httpEntry == nil {
+	if grpcEntry == nil && httpEntry == nil && adminEntry == nil {
 		return nil, fmt.Errorf("no server entries found in boot.yaml for: %s", BaseCfg.ServiceName)
 	}
 
@@ -88,6 +94,8 @@ func Init[Config any, Secrets any](
 		zapLogger = grpcEntry.LoggerEntry.Logger
 	} else if httpEntry != nil && httpEntry.LoggerEntry != nil {
 		zapLogger = httpEntry.LoggerEntry.Logger
+	} else if adminEntry != nil && adminEntry.LoggerEntry != nil {
+		zapLogger = adminEntry.LoggerEntry.Logger
 	} else {
 		return nil, fmt.Errorf("logger not initialized in boot.yaml")
 	}
@@ -113,7 +121,6 @@ func Init[Config any, Secrets any](
 		return nil, fmt.Errorf("failed to initialize tracing: %w", err)
 	}
 
-	// Логируем инициализацию трейсинга
 	if platformCfg.Tracing.Enabled {
 		logger.Info(ctx, "Jaeger tracing initialized",
 			"agent", platformCfg.Tracing.AgentHost,
@@ -124,17 +131,21 @@ func Init[Config any, Secrets any](
 		logger.Info(ctx, "tracing disabled")
 	}
 
+	// --------------- Admin Server initialization ------------------
+	var admin *adminserver.Server
+	if platformCfg.Admin.Enabled && adminEntry != nil {
+		admin = adminserver.New(platformCfg.Admin, logger, adminEntry)
+		logger.Info(ctx, "admin server registered", "port", adminEntry.Port)
+	}
+
 	// GRPC Middleware
 	if grpcEntry != nil {
-		// 1. Resiliency (panic recovery, timeout, rate limit)
 		grpcEntry.AddUnaryInterceptors(platform_server.NewServerResiliencyInterceptors(logger, platformCfg.Server)...)
 		grpcEntry.AddStreamInterceptors(platform_server.NewServerResiliencyStreamInterceptors(logger)...)
 
-		// 2. Tracing (создание spans)
 		grpcEntry.AddUnaryInterceptors(platform_server.NewServerTracingInterceptors(logger)...)
 		grpcEntry.AddStreamInterceptors(platform_server.NewServerTracingStreamInterceptors(logger)...)
 
-		// 3. Observability (logging)
 		grpcEntry.AddUnaryInterceptors(platform_server.NewServerObservabilityInterceptors(logger)...)
 		grpcEntry.AddStreamInterceptors(platform_server.NewServerObservabilityStreamInterceptors(logger)...)
 	}
@@ -156,6 +167,8 @@ func Init[Config any, Secrets any](
 		tracer:       tracer,
 		grpcEntry:    grpcEntry,
 		httpEntry:    httpEntry,
+		adminEntry:   adminEntry,
+		adminServer:  admin,
 		cleanupFuncs: cleanupFuncs,
 		gracePeriod:  gracePeriod,
 	}
@@ -210,7 +223,7 @@ func (app *App) shutdown(cancelBootstrap context.CancelFunc) error {
 	cancelBootstrap()
 	time.Sleep(1 * time.Second)
 
-	// 2. Вызываем cleanup функции в обратном порядке (LIFO)
+	// 2. Вызываем cleanup функции
 	app.logger.Info(ctx, "running cleanup functions", "count", len(app.cleanupFuncs))
 
 	errors := make([]error, 0)
@@ -221,7 +234,7 @@ func (app *App) shutdown(cancelBootstrap context.CancelFunc) error {
 		}
 	}
 
-	// 3. Закрываем tracer (отправляем оставшиеся spans)
+	// 3. Закрываем tracer
 	if app.tracer != nil {
 		app.logger.Info(ctx, "closing Jaeger tracer")
 		if err := app.tracer.Close(); err != nil {
@@ -230,9 +243,9 @@ func (app *App) shutdown(cancelBootstrap context.CancelFunc) error {
 		}
 	}
 
-	// 4. Синхронизируем логи перед выходом
+	// 4. Синхронизируем логи
 	if err := app.logger.Sync(); err != nil {
-		// Игнорируем ошибки sync для stderr/stdout
+		// Игнорируем ошибки sync
 	}
 
 	// 5. Проверяем таймаут

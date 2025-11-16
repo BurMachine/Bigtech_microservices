@@ -18,3 +18,7 @@ gin:
   - name: chat-service-http
     enabled: false
     port: 8080
+
+  - name: chat-service-admin
+    port: 9091
+    enabled: true

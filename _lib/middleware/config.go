@@ -12,6 +12,7 @@ type Config struct {
 	} `yaml:"client"`
 	Server   ServerConfig  `yaml:"server"`
 	Tracing  TracingConfig `yaml:"tracing"`
+	Admin    AdminConfig   `yaml:"admin"`
 	Shutdown struct {
 		GracePeriod string `yaml:"gracePeriod"`
 	} `yaml:"shutdown"`
@@ -69,11 +70,32 @@ type ServerConfig struct {
 // TracingConfig конфигурация для Jaeger трейсинга
 type TracingConfig struct {
 	Enabled      bool    `yaml:"enabled"`
-	AgentHost    string  `yaml:"agentHost"`  // UDP порт для spans (6831)
-	HealthHost   string  `yaml:"healthHost"` // TCP порт для health check (14271)
+	AgentHost    string  `yaml:"agentHost"`
+	HealthHost   string  `yaml:"healthHost"`
 	SamplerType  string  `yaml:"samplerType"`
 	SamplerParam float64 `yaml:"samplerParam"`
 	LogSpans     bool    `yaml:"logSpans"`
+}
+
+// AdminConfig конфигурация для Admin Server (метрики + pprof)
+type AdminConfig struct {
+	Enabled bool               `yaml:"enabled"`
+	Host    string             `yaml:"host"`
+	Port    int                `yaml:"port"`
+	Metrics AdminMetricsConfig `yaml:"metrics"`
+	Pprof   AdminPprofConfig   `yaml:"pprof"`
+}
+
+// AdminMetricsConfig конфигурация Prometheus метрик
+type AdminMetricsConfig struct {
+	Enabled bool   `yaml:"enabled"`
+	Path    string `yaml:"path"`
+}
+
+// AdminPprofConfig конфигурация pprof профилирования
+type AdminPprofConfig struct {
+	Enabled bool   `yaml:"enabled"`
+	Path    string `yaml:"path"`
 }
 
 func Load(filePath string) (*Config, error) {
@@ -115,6 +137,20 @@ func ApplyDefaults(cfg *Config) {
 	}
 	if cfg.Tracing.SamplerParam == 0 {
 		cfg.Tracing.SamplerParam = 1.0
+	}
+
+	// Admin defaults
+	if cfg.Admin.Host == "" {
+		cfg.Admin.Host = "0.0.0.0"
+	}
+	if cfg.Admin.Port == 0 {
+		cfg.Admin.Port = 9090 // Default admin port
+	}
+	if cfg.Admin.Metrics.Path == "" {
+		cfg.Admin.Metrics.Path = "/metrics"
+	}
+	if cfg.Admin.Pprof.Path == "" {
+		cfg.Admin.Pprof.Path = "/debug/pprof"
 	}
 
 	// Shutdown defaults

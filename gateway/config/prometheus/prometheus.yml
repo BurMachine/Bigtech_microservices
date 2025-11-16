@@ -1,0 +1,77 @@
+global:
+  scrape_interval: 15s      # Как часто собирать метрики
+  evaluation_interval: 15s  # Как часто вычислять правила агрегации и алертинга
+  external_labels:
+    cluster: 'microservices-dev'
+    environment: 'development'
+
+# Правила алертинга (опционально)
+# rule_files:
+#   - "alerts.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: "prometheus"
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["localhost:9090"]
+        labels:
+          service: "prometheus"
+
+  # Auth Service
+  - job_name: "auth-service"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["host.docker.internal:9091"]
+        labels:
+          service: "auth-service"
+          team: "platform"
+
+  # Chat Service
+  - job_name: "chat-service"
+    scrape_interval: 15s
+    static_configs:
+      - targets: [ "host.docker.internal:9092" ]
+        labels:
+          service: "chat-service"
+          team: "messaging"
+
+  # Social Service
+  - job_name: "social-service"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["host.docker.internal:9093"]
+        labels:
+          service: "social-service"
+          team: "social"
+
+
+  # User Service
+  - job_name: "user-service"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["host.docker.internal:9094"]
+        labels:
+          service: "user-service"
+          team: "platform"
+
+
+
+
+  # Notification Service
+  - job_name: "notification-service"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["host.docker.internal:9095"]
+        labels:
+          service: "notification-service"
+          team: "messaging"
+
+  # Gateway Service
+  - job_name: "gateway-service"
+    scrape_interval: 10s  # Gateway чаще, т.к. entry point
+    static_configs:
+      - targets: ["host.docker.internal:9096"]
+        labels:
+          service: "gateway-service"
+          team: "platform"

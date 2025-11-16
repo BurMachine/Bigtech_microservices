@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"strings"
 
-	"go.opentelemetry.io/otel/trace"
+	"github.com/opentracing/opentracing-go"
+	"github.com/uber/jaeger-client-go"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -22,12 +23,10 @@ type Config struct {
 	ServiceName string
 	Version     string
 	Environment string
-	Level       string // debug, info, warn, error
+	Level       string
 }
 
-// New создает новый logger с нуля
 func New(cfg Config) (*Logger, error) {
-	// Настройка zap
 	zapCfg := zap.NewProductionConfig()
 	zapCfg.Level = zap.NewAtomicLevelAt(parseLevel(cfg.Level))
 	zapCfg.EncoderConfig.TimeKey = "timestamp"
@@ -38,13 +37,12 @@ func New(cfg Config) (*Logger, error) {
 	zapCfg.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
 
 	z, err := zapCfg.Build(
-		zap.AddCallerSkip(1), // Пропускаем один уровень вызовов (сам logger)
+		zap.AddCallerSkip(1),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	// Добавляем базовые поля ко всем логам
 	z = z.With(
 		zap.String("service.name", cfg.ServiceName),
 		zap.String("service.version", cfg.Version),
@@ -59,9 +57,7 @@ func New(cfg Config) (*Logger, error) {
 	}, nil
 }
 
-// NewFromZap создает logger из существующего zap.Logger (для rk-boot)
 func NewFromZap(zapLogger *zap.Logger, cfg Config) *Logger {
-	// Оборачиваем существующий logger, добавляя наши поля
 	zapLogger = zapLogger.With(
 		zap.String("service.name", cfg.ServiceName),
 		zap.String("service.version", cfg.Version),
@@ -76,37 +72,31 @@ func NewFromZap(zapLogger *zap.Logger, cfg Config) *Logger {
 	}
 }
 
-// Debug логирует debug сообщение
 func (l *Logger) Debug(ctx context.Context, msg string, keysAndValues ...interface{}) {
 	fields := l.buildFields(ctx, keysAndValues)
 	l.zap.Debug(msg, fields...)
 }
 
-// Info логирует info сообщение
 func (l *Logger) Info(ctx context.Context, msg string, keysAndValues ...interface{}) {
 	fields := l.buildFields(ctx, keysAndValues)
 	l.zap.Info(msg, fields...)
 }
 
-// Warn логирует warning сообщение
 func (l *Logger) Warn(ctx context.Context, msg string, keysAndValues ...interface{}) {
 	fields := l.buildFields(ctx, keysAndValues)
 	l.zap.Warn(msg, fields...)
 }
 
-// Error логирует error сообщение
 func (l *Logger) Error(ctx context.Context, msg string, keysAndValues ...interface{}) {
 	fields := l.buildFields(ctx, keysAndValues)
 	l.zap.Error(msg, fields...)
 }
 
-// Fatal логирует fatal сообщение и завершает программу
 func (l *Logger) Fatal(ctx context.Context, msg string, keysAndValues ...interface{}) {
 	fields := l.buildFields(ctx, keysAndValues)
 	l.zap.Fatal(msg, fields...)
 }
 
-// With создает child logger с дополнительными полями
 func (l *Logger) With(keysAndValues ...interface{}) *Logger {
 	fields := l.keysAndValuesToZap(keysAndValues)
 	return &Logger{
@@ -117,7 +107,6 @@ func (l *Logger) With(keysAndValues ...interface{}) *Logger {
 	}
 }
 
-// WithError создает child logger с полем error
 func (l *Logger) WithError(err error) *Logger {
 	return &Logger{
 		zap:         l.zap.With(zap.Error(err)),
@@ -127,7 +116,6 @@ func (l *Logger) WithError(err error) *Logger {
 	}
 }
 
-// buildFields собирает все поля для лога
 func (l *Logger) buildFields(ctx context.Context, keysAndValues []interface{}) []zap.Field {
 	fields := make([]zap.Field, 0)
 
@@ -153,13 +141,17 @@ func (l *Logger) contextFields(ctx context.Context) []zap.Field {
 
 	fields := make([]zap.Field, 0, 3)
 
-	// Извлекаем trace_id и span_id из OpenTelemetry
-	span := trace.SpanFromContext(ctx)
-	if span.SpanContext().IsValid() {
-		fields = append(fields,
-			zap.String("trace_id", span.SpanContext().TraceID().String()),
-			zap.String("span_id", span.SpanContext().SpanID().String()),
-		)
+	// ← ДОБАВЬТЕ ИЗВЛЕЧЕНИЕ OPENTRACING SPAN
+	// Извлекаем trace_id и span_id из OpenTracing (Jaeger)
+	span := opentracing.SpanFromContext(ctx)
+	if span != nil {
+		// Приводим к Jaeger SpanContext
+		if sc, ok := span.Context().(jaeger.SpanContext); ok {
+			fields = append(fields,
+				zap.String("trace_id", sc.TraceID().String()),
+				zap.String("span_id", sc.SpanID().String()),
+			)
+		}
 	}
 
 	// Извлекаем request_id если есть
@@ -175,13 +167,11 @@ func (l *Logger) contextFields(ctx context.Context) []zap.Field {
 	return fields
 }
 
-// keysAndValuesToZap конвертирует key-value пары в zap.Field
 func (l *Logger) keysAndValuesToZap(keysAndValues []interface{}) []zap.Field {
 	if len(keysAndValues) == 0 {
 		return nil
 	}
 
-	// Если нечетное количество - добавляем placeholder
 	if len(keysAndValues)%2 != 0 {
 		keysAndValues = append(keysAndValues, "MISSING_VALUE")
 	}
@@ -190,13 +180,11 @@ func (l *Logger) keysAndValuesToZap(keysAndValues []interface{}) []zap.Field {
 	for i := 0; i < len(keysAndValues); i += 2 {
 		key, ok := keysAndValues[i].(string)
 		if !ok {
-			// Если key не string, пропускаем
 			continue
 		}
 
 		value := keysAndValues[i+1]
 
-		// Специальная обработка для error
 		if err, ok := value.(error); ok && err != nil {
 			fields = append(fields, zap.Error(err))
 			continue
@@ -208,15 +196,12 @@ func (l *Logger) keysAndValuesToZap(keysAndValues []interface{}) []zap.Field {
 	return fields
 }
 
-// getCaller возвращает информацию о вызывающей функции
 func (l *Logger) getCaller() string {
-	// Пропускаем: getCaller -> buildFields -> Info/Error/etc -> user code
 	_, file, line, ok := runtime.Caller(4)
 	if !ok {
 		return ""
 	}
 
-	// Получаем только имя файла, без полного пути
 	if idx := strings.LastIndexByte(file, '/'); idx != -1 {
 		file = file[idx+1:]
 	}
@@ -224,7 +209,6 @@ func (l *Logger) getCaller() string {
 	return fmt.Sprintf("%s:%d", file, line)
 }
 
-// parseLevel парсит строку уровня в zapcore.Level
 func parseLevel(level string) zapcore.Level {
 	switch strings.ToLower(level) {
 	case "debug":
@@ -242,8 +226,6 @@ func parseLevel(level string) zapcore.Level {
 	}
 }
 
-// Функции для работы с контекстом
-
 type contextKey string
 
 const (
@@ -251,12 +233,10 @@ const (
 	userIDKey    contextKey = "user_id"
 )
 
-// WithRequestID добавляет request_id в контекст
 func WithRequestID(ctx context.Context, reqID string) context.Context {
 	return context.WithValue(ctx, requestIDKey, reqID)
 }
 
-// WithUserID добавляет user_id в контекст
 func WithUserID(ctx context.Context, userID string) context.Context {
 	return context.WithValue(ctx, userIDKey, userID)
 }
@@ -275,7 +255,6 @@ func getUserIDFromContext(ctx context.Context) string {
 	return ""
 }
 
-// Sync синхронизирует буферы (вызывать перед завершением программы)
 func (l *Logger) Sync() error {
 	return l.zap.Sync()
 }

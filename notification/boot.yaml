@@ -11,10 +11,10 @@ grpc:
   - name: notification-service-grpc
     enabled: true
     enableReflection: true
-    port: 8081
+    port: 8086
     eventEntry: ""
 
 gin:
   - name: notification-service-http
     enabled: true
-    port: 8071
+    port: 8066
