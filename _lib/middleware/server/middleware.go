@@ -6,13 +6,14 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/Burmachine/MSA/lib/logger"
+	loggerlib "github.com/Burmachine/MSA/lib/logger"
+	"github.com/Burmachine/MSA/lib/metrics" // ← Добавили
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
 )
 
-func NewHTTPMiddlewares(log *loggerlib.Logger, cfg platform_middleware.ServerConfig) []gin.HandlerFunc {
+func NewHTTPMiddlewares(log *loggerlib.Logger, m *metrics.Metrics, serviceName string, cfg platform_middleware.ServerConfig) []gin.HandlerFunc {
 	var middlewares []gin.HandlerFunc
 
 	// 1. Panic recovery: всегда первый
@@ -21,17 +22,20 @@ func NewHTTPMiddlewares(log *loggerlib.Logger, cfg platform_middleware.ServerCon
 	// 2. Tracing (создает span для всей цепочки)
 	middlewares = append(middlewares, createHTTPTracingMiddleware())
 
-	// 3. Timeout middleware
+	// 3. Metrics (после tracing, до timeout/rate limit) ← ДОБАВИЛИ
+	middlewares = append(middlewares, NewHTTPMetricsMiddleware(m, serviceName))
+
+	// 4. Timeout middleware
 	if cfg.Timeout.Enabled && cfg.Timeout.TimeoutMs > 0 {
 		middlewares = append(middlewares, createHTTPTimeoutMiddleware(log, cfg.Timeout))
 	}
 
-	// 4. Rate limit middleware
+	// 5. Rate limit middleware
 	if cfg.RateLimit.Enabled && cfg.RateLimit.ReqPerSec > 0 {
 		middlewares = append(middlewares, createHTTPRateLimitMiddleware(log, cfg.RateLimit))
 	}
 
-	// 5. Logging (последним - логирует финальный результат)
+	// 6. Logging (последним - логирует финальный результат)
 	middlewares = append(middlewares, createHTTPLoggingMiddleware(log))
 
 	return middlewares

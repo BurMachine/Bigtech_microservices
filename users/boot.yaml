@@ -1,5 +1,5 @@
 app:
-  name: users-service
+  name: users_service
   version: "v1.0.0"
 
 
@@ -8,13 +8,17 @@ logger:
     zap:
       level: warn
 grpc:
-  - name: users-service-grpc
+  - name: users_service_grpc
     enabled: true
     enableReflection: true
     port: 8084
     eventEntry: ""
 
-#gin:
-#  - name: users-service-http
-#    enabled: false
-#    port: 8080
+gin:
+  - name: users_service_http
+    enabled: false
+    port: 808080808
+
+  - name: users_service_admin
+    port: 9994
+    enabled: true

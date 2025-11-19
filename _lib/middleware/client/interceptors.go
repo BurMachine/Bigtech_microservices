@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/Burmachine/MSA/lib/metrics" // ← Добавили
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
@@ -14,7 +15,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func NewClientConn(addr string, cfg *platform_middleware.ClientGRPCConfig) (*grpc.ClientConn, error) {
+// NewClientConn создает gRPC client connection с метриками, retry и circuit breaker
+func NewClientConn(addr string, targetService string, m *metrics.Metrics, cfg *platform_middleware.ClientGRPCConfig) (*grpc.ClientConn, error) {
 	timeoutDur, _ := time.ParseDuration(cfg.Timeout)
 	baseDur, _ := time.ParseDuration(cfg.Retry.Backoff.Base)
 	maxDur, _ := time.ParseDuration(cfg.Retry.Backoff.Max)
@@ -22,10 +24,18 @@ func NewClientConn(addr string, cfg *platform_middleware.ClientGRPCConfig) (*grp
 	openDur, _ := time.ParseDuration(cfg.CircuitBreaker.OpenStateFor)
 
 	var unaryClientInterceptors []grpc.UnaryClientInterceptor
+	var streamClientInterceptors []grpc.StreamClientInterceptor
 
+	// 1. Tracing interceptor (первым, чтобы создать span)
 	unaryClientInterceptors = append(unaryClientInterceptors, NewClientTracingInterceptor())
 
-	// Retry: проверка maxAttempts > 0, codes len > 0, baseDur > 0
+	// 2. Metrics interceptor (после tracing, до retry/circuit breaker)
+	if m != nil {
+		unaryClientInterceptors = append(unaryClientInterceptors, NewClientMetricsInterceptor(m, targetService))
+		streamClientInterceptors = append(streamClientInterceptors, NewClientMetricsStreamInterceptor(m, targetService))
+	}
+
+	// 3. Retry: проверка maxAttempts > 0, codes len > 0, baseDur > 0
 	if cfg.Retry.MaxAttempts > 0 && len(cfg.Retry.RetryableCodes) > 0 && baseDur > 0 {
 		var retryCodes []codes.Code
 		for _, codeStr := range cfg.Retry.RetryableCodes {
@@ -55,10 +65,10 @@ func NewClientConn(addr string, cfg *platform_middleware.ClientGRPCConfig) (*grp
 		unaryClientInterceptors = append(unaryClientInterceptors, grpc_retry.UnaryClientInterceptor(retryOpts...))
 	}
 
-	// Circuit Breaker: проверка failuresForOpen > 0, window > 0, halfOpen > 0
+	// 4. Circuit Breaker: проверка failuresForOpen > 0, window > 0, halfOpen > 0
 	if cfg.CircuitBreaker.FailuresForOpen > 0 && windowDur > 0 && cfg.CircuitBreaker.HalfOpenMaxCalls > 0 {
 		cb := gobreaker.NewCircuitBreaker(gobreaker.Settings{
-			Name:        "grpc-client",
+			Name:        "grpc-client-" + targetService,
 			MaxRequests: uint32(cfg.CircuitBreaker.HalfOpenMaxCalls),
 			Interval:    windowDur,
 			Timeout:     openDur,
@@ -77,12 +87,17 @@ func NewClientConn(addr string, cfg *platform_middleware.ClientGRPCConfig) (*grp
 		unaryClientInterceptors = append(unaryClientInterceptors, cbInterceptor)
 	}
 
-	// Если нет интерцепторов, просто базовый dial
+	// Собираем dial options
 	dialOpts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
+
 	if len(unaryClientInterceptors) > 0 {
 		dialOpts = append(dialOpts, grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(unaryClientInterceptors...)))
+	}
+
+	if len(streamClientInterceptors) > 0 {
+		dialOpts = append(dialOpts, grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(streamClientInterceptors...)))
 	}
 
 	return grpc.NewClient(addr, dialOpts...)

@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/BurMachine/Bigtech_microservices/social/internal/app/models"
+	loggerlib "github.com/Burmachine/MSA/lib/logger"
+	"github.com/Burmachine/MSA/lib/metrics"
 	"github.com/google/uuid"
 )
 
@@ -37,12 +39,22 @@ type Processor struct {
 	outboxRepo   Repo
 	eventHandler EventsHandler
 	tm           TransactionManager
+	logger       *loggerlib.Logger
+	metrics      *metrics.Metrics // ← Добавили
 }
 
-func NewProcessor(outboxRepo Repo, eventHandler EventsHandler, tm TransactionManager) *Processor {
+func NewProcessor(
+	outboxRepo Repo,
+	eventHandler EventsHandler,
+	tm TransactionManager,
+	logger *loggerlib.Logger,
+	m *metrics.Metrics, // ← Добавили
+) *Processor {
 	return &Processor{
 		outboxRepo:   outboxRepo,
 		eventHandler: eventHandler,
 		tm:           tm,
+		logger:       logger,
+		metrics:      m,
 	}
 }

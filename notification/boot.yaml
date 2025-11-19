@@ -1,5 +1,5 @@
 app:
-  name: auth-service
+  name: auth_service
   version: "v1.0.0"
 
 
@@ -8,13 +8,17 @@ logger:
     zap:
       level: warn
 grpc:
-  - name: notification-service-grpc
-    enabled: true
+  - name: notification_service_grpc
+    enabled: false
     enableReflection: true
     port: 8086
     eventEntry: ""
 
 gin:
-  - name: notification-service-http
-    enabled: true
+  - name: notification_service_http
+    enabled: false
     port: 8066
+
+  - name: notification_service_admin
+    port: 9996
+    enabled: true

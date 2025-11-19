@@ -42,7 +42,7 @@ tracing:
 admin:
   enabled: true
   host: "0.0.0.0"
-  port: 9091  # Default, переопределяется для каждого сервиса
+  port: 9992
   metrics:
     enabled: true
     path: "/metrics"

@@ -1,5 +1,5 @@
 app:
-  name: social-service
+  name: social_service
   version: "v1.0.0"
 
 
@@ -8,13 +8,17 @@ logger:
     zap:
       level: warn
 grpc:
-  - name: social-service-grpc
+  - name: social_service_grpc
     enabled: true
     enableReflection: true
     port: 8083
     eventEntry: ""
 
-#gin:
-#  - name: social-service-http
-#    enabled: false
-#    port: 8080
+gin:
+  - name: social_service_http
+    enabled: false
+    port: 8080
+
+  - name: social_service_admin
+    port: 9993
+    enabled: true

@@ -13,6 +13,7 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/notification/internal/app/workers"
 	"github.com/BurMachine/Bigtech_microservices/notification/internal/config"
 	loggerlib "github.com/Burmachine/MSA/lib/logger"
+	"github.com/Burmachine/MSA/lib/metrics"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/Burmachine/MSA/lib/platform"
 	"github.com/Burmachine/MSA/lib/postgreslib"
@@ -27,7 +28,7 @@ func main() {
 		ctx,
 		platform.BaseConfig{
 			AppMode:     os.Getenv("APP_MODE"),
-			ServiceName: "notification-service",
+			ServiceName: "notification_service",
 			LogLevel:    getEnvOrDefault("LOG_LEVEL", "debug"),
 		},
 		Construct,
@@ -48,6 +49,7 @@ func Construct(
 	secrets *config.Secrets,
 	platformCfg *platform_middleware.ClientGRPCConfig,
 	logger *loggerlib.Logger,
+	metrics *metrics.Metrics,
 	entryGrpc *rkgrpc.GrpcEntry,
 	entryHttp *rkgin.GinEntry,
 ) (*platform.RegisteredServices, []func() error, error) {
@@ -85,6 +87,7 @@ func Construct(
 		cfg.Kafka.ConsumerTopic,
 		repo,
 		logger,
+		metrics,
 	)
 	if err != nil {
 		logger.Error(ctx, "failed to create inbox consumer", "error", err)
@@ -126,7 +129,7 @@ func Construct(
 
 	for i := 0; i < workerCount; i++ {
 		workerID := i
-		worker := workers.NewWorker(repo, notificationHandler, logger)
+		worker := workers.NewWorker(repo, notificationHandler, logger, metrics)
 
 		// Создаем контекст для каждого worker
 		workerCtx, workerCancel := context.WithCancel(ctx)

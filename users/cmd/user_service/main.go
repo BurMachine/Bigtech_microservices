@@ -10,6 +10,7 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/users/internal/config"
 	pb "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
 	loggerlib "github.com/Burmachine/MSA/lib/logger"
+	"github.com/Burmachine/MSA/lib/metrics"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/Burmachine/MSA/lib/platform"
 	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
@@ -26,7 +27,7 @@ func main() {
 		ctx,
 		platform.BaseConfig{
 			AppMode:     os.Getenv("APP_MODE"),
-			ServiceName: "users-service",
+			ServiceName: "users_service",
 			LogLevel:    getEnvOrDefault("LOG_LEVEL", "debug"),
 		},
 		Construct,
@@ -48,6 +49,7 @@ func Construct(
 	secrets *config.Secrets,
 	platformCfg *platform_middleware.ClientGRPCConfig,
 	logger *loggerlib.Logger,
+	metrics *metrics.Metrics,
 	entryGrpc *rkgrpc.GrpcEntry,
 	entryHttp *rkgin.GinEntry,
 ) (*platform.RegisteredServices, []func() error, error) {

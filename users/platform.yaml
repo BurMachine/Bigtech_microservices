@@ -29,5 +29,17 @@ server:
     paths:
       - path: "/github.com.BurMachine.Bigtech_microservices.auth.AuthService/Register" # http
         reqPerSec: 12
+
+admin:
+  enabled: true
+  host: "0.0.0.0"
+  port: 9994
+  metrics:
+    enabled: true
+    path: "/metrics"
+  pprof:
+    enabled: true
+    path: "/debug/pprof"
+
 shutdown:
   gracePeriod: 30s

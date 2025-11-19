@@ -18,6 +18,7 @@ import (
 	pb "github.com/BurMachine/Bigtech_microservices/social/pkg/v1/social"
 	kafkalib "github.com/Burmachine/MSA/lib/kafka"
 	loggerlib "github.com/Burmachine/MSA/lib/logger"
+	"github.com/Burmachine/MSA/lib/metrics"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/Burmachine/MSA/lib/platform"
 	"github.com/Burmachine/MSA/lib/postgreslib"
@@ -35,7 +36,7 @@ func main() {
 		ctx,
 		platform.BaseConfig{
 			AppMode:     os.Getenv("APP_MODE"),
-			ServiceName: "social-service",
+			ServiceName: "social_service",
 			LogLevel:    getEnvOrDefault("LOG_LEVEL", "debug"),
 		},
 		Construct,
@@ -56,6 +57,7 @@ func Construct(
 	secrets *config.Secrets,
 	platformCfg *platform_middleware.ClientGRPCConfig,
 	logger *loggerlib.Logger,
+	metrics *metrics.Metrics,
 	entryGrpc *rkgrpc.GrpcEntry,
 	entryHttp *rkgin.GinEntry,
 ) (*platform.RegisteredServices, []func() error, error) {
@@ -82,7 +84,7 @@ func Construct(
 		BatchSize:    100,
 		BatchTimeout: 10 * time.Millisecond,
 		MaxAttempts:  3,
-	}, logger)
+	}, logger, metrics)
 
 	cleanups = append(cleanups, func() error {
 		logger.Info(ctx, "flushing and closing kafka producer")
@@ -103,7 +105,7 @@ func Construct(
 	friendsRepo := friends_repo.NewRepository(txMngr)
 
 	// 5. User service client
-	userService, err := users_client.NewClient(cfg.UserServicePort, platformCfg)
+	userService, err := users_client.NewClient(cfg.UserServiceHost, "social", metrics, platformCfg)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create user client: %w", err)
 	}
@@ -114,7 +116,7 @@ func Construct(
 	})
 
 	// 6. Outbox worker
-	worker := outbox.NewProcessor(outboxRepo, eventHandler, txMngr)
+	worker := outbox.NewProcessor(outboxRepo, eventHandler, txMngr, logger, metrics)
 
 	workerCtx, workerCancel := context.WithCancel(ctx)
 	go func() {

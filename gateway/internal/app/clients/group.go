@@ -6,6 +6,7 @@ import (
 	social_service "github.com/BurMachine/Bigtech_microservices/gateway/internal/app/clients/social"
 	users_service "github.com/BurMachine/Bigtech_microservices/gateway/internal/app/clients/users"
 	"github.com/BurMachine/Bigtech_microservices/gateway/internal/app/usecases/gateway"
+	"github.com/Burmachine/MSA/lib/metrics"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 )
 
@@ -16,20 +17,20 @@ type Group struct {
 	UserClient   gateway.UserClient
 }
 
-func NewGroup(platformClientCfg *platform_middleware.ClientGRPCConfig, authPort, chatPort, socialPort, usersPort string) (*Group, error) {
-	authClient, err := auth_service.NewClient(authPort, platformClientCfg)
+func NewGroup(platformClientCfg *platform_middleware.ClientGRPCConfig, serviceName string, metrics *metrics.Metrics, authAddr, chatAddr, socialAddr, usersAddr string) (*Group, error) {
+	authClient, err := auth_service.NewClient(authAddr, platformClientCfg, serviceName, metrics)
 	if err != nil {
 		return nil, err
 	}
-	chatClient, err := chat_service.NewClient(chatPort, platformClientCfg)
+	chatClient, err := chat_service.NewClient(chatAddr, platformClientCfg, serviceName, metrics)
 	if err != nil {
 		return nil, err
 	}
-	socialClient, err := social_service.NewClient(socialPort, platformClientCfg)
+	socialClient, err := social_service.NewClient(socialAddr, platformClientCfg, serviceName, metrics)
 	if err != nil {
 		return nil, err
 	}
-	usersClient, err := users_service.NewClient(usersPort, platformClientCfg)
+	usersClient, err := users_service.NewClient(usersAddr, platformClientCfg, serviceName, metrics)
 	if err != nil {
 		return nil, err
 	}

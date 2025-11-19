@@ -29,7 +29,7 @@ server:
     paths:
       - path: "/github.com.BurMachine.Bigtech_microservices.auth.AuthService/Register" # http
         reqPerSec: 12
-        
+
 tracing:
   enabled: true
   agentHost: localhost:6831    # UDP для отправки spans
@@ -37,6 +37,17 @@ tracing:
   samplerType: const
   samplerParam: 1.0
   logSpans: false
+
+admin:
+  enabled: true
+  host: "0.0.0.0"
+  port: 9996
+  metrics:
+    enabled: true
+    path: "/metrics"
+  pprof:
+    enabled: true
+    path: "/debug/pprof"
 
 
 shutdown:

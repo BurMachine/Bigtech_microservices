@@ -7,25 +7,32 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/notification/internal/app/handler"
 	"github.com/BurMachine/Bigtech_microservices/notification/internal/app/inbox_repo"
 	loggerlib "github.com/Burmachine/MSA/lib/logger"
+	"github.com/Burmachine/MSA/lib/metrics"
 	"github.com/opentracing/opentracing-go"
 	"github.com/segmentio/kafka-go"
-	"go.uber.org/zap"
 )
 
 type Worker struct {
 	repo         inbox_repo.InboxRepo
 	handler      handler.Handler
-	logger       *loggerlib.Logger // Добавили только logger
+	logger       *loggerlib.Logger
+	metrics      *metrics.Metrics
 	pollInterval time.Duration
 	maxAttempts  int
 	batchSize    int
 }
 
-func NewWorker(repo inbox_repo.InboxRepo, h handler.Handler, logger *loggerlib.Logger) *Worker {
+func NewWorker(
+	repo inbox_repo.InboxRepo,
+	h handler.Handler,
+	logger *loggerlib.Logger,
+	m *metrics.Metrics,
+) *Worker {
 	return &Worker{
 		repo:         repo,
 		handler:      h,
-		logger:       logger, // Добавили logger
+		logger:       logger,
+		metrics:      m,
 		pollInterval: 5 * time.Second,
 		maxAttempts:  5,
 		batchSize:    50,
@@ -36,9 +43,12 @@ func (w *Worker) Run(ctx context.Context) {
 	ticker := time.NewTicker(w.pollInterval)
 	defer ticker.Stop()
 
+	w.logger.Info(ctx, "inbox worker started", "interval", w.pollInterval)
+
 	for {
 		select {
 		case <-ctx.Done():
+			w.logger.Info(ctx, "inbox worker stopped")
 			return
 		case <-ticker.C:
 			w.processBatch(ctx)
@@ -51,34 +61,71 @@ func (w *Worker) processBatch(ctx context.Context) {
 	span.SetTag("component", "inbox-worker")
 	defer span.Finish()
 
+	start := time.Now()
+
 	ids, err := w.repo.SelectForProcessing(ctx, w.maxAttempts, w.batchSize)
 	if err != nil {
-		w.logger.Error(ctx, "select failed", zap.Error(err)) // Заменили log.Printf на logger
-		return
-	}
-	if len(ids) == 0 {
+		w.logger.Error(ctx, "select failed", "error", err)
+
+		// Записываем метрики ошибки
+		if w.metrics != nil {
+			w.metrics.WorkerBatchProcessed.WithLabelValues("inbox", "error").Inc()
+			w.metrics.WorkerBatchErrors.WithLabelValues("inbox", "select_error").Inc()
+			w.metrics.WorkerBatchDuration.WithLabelValues("inbox").Observe(time.Since(start).Seconds())
+		}
 		return
 	}
 
+	if len(ids) == 0 {
+		w.logger.Debug(ctx, "no pending inbox records")
+		return
+	}
+
+	w.logger.Info(ctx, "processing inbox batch", "count", len(ids))
+
+	var processedCount, failedCount int
+
 	for _, id := range ids {
-		// Для каждого: транзакция
 		err := w.processOne(ctx, id)
 		if err != nil {
-			w.logger.Error(ctx, "process failed", zap.String("id", id), zap.Error(err)) // Заменили log.Printf на logger
+			w.logger.Error(ctx, "process failed", "id", id, "error", err)
+			failedCount++
+		} else {
+			processedCount++
 		}
 	}
+
+	duration := time.Since(start)
+
+	// Записываем метрики
+	if w.metrics != nil {
+		// Счётчик успешных батчей
+		w.metrics.WorkerBatchProcessed.WithLabelValues("inbox", "success").Inc()
+
+		// Время обработки батча
+		w.metrics.WorkerBatchDuration.WithLabelValues("inbox").Observe(duration.Seconds())
+
+		// Размер очереди (приблизительно по размеру текущего батча)
+		// Если len(ids) == batchSize, значит в очереди ещё есть записи
+		// Если len(ids) < batchSize, значит это последние записи
+		w.metrics.WorkerQueueSize.WithLabelValues("inbox").Set(float64(len(ids)))
+	}
+
+	w.logger.Info(ctx, "inbox batch processed",
+		"processed", processedCount,
+		"failed", failedCount,
+		"duration_ms", duration.Milliseconds(),
+	)
 }
 
 func (w *Worker) processOne(ctx context.Context, id string) error {
-	// Fake: Заглушка — в реальности fetch payload
-	fakeMsg := &kafka.Message{Value: []byte("payload from DB for id=" + id)} // Заменить на real fetch
+	// TODO: В реальности получить payload из БД
+	fakeMsg := &kafka.Message{Value: []byte("payload from DB for id=" + id)}
 
 	if err := w.handler.Handle(ctx, fakeMsg); err != nil {
-		// Update to 'failed', last_error
-		return w.repo.UpdateStatus(ctx, id, "failed", 0 /* attempts from DB +1 */, err.Error(), nil)
+		return w.repo.UpdateStatus(ctx, id, "failed", 0, err.Error(), nil)
 	}
 
-	// 3. Успех: Update to 'processed', processed_at=now()
 	now := time.Now()
-	return w.repo.UpdateStatus(ctx, id, "processed", 0 /* attempts from DB +1 */, "", &now)
+	return w.repo.UpdateStatus(ctx, id, "processed", 0, "", &now)
 }

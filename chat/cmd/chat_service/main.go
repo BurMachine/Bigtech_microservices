@@ -12,6 +12,7 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/repositories/chat_repo"
 	"github.com/BurMachine/Bigtech_microservices/chat/internal/app/usecases/chat"
 	"github.com/BurMachine/Bigtech_microservices/chat/internal/config"
+	"github.com/Burmachine/MSA/lib/metrics"
 	"github.com/Burmachine/MSA/lib/postgreslib"
 	"github.com/Burmachine/MSA/lib/postgreslib/transaction_manager"
 
@@ -32,7 +33,7 @@ func main() {
 		ctx,
 		platform.BaseConfig{
 			AppMode:     os.Getenv("APP_MODE"),
-			ServiceName: "chat-service",
+			ServiceName: "chat_service",
 			LogLevel:    getEnvOrDefault("LOG_LEVEL", "info"),
 		},
 		Construct,
@@ -53,6 +54,7 @@ func Construct(
 	secrets *config.Secrets,
 	platformCfg *platform_middleware.ClientGRPCConfig,
 	logger *loggerlib.Logger,
+	metrics *metrics.Metrics,
 	entryGrpc *rkgrpc.GrpcEntry,
 	entryHttp *rkgin.GinEntry,
 ) (*platform.RegisteredServices, []func() error, error) {
@@ -89,7 +91,7 @@ func Construct(
 		BatchSize:    100,
 		BatchTimeout: 10 * time.Millisecond,
 		MaxAttempts:  3,
-	}, logger)
+	}, logger, metrics)
 
 	logger.Info(ctx, "kafka producer initialized",
 		"brokers", cfg.Kafka.Brokers,

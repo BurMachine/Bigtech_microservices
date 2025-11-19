@@ -1,5 +1,5 @@
 app:
-  name: gateway-service
+  name: gateway_service
   version: "v1.0.0"
 
 
@@ -9,13 +9,17 @@ logger:
       level: warn
 
 grpc:
-  - name: gateway-service-grpc
+  - name: gateway_service_grpc
     enabled: true
     enableReflection: true
     port: 8079
     eventEntry: ""
 
 gin:
-  - name: gateway-service-http
+  - name: gateway_service_http
     enabled: true
     port: 8078
+
+  - name: gateway_service_admin
+    port: 9989
+    enabled: true

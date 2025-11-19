@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Burmachine/MSA/lib/logger"
+	loggerlib "github.com/Burmachine/MSA/lib/logger"
+	"github.com/Burmachine/MSA/lib/metrics"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/segmentio/kafka-go"
@@ -17,16 +18,16 @@ type Config struct {
 	BatchSize    int
 	BatchTimeout time.Duration
 	MaxAttempts  int
-	Compression  kafka.CompressionCodec // snappy, gzip, lz4, zstd
+	Compression  kafka.CompressionCodec
 }
 
 type Producer struct {
-	writer *kafka.Writer
-	logger *loggerlib.Logger
+	writer  *kafka.Writer
+	logger  *loggerlib.Logger
+	metrics *metrics.Metrics
 }
 
-func NewProducer(cfg Config, log *loggerlib.Logger) *Producer {
-	// Применяем дефолты
+func NewProducer(cfg Config, log *loggerlib.Logger, m *metrics.Metrics) *Producer {
 	if cfg.BatchSize == 0 {
 		cfg.BatchSize = 100
 	}
@@ -49,21 +50,48 @@ func NewProducer(cfg Config, log *loggerlib.Logger) *Producer {
 	}
 
 	return &Producer{
-		writer: writer,
-		logger: log,
+		writer:  writer,
+		logger:  log,
+		metrics: m,
 	}
+}
+
+// recordPublishMetrics записывает метрики публикации
+func (p *Producer) recordPublishMetrics(messageCount int, err error, duration time.Duration) {
+	if p.metrics == nil {
+		return
+	}
+
+	if err != nil {
+		p.metrics.KafkaMessagesErrors.WithLabelValues(
+			p.writer.Topic,
+			"producer",
+			"write_error",
+		).Add(float64(messageCount))
+	} else {
+		p.metrics.KafkaMessagesConsumed.WithLabelValues(
+			p.writer.Topic,
+			"producer",
+		).Add(float64(messageCount))
+	}
+
+	p.metrics.KafkaBatchDuration.WithLabelValues(
+		p.writer.Topic,
+		"producer",
+	).Observe(duration.Seconds())
 }
 
 func (p *Producer) PublishMessage(ctx context.Context, key, value []byte) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "Kafka/Publish")
 	defer span.Finish()
 
-	// Теги
 	span.SetTag("messaging.system", "kafka")
 	span.SetTag("messaging.destination", p.writer.Topic)
 	span.SetTag("messaging.operation", "publish")
 	span.SetTag("messaging.message_id", string(key))
 	ext.SpanKindProducer.Set(span)
+
+	start := time.Now()
 
 	message := kafka.Message{
 		Key:   key,
@@ -71,7 +99,11 @@ func (p *Producer) PublishMessage(ctx context.Context, key, value []byte) error 
 		Time:  time.Now(),
 	}
 
-	if err := p.writer.WriteMessages(ctx, message); err != nil {
+	err := p.writer.WriteMessages(ctx, message)
+
+	p.recordPublishMetrics(1, err, time.Since(start))
+
+	if err != nil {
 		p.logger.Error(ctx, "failed to publish message",
 			"error", err,
 			"key", string(key),
@@ -93,23 +125,28 @@ func (p *Producer) PublishBatch(ctx context.Context, messages []kafka.Message) e
 		return nil
 	}
 
-	span, ctx := opentracing.StartSpanFromContext(ctx, "Kafka/Publish")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "Kafka/PublishBatch")
 	defer span.Finish()
 
-	// Теги
 	span.SetTag("messaging.system", "kafka")
 	span.SetTag("messaging.destination", p.writer.Topic)
 	span.SetTag("messaging.operation", "publish_batch")
+	span.SetTag("messaging.batch_size", len(messages))
 	ext.SpanKindProducer.Set(span)
 
-	// Добавляем timestamp если не указан
 	for i := range messages {
 		if messages[i].Time.IsZero() {
 			messages[i].Time = time.Now()
 		}
 	}
 
-	if err := p.writer.WriteMessages(ctx, messages...); err != nil {
+	start := time.Now()
+
+	err := p.writer.WriteMessages(ctx, messages...)
+
+	p.recordPublishMetrics(len(messages), err, time.Since(start))
+
+	if err != nil {
 		p.logger.Error(ctx, "failed to publish batch",
 			"error", err,
 			"count", len(messages),
@@ -126,20 +163,15 @@ func (p *Producer) PublishBatch(ctx context.Context, messages []kafka.Message) e
 	return nil
 }
 
-// Flush принудительно отправляет все буферизованные сообщения
 func (p *Producer) Flush(ctx context.Context) error {
 	p.logger.Info(ctx, "flushing kafka producer")
-	// kafka-go Writer не имеет явного Flush
-	// Все сообщения отправляются синхронно (Async: false)
 	return nil
 }
 
-// Close корректное закрытие с автоматическим flush
 func (p *Producer) Close() error {
 	ctx := context.Background()
 	p.logger.Info(ctx, "closing kafka producer")
 
-	// Writer.Close() автоматически делает flush
 	if err := p.writer.Close(); err != nil {
 		p.logger.Error(ctx, "error closing kafka producer", "error", err)
 		return err
@@ -149,7 +181,6 @@ func (p *Producer) Close() error {
 	return nil
 }
 
-// Stats возвращает статистику producer'а
 func (p *Producer) Stats() kafka.WriterStats {
 	return p.writer.Stats()
 }

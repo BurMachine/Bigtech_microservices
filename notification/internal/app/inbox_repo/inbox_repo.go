@@ -13,6 +13,7 @@ import (
 
 // InboxRepo — интерфейс для операций с inbox_messages таблицей
 type InboxRepo interface {
+
 	// BatchInsert: Вставка пачки сообщений с ON CONFLICT DO NOTHING
 	BatchInsert(ctx context.Context, msgs []InboxMessage) error
 

@@ -8,6 +8,7 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/social/internal/app/models"
 	user_pb "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
 	users "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
+	"github.com/Burmachine/MSA/lib/metrics"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	platform_client "github.com/Burmachine/MSA/lib/middleware/client"
 	"google.golang.org/grpc"
@@ -20,8 +21,8 @@ type Client struct {
 	conn   *grpc.ClientConn
 }
 
-func NewClient(addr string, platform *platform_middleware.ClientGRPCConfig) (*Client, error) {
-	grpcConn, err := platform_client.NewClientConn(addr, platform)
+func NewClient(addr, targetService string, m *metrics.Metrics, platform *platform_middleware.ClientGRPCConfig) (*Client, error) {
+	grpcConn, err := platform_client.NewClientConn(addr, targetService, m, platform)
 	if err != nil {
 		return nil, err
 	}

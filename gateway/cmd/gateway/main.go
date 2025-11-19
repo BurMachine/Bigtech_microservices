@@ -12,6 +12,7 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/gateway/internal/config"
 	pb "github.com/BurMachine/Bigtech_microservices/gateway/pkg/v1/gateway"
 	loggerlib "github.com/Burmachine/MSA/lib/logger"
+	"github.com/Burmachine/MSA/lib/metrics"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/Burmachine/MSA/lib/platform"
 	"github.com/gin-gonic/gin"
@@ -29,7 +30,7 @@ func main() {
 		ctx,
 		platform.BaseConfig{
 			AppMode:     os.Getenv("APP_MODE"),
-			ServiceName: "gateway-service",
+			ServiceName: "gateway_service",
 			LogLevel:    getEnvOrDefault("LOG_LEVEL", "debug"),
 		},
 		Construct,
@@ -50,6 +51,7 @@ func Construct(
 	secrets *config.Secrets,
 	platformCfg *platform_middleware.ClientGRPCConfig,
 	logger *loggerlib.Logger,
+	metrics *metrics.Metrics,
 	entryGrpc *rkgrpc.GrpcEntry,
 	entryHttp *rkgin.GinEntry,
 ) (*platform.RegisteredServices, []func() error, error) {
@@ -58,6 +60,8 @@ func Construct(
 	// 1. Создаем клиенты к downstream сервисам
 	clientsGroup, err := clients.NewGroup(
 		platformCfg,
+		"",
+		metrics,
 		cfg.AuthPort,
 		cfg.ChatPort,
 		cfg.SocialPort,

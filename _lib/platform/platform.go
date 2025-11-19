@@ -11,6 +11,7 @@ import (
 	"github.com/Burmachine/MSA/lib/adminserver"
 	configlib "github.com/Burmachine/MSA/lib/config"
 	loggerlib "github.com/Burmachine/MSA/lib/logger"
+	"github.com/Burmachine/MSA/lib/metrics"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	platform_server "github.com/Burmachine/MSA/lib/middleware/server"
 	"github.com/Burmachine/MSA/lib/secretslib"
@@ -28,6 +29,7 @@ type App struct {
 	logger       *loggerlib.Logger
 	tracer       *tracing.Tracer
 	grpcEntry    *rkgrpc.GrpcEntry
+	metrics      *metrics.Metrics
 	httpEntry    *rkgin.GinEntry
 	adminEntry   *rkgin.GinEntry
 	adminServer  *adminserver.Server
@@ -52,7 +54,7 @@ func Init[Config any, Secrets any](
 	ctx context.Context,
 	BaseCfg BaseConfig,
 	fn func(ctx context.Context, cfg *Config, secrets *Secrets, platformCfg *platform_middleware.ClientGRPCConfig, logger *loggerlib.Logger,
-		grpc *rkgrpc.GrpcEntry, http *rkgin.GinEntry) (*RegisteredServices, []func() error, error),
+		metrics *metrics.Metrics, grpc *rkgrpc.GrpcEntry, http *rkgin.GinEntry) (*RegisteredServices, []func() error, error),
 ) (*App, error) {
 
 	// --------------- Configs loading ------------------
@@ -80,9 +82,9 @@ func Init[Config any, Secrets any](
 	boot := rkboot.NewBoot()
 
 	// Получаем entries из boot.yaml
-	grpcEntry := rkgrpc.GetGrpcEntry(BaseCfg.ServiceName + "-grpc")
-	httpEntry := rkgin.GetGinEntry(BaseCfg.ServiceName + "-http")
-	adminEntry := rkgin.GetGinEntry(BaseCfg.ServiceName + "-admin") // ← Из boot.yaml!
+	grpcEntry := rkgrpc.GetGrpcEntry(BaseCfg.ServiceName + "_grpc")
+	httpEntry := rkgin.GetGinEntry(BaseCfg.ServiceName + "_http")
+	adminEntry := rkgin.GetGinEntry(BaseCfg.ServiceName + "_admin")
 
 	if grpcEntry == nil && httpEntry == nil && adminEntry == nil {
 		return nil, fmt.Errorf("no server entries found in boot.yaml for: %s", BaseCfg.ServiceName)
@@ -131,6 +133,17 @@ func Init[Config any, Secrets any](
 		logger.Info(ctx, "tracing disabled")
 	}
 
+	appMetrics := metrics.New(metrics.Config{
+		ServiceName: BaseCfg.ServiceName,
+		Namespace:   "messenger",
+		Subsystem:   BaseCfg.ServiceName,
+	})
+
+	logger.Info(ctx, "metrics initialized",
+		"namespace", "messenger",
+		"subsystem", BaseCfg.ServiceName,
+	)
+
 	// --------------- Admin Server initialization ------------------
 	var admin *adminserver.Server
 	if platformCfg.Admin.Enabled && adminEntry != nil {
@@ -146,17 +159,20 @@ func Init[Config any, Secrets any](
 		grpcEntry.AddUnaryInterceptors(platform_server.NewServerTracingInterceptors(logger)...)
 		grpcEntry.AddStreamInterceptors(platform_server.NewServerTracingStreamInterceptors(logger)...)
 
+		grpcEntry.AddUnaryInterceptors(platform_server.NewServerMetricsInterceptors(appMetrics, BaseCfg.ServiceName)...)
+		grpcEntry.AddStreamInterceptors(platform_server.NewServerMetricsStreamInterceptors(appMetrics, BaseCfg.ServiceName)...)
+
 		grpcEntry.AddUnaryInterceptors(platform_server.NewServerObservabilityInterceptors(logger)...)
 		grpcEntry.AddStreamInterceptors(platform_server.NewServerObservabilityStreamInterceptors(logger)...)
 	}
 
 	// HTTP Middleware
 	if httpEntry != nil {
-		httpEntry.AddMiddleware(platform_server.NewHTTPMiddlewares(logger, platformCfg.Server)...)
+		httpEntry.AddMiddleware(platform_server.NewHTTPMiddlewares(logger, appMetrics, BaseCfg.ServiceName, platformCfg.Server)...)
 	}
 
 	// Вызываем конструктор
-	registered, cleanupFuncs, err := fn(ctx, cfg, secrets, &platformCfg.Client.GRPC, logger, grpcEntry, httpEntry)
+	registered, cleanupFuncs, err := fn(ctx, cfg, secrets, &platformCfg.Client.GRPC, logger, appMetrics, grpcEntry, httpEntry)
 	if err != nil {
 		return nil, err
 	}
@@ -167,6 +183,7 @@ func Init[Config any, Secrets any](
 		tracer:       tracer,
 		grpcEntry:    grpcEntry,
 		httpEntry:    httpEntry,
+		metrics:      appMetrics,
 		adminEntry:   adminEntry,
 		adminServer:  admin,
 		cleanupFuncs: cleanupFuncs,
