@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"time"
 
 	inbox_consumer "github.com/BurMachine/Bigtech_microservices/notification/internal/app/consumer"
@@ -116,8 +117,8 @@ func Construct(
 		return nil
 	})
 
-	// 4. Запускаем workers (5 штук)
-	workerCount := 5
+	// 4. Запускаем workers (CPU/2)
+	workerCount := runtime.NumCPU() / 2
 	workerContexts := make([]context.Context, workerCount)
 	workerCancels := make([]context.CancelFunc, workerCount)
 
