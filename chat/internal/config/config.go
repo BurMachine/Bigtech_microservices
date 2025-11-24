@@ -19,3 +19,8 @@ type Kafka struct {
 	Brokers []string `env:"BROKERS" envDefault:"localhost:9092"`
 	Topic   string   `env:"TOPIC" envDefault:"messages"`
 }
+
+type Secrets struct {
+	AppToken string `yaml:"appToken" env:"APP_TOKEN"`
+	AppName  string `yaml:"appName" env:"APP_NAME"`
+}

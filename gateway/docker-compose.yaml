@@ -110,6 +110,29 @@ services:
     depends_on:
       - kafka
 
+  vault:
+    image: hashicorp/vault:1.15
+    container_name: vault
+    hostname: vault
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: "dev-root-token"
+      VAULT_ADDR: "http://0.0.0.0:8200"
+      VAULT_LOG_LEVEL: "info"
+      SKIP_SETCAP: "true"
+    cap_add:
+      - IPC_LOCK
+    command: server -dev -dev-listen-address=0.0.0.0:8200  # Добавьте -dev
+    networks:
+      - messenger
+    healthcheck:
+      test: [ "CMD", "vault", "status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 
 volumes:
-  postgres-data:  # Фикс: Добавлена секция volumes
+  postgres-data:

@@ -69,7 +69,7 @@ func FromCreateProfileRequestPBToDTO(req *pb.CreateProfileRequest) dto.UserCreat
 		Nickname:  req.Nickname,
 		Bio:       bio,
 		AvatarURL: avatarURL,
-		Email:     req.Email,
+		//Email:     req.Email,
 	}
 }
 

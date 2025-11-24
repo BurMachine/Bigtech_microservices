@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net"
-	"sync"
+	"os"
 
 	"github.com/BurMachine/Bigtech_microservices/social/internal/app/adapters/social_event_handler"
 	"github.com/BurMachine/Bigtech_microservices/social/internal/app/adapters/users_client"
@@ -18,24 +17,35 @@ import (
 	"github.com/BurMachine/Bigtech_microservices/social/pkg/postgres"
 	"github.com/BurMachine/Bigtech_microservices/social/pkg/postgres/transaction_manager"
 	pb "github.com/BurMachine/Bigtech_microservices/social/pkg/v1/social"
-	"github.com/caarlos0/env/v6"
+	"github.com/Burmachine/MSA/lib/platform"
+	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
+	rkgrpc "github.com/rookie-ninja/rk-grpc/v2/boot"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 func main() {
-	cfg := config.Config{}
-	// Парсим конфигурацию из переменных окружения
-	var err error
-	if err = env.Parse(&cfg); err != nil {
-		fmt.Printf("error parsing config: %v\n", err)
-	}
-
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	// Construct
+	app, err := platform.Init[config.Config, config.Secrets](
+		ctx,
+		os.Getenv("APP_MODE"),
+		"social-service",
+		Construct,
+	)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Запускаем приложение
+	if err := app.Run(ctx); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func Construct(ctx context.Context, cfg *config.Config, secrets *config.Secrets, entryGrpc *rkgrpc.GrpcEntry, entryHttp *rkgin.GinEntry) (*platform.RegisteredServices, error) {
 	eventHandler := social_event_handler.NewKafkaEventsHandler(cfg.Kafka.Brokers)
 
 	dsn := DSN(&cfg.Postgres)
@@ -53,37 +63,23 @@ func main() {
 
 	worker := outbox.NewProcessor(outboxRepo, eventHandler, txMngr)
 	uc := social.NewUsecases(repo, txMngr, outboxRepo, userService)
-	server, err := social_grpc.NewServer(uc)
+	grpcService, err := social_grpc.NewServer(uc)
 	if err != nil {
 		log.Fatalf("failed to create server: %v", err)
 	}
 
 	go worker.Run(ctx)
 
-	var wg sync.WaitGroup
-
-	wg.Go(func() {
-		grpcServer := grpc.NewServer()
-		pb.RegisterSocialServiceServer(grpcServer, server)
-
-		reflection.Register(grpcServer)
-
-		lis, err := net.Listen("tcp", ":8083")
-		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
-		}
-
-		log.Printf("server listening at %v", lis.Addr())
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
-		}
+	entryGrpc.AddRegFuncGrpc(func(server *grpc.Server) {
+		pb.RegisterSocialServiceServer(server, grpcService)
 	})
 
-	wg.Wait()
-	ctx.Done()
+	return &platform.RegisteredServices{
+		GRPC: true,
+		HTTP: false,
+	}, nil
 }
 
-// support
 func DSN(conf *config.Postgres) string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		conf.DbUser, conf.DbPassword, conf.DbHost, conf.DbPort, conf.DbName,

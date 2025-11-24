@@ -4,59 +4,53 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net"
-	"sync"
+	"os"
 
 	"github.com/BurMachine/Bigtech_microservices/users/internal/app/di"
 	"github.com/BurMachine/Bigtech_microservices/users/internal/config"
 	pb "github.com/BurMachine/Bigtech_microservices/users/pkg/v1/user"
-	"github.com/caarlos0/env/v6"
+	"github.com/Burmachine/MSA/lib/platform"
+	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
+	rkgrpc "github.com/rookie-ninja/rk-grpc/v2/boot"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 func main() {
-	cfg := config.Config{}
-
-	// Парсим конфигурацию из переменных окружения
-	var err error
-	if err = env.Parse(&cfg); err != nil {
-		fmt.Printf("error parsing config: %v\n", err)
-	}
-
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	// construct
-	server, err := di.Wire(DSN(&cfg.Postgres))
+	app, err := platform.Init[config.Config, config.Secrets](
+		ctx,
+		os.Getenv("APP_MODE"),
+		"users-service",
+		Construct,
+	)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Запускаем приложение
+	if err := app.Run(ctx); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func Construct(ctx context.Context, cfg *config.Config, secrets *config.Secrets, entryGrpc *rkgrpc.GrpcEntry, entryHttp *rkgin.GinEntry) (*platform.RegisteredServices, error) {
+	grpcService, err := di.Wire(DSN(&cfg.Postgres))
 	if err != nil {
 		log.Fatalf("failed to inject dependencies: %v", err)
 	}
 
-	var wg sync.WaitGroup
+	entryGrpc.AddRegFuncGrpc(func(server *grpc.Server) {
+		pb.RegisterUserServiceServer(server, grpcService)
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		grpcServer := grpc.NewServer()
-		pb.RegisterUserServiceServer(grpcServer, server)
-
-		reflection.Register(grpcServer)
-
-		lis, err := net.Listen("tcp", ":8084")
-		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
-		}
-
-		log.Printf("server listening at %v", lis.Addr())
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
-		}
-	}()
-
-	wg.Wait()
+	return &platform.RegisteredServices{
+		GRPC: true,
+		HTTP: false,
+	}, nil
 }
 
 func DSN(conf *config.Postgres) string {

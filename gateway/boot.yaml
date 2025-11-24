@@ -1,0 +1,22 @@
+app:
+  name: gateway-service
+  version: "v1.0.0"
+
+
+logger:
+  - name: my-logger
+    zap:
+      level: warn
+grpc:
+  - name: gateway-service-grpc
+    enabled: true
+    port: 8079
+    eventEntry: ""
+    enableReflection: true
+
+gin:
+  - name: gateway-service-http
+    enabled: true
+    port: 8078
+#    sw:
+#      enabled: true
