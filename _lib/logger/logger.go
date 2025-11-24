@@ -12,11 +12,23 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// Level представляет уровень логирования
+type Level int
+
+const (
+	DebugLevel Level = iota
+	InfoLevel
+	WarnLevel
+	ErrorLevel
+	FatalLevel
+)
+
 type Logger struct {
 	zap         *zap.Logger
 	serviceName string
 	version     string
 	environment string
+	level       zapcore.Level // Добавили поле для хранения уровня
 }
 
 type Config struct {
@@ -28,7 +40,8 @@ type Config struct {
 
 func New(cfg Config) (*Logger, error) {
 	zapCfg := zap.NewProductionConfig()
-	zapCfg.Level = zap.NewAtomicLevelAt(parseLevel(cfg.Level))
+	logLevel := parseLevel(cfg.Level)
+	zapCfg.Level = zap.NewAtomicLevelAt(logLevel)
 	zapCfg.EncoderConfig.TimeKey = "timestamp"
 	zapCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	zapCfg.EncoderConfig.MessageKey = "message"
@@ -54,6 +67,7 @@ func New(cfg Config) (*Logger, error) {
 		serviceName: cfg.ServiceName,
 		version:     cfg.Version,
 		environment: cfg.Environment,
+		level:       logLevel, // Сохраняем уровень
 	}, nil
 }
 
@@ -69,7 +83,41 @@ func NewFromZap(zapLogger *zap.Logger, cfg Config) *Logger {
 		serviceName: cfg.ServiceName,
 		version:     cfg.Version,
 		environment: cfg.Environment,
+		level:       parseLevel(cfg.Level), // Сохраняем уровень
 	}
+}
+
+// Level возвращает текущий уровень логирования в нашем формате
+func (l *Logger) Level() Level {
+	switch l.level {
+	case zap.DebugLevel:
+		return DebugLevel
+	case zap.InfoLevel:
+		return InfoLevel
+	case zap.WarnLevel:
+		return WarnLevel
+	case zap.ErrorLevel:
+		return ErrorLevel
+	case zap.FatalLevel:
+		return FatalLevel
+	default:
+		return InfoLevel
+	}
+}
+
+// ZapLevel возвращает текущий уровень логирования в формате Zap
+func (l *Logger) ZapLevel() zapcore.Level {
+	return l.level
+}
+
+// IsDebugEnabled проверяет, включен ли уровень Debug
+func (l *Logger) IsDebugEnabled() bool {
+	return l.level <= zap.DebugLevel
+}
+
+// IsInfoEnabled проверяет, включен ли уровень Info
+func (l *Logger) IsInfoEnabled() bool {
+	return l.level <= zap.InfoLevel
 }
 
 func (l *Logger) Debug(ctx context.Context, msg string, keysAndValues ...interface{}) {
@@ -104,6 +152,7 @@ func (l *Logger) With(keysAndValues ...interface{}) *Logger {
 		serviceName: l.serviceName,
 		version:     l.version,
 		environment: l.environment,
+		level:       l.level, // Копируем уровень
 	}
 }
 
@@ -113,6 +162,7 @@ func (l *Logger) WithError(err error) *Logger {
 		serviceName: l.serviceName,
 		version:     l.version,
 		environment: l.environment,
+		level:       l.level, // Копируем уровень
 	}
 }
 
@@ -141,7 +191,6 @@ func (l *Logger) contextFields(ctx context.Context) []zap.Field {
 
 	fields := make([]zap.Field, 0, 3)
 
-	// ← ДОБАВЬТЕ ИЗВЛЕЧЕНИЕ OPENTRACING SPAN
 	// Извлекаем trace_id и span_id из OpenTracing (Jaeger)
 	span := opentracing.SpanFromContext(ctx)
 	if span != nil {
@@ -231,6 +280,7 @@ type contextKey string
 const (
 	requestIDKey contextKey = "request_id"
 	userIDKey    contextKey = "user_id"
+	debugKey     contextKey = "debug_enabled"
 )
 
 func WithRequestID(ctx context.Context, reqID string) context.Context {
@@ -239,6 +289,10 @@ func WithRequestID(ctx context.Context, reqID string) context.Context {
 
 func WithUserID(ctx context.Context, userID string) context.Context {
 	return context.WithValue(ctx, userIDKey, userID)
+}
+
+func WithDebug(ctx context.Context, enabled bool) context.Context {
+	return context.WithValue(ctx, debugKey, enabled)
 }
 
 func getRequestIDFromContext(ctx context.Context) string {
@@ -253,6 +307,13 @@ func getUserIDFromContext(ctx context.Context) string {
 		return userID
 	}
 	return ""
+}
+
+func IsDebugFromContext(ctx context.Context) bool {
+	if debug, ok := ctx.Value(debugKey).(bool); ok {
+		return debug
+	}
+	return false
 }
 
 func (l *Logger) Sync() error {

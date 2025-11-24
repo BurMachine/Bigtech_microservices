@@ -2,6 +2,8 @@ package platform_server
 
 import (
 	"context"
+	"encoding/json"
+	"strings"
 	"time"
 
 	loggerlib "github.com/Burmachine/MSA/lib/logger"
@@ -19,72 +21,113 @@ func NewServerObservabilityInterceptors(log *loggerlib.Logger) []grpc.UnaryServe
 	}
 }
 
-// createLoggingInterceptor создает интерсептор для логирования запросов
 func createLoggingInterceptor(log *loggerlib.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		start := time.Now()
 
-		// Извлекаем метаданные
 		requestID := extractRequestID(ctx)
 		clientIP := extractClientIP(ctx)
 		userAgent := extractUserAgent(ctx)
 
-		// Добавляем request_id в контекст для последующих логов
+		// Проверяем debug режим из заголовка
+		debugEnabled := isDebugEnabled(ctx)
+
 		if requestID != "" {
 			ctx = loggerlib.WithRequestID(ctx, requestID)
 		}
 
+		if debugEnabled {
+			ctx = loggerlib.WithDebug(ctx, true)
+		}
+
 		// Логируем начало запроса
-		log.Debug(ctx, "gRPC request started",
+		logArgs := []interface{}{
 			"method", info.FullMethod,
 			"client_ip", clientIP,
 			"user_agent", userAgent,
-		)
+		}
+
+		// Если debug режим - добавляем тело запроса и логируем на уровне INFO
+		if debugEnabled {
+			if reqJSON, err := json.Marshal(req); err == nil {
+				logArgs = append(logArgs, "request_body", string(reqJSON))
+			}
+			log.Info(ctx, "gRPC request started (debug mode)", logArgs...)
+		} else if log.IsDebugEnabled() {
+			// Если глобальный DEBUG уровень - логируем на DEBUG
+			if reqJSON, err := json.Marshal(req); err == nil {
+				logArgs = append(logArgs, "request_body", string(reqJSON))
+			}
+			log.Debug(ctx, "gRPC request started (debug mode)", logArgs...)
+		} else {
+			// Обычное логирование
+			log.Debug(ctx, "gRPC request started", logArgs...)
+		}
 
 		// Выполняем handler
 		resp, err := handler(ctx, req)
 
-		// Вычисляем длительность
 		duration := time.Since(start)
-
-		// Получаем gRPC status
 		st, _ := status.FromError(err)
 		code := st.Code()
 
 		// Логируем результат
+		resultArgs := []interface{}{
+			"method", info.FullMethod,
+			"duration_ms", duration.Milliseconds(),
+			"code", code.String(),
+			"client_ip", clientIP,
+		}
+
+		// Если debug режим и нет ошибки - добавляем тело ответа
+		if debugEnabled && err == nil {
+			if respJSON, marshalErr := json.Marshal(resp); marshalErr == nil {
+				resultArgs = append(resultArgs, "response_body", string(respJSON))
+			}
+		} else if log.IsDebugEnabled() && err == nil {
+			if respJSON, marshalErr := json.Marshal(resp); marshalErr == nil {
+				resultArgs = append(resultArgs, "response_body", string(respJSON))
+			}
+		}
+
 		if err != nil {
-			// Определяем уровень логирования в зависимости от кода ошибки
+			resultArgs = append(resultArgs, "error", st.Message())
 			if isClientError(code) {
-				// Клиентские ошибки (4xx) - info/warn
-				log.Warn(ctx, "gRPC request completed with client error",
-					"method", info.FullMethod,
-					"duration_ms", duration.Milliseconds(),
-					"code", code.String(),
-					"error", st.Message(),
-					"client_ip", clientIP,
-				)
+				log.Warn(ctx, "gRPC request completed with client error", resultArgs...)
 			} else {
-				// Серверные ошибки (5xx) - error
-				log.Error(ctx, "gRPC request failed",
-					"method", info.FullMethod,
-					"duration_ms", duration.Milliseconds(),
-					"code", code.String(),
-					"error", st.Message(),
-					"client_ip", clientIP,
-				)
+				log.Error(ctx, "gRPC request failed", resultArgs...)
 			}
 		} else {
-			// Успешный запрос
-			log.Info(ctx, "gRPC request completed",
-				"method", info.FullMethod,
-				"duration_ms", duration.Milliseconds(),
-				"code", code.String(),
-				"client_ip", clientIP,
-			)
+			// Если debug режим включен через заголовок - логируем на INFO
+			if debugEnabled {
+				log.Info(ctx, "gRPC request completed (debug mode)", resultArgs...)
+			} else {
+				log.Debug(ctx, "gRPC request completed", resultArgs...)
+			}
 		}
 
 		return resp, err
 	}
+}
+
+func isDebugEnabled(ctx context.Context) bool {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return false
+	}
+
+	// Проверяем различные варианты debug заголовков
+	debugHeaders := []string{"x-debug", "x-debug-mode", "debug"}
+	for _, header := range debugHeaders {
+		if values := md.Get(header); len(values) > 0 {
+			// Проверяем значение: "true", "1", "yes"
+			val := strings.ToLower(values[0])
+			if val == "true" || val == "1" || val == "yes" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // NewServerLoggingStreamInterceptors создает логирующие интерсепторы для stream
@@ -103,17 +146,32 @@ func createStreamLoggingInterceptor(log *loggerlib.Logger) grpc.StreamServerInte
 		// Извлекаем метаданные
 		requestID := extractRequestID(ctx)
 		clientIP := extractClientIP(ctx)
+		debugEnabled := isDebugEnabled(ctx)
 
 		if requestID != "" {
 			ctx = loggerlib.WithRequestID(ctx, requestID)
 		}
 
-		log.Debug(ctx, "gRPC stream started",
-			"method", info.FullMethod,
-			"client_ip", clientIP,
-			"is_client_stream", info.IsClientStream,
-			"is_server_stream", info.IsServerStream,
-		)
+		if debugEnabled {
+			ctx = loggerlib.WithDebug(ctx, true)
+		}
+
+		// Логируем на INFO если debug режим, иначе на DEBUG
+		if debugEnabled {
+			log.Info(ctx, "gRPC stream started (debug mode)",
+				"method", info.FullMethod,
+				"client_ip", clientIP,
+				"is_client_stream", info.IsClientStream,
+				"is_server_stream", info.IsServerStream,
+			)
+		} else {
+			log.Debug(ctx, "gRPC stream started",
+				"method", info.FullMethod,
+				"client_ip", clientIP,
+				"is_client_stream", info.IsClientStream,
+				"is_server_stream", info.IsServerStream,
+			)
+		}
 
 		// Оборачиваем stream для передачи обновленного контекста
 		wrappedStream := &wrappedServerStream{
@@ -145,11 +203,19 @@ func createStreamLoggingInterceptor(log *loggerlib.Logger) grpc.StreamServerInte
 				)
 			}
 		} else {
-			log.Info(ctx, "gRPC stream completed",
-				"method", info.FullMethod,
-				"duration_ms", duration.Milliseconds(),
-				"code", code.String(),
-			)
+			if debugEnabled {
+				log.Info(ctx, "gRPC stream completed (debug mode)",
+					"method", info.FullMethod,
+					"duration_ms", duration.Milliseconds(),
+					"code", code.String(),
+				)
+			} else {
+				log.Info(ctx, "gRPC stream completed",
+					"method", info.FullMethod,
+					"duration_ms", duration.Milliseconds(),
+					"code", code.String(),
+				)
+			}
 		}
 
 		return err
