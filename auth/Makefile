@@ -14,6 +14,10 @@ PKG_PROTO_PATH := $(CURDIR)/pkg
 
 # Путь до завендореных protobuf файлов
 VENDOR_PROTO_PATH := $(CURDIR)/vendor.protobuf
+DB_URL = postgres://postgres:postgres_pass@localhost:5432/auth_db?sslmode=disable
+MIGRATION_DIR = migrations
+
+
 
 # устанавливаем необходимые плагины
 .bin-deps: export GOBIN := $(LOCAL_BIN)
@@ -50,6 +54,14 @@ proto-format:
 
 docker-up: .bin-deps vendor
 	docker compose up
+
+
+migrate-up:
+	GOOSE_DRIVER=postgres GOOSE_DBSTRING=$(DB_URL) goose -dir $(MIGRATION_DIR) up
+migrate-down:
+	GOOSE_DRIVER=postgres GOOSE_DBSTRING=$(DB_URL) goose -dir $(MIGRATION_DIR) down
+migrate-status:
+	GOOSE_DRIVER=postgres GOOSE_DBSTRING=$(DB_URL) goose -dir $(MIGRATION_DIR) status
 
 
 

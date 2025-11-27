@@ -8,14 +8,15 @@ import (
 
 	auth_grpc "github.com/BurMachine/Bigtech_microservices/auth/internal/app/delivery/grpc"
 	auth_repo "github.com/BurMachine/Bigtech_microservices/auth/internal/app/repositories/auth"
-	"github.com/BurMachine/Bigtech_microservices/auth/internal/app/repositories/user_repo"
 	"github.com/BurMachine/Bigtech_microservices/auth/internal/app/usecases/auth"
 	"github.com/BurMachine/Bigtech_microservices/auth/internal/config"
 	pb "github.com/BurMachine/Bigtech_microservices/auth/pkg/v1/auth"
 	loggerlib "github.com/Burmachine/MSA/lib/logger"
+	"github.com/Burmachine/MSA/lib/metrics"
 	platform_middleware "github.com/Burmachine/MSA/lib/middleware"
 	"github.com/Burmachine/MSA/lib/platform"
 	"github.com/Burmachine/MSA/lib/postgreslib"
+	"github.com/Burmachine/MSA/lib/postgreslib/transaction_manager"
 	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
 	rkgrpc "github.com/rookie-ninja/rk-grpc/v2/boot"
 	"google.golang.org/grpc"
@@ -28,7 +29,7 @@ func main() {
 		ctx,
 		platform.BaseConfig{
 			AppMode:     os.Getenv("APP_MODE"),
-			ServiceName: "auth-service",
+			ServiceName: "auth_service",
 			LogLevel:    "debug",
 		},
 		Construct,
@@ -49,6 +50,7 @@ func Construct(
 	secrets *config.Secrets,
 	platformCfg *platform_middleware.ClientGRPCConfig,
 	logger *loggerlib.Logger,
+	metrics *metrics.Metrics,
 	entryGrpc *rkgrpc.GrpcEntry,
 	entryHttp *rkgin.GinEntry,
 ) (*platform.RegisteredServices, []func() error, error) {
@@ -65,13 +67,13 @@ func Construct(
 		dbConn.Pool.Close()
 		return nil
 	})
+	txMngr := transaction_manager.New(dbConn)
 
 	// 2. Репозитории
-	authRepo := auth_repo.NewRepository(dbConn.Pool)
-	userRepo := user_repo.NewRepository(dbConn.Pool)
+	authRepo := auth_repo.NewRepository(txMngr)
 
 	// 3. Use cases
-	authUsecases := auth.NewAuthUsecases(userRepo, authRepo)
+	authUsecases := auth.NewAuthUsecases(authRepo, txMngr)
 
 	// 4. gRPC сервис
 	grpcService, err := auth_grpc.New(authUsecases)

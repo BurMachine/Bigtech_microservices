@@ -24,30 +24,40 @@ var File_v1_auth_auth_service_proto protoreflect.FileDescriptor
 
 const file_v1_auth_auth_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1av1/auth/auth_service.proto\x120github.com.BurMachine.Bigtech_microservices.auth\x1a\x16v1/auth/messages.proto2\xbd\x03\n" +
+	"\x1av1/auth/auth_service.proto\x120github.com.BurMachine.Bigtech_microservices.auth\x1a\x16v1/auth/messages.proto2\xd0\x05\n" +
 	"\vAuthService\x12\x91\x01\n" +
 	"\bRegister\x12A.github.com.BurMachine.Bigtech_microservices.auth.RegisterRequest\x1aB.github.com.BurMachine.Bigtech_microservices.auth.RegisterResponse\x12\x88\x01\n" +
 	"\x05Login\x12>.github.com.BurMachine.Bigtech_microservices.auth.LoginRequest\x1a?.github.com.BurMachine.Bigtech_microservices.auth.LoginResponse\x12\x8e\x01\n" +
-	"\aRefresh\x12@.github.com.BurMachine.Bigtech_microservices.auth.RefreshRequest\x1aA.github.com.BurMachine.Bigtech_microservices.auth.RefreshResponseB\xc0\x02\n" +
+	"\aRefresh\x12@.github.com.BurMachine.Bigtech_microservices.auth.RefreshRequest\x1aA.github.com.BurMachine.Bigtech_microservices.auth.RefreshResponse\x12\x82\x01\n" +
+	"\x06Logout\x12?.github.com.BurMachine.Bigtech_microservices.auth.LogoutRequest\x1a7.github.com.BurMachine.Bigtech_microservices.auth.Empty\x12\x8b\x01\n" +
+	"\x04JWKS\x12@.github.com.BurMachine.Bigtech_microservices.auth.GetJWKSRequest\x1aA.github.com.BurMachine.Bigtech_microservices.auth.GetJWKSResponseB\xc0\x02\n" +
 	"4com.github.com.BurMachine.Bigtech_microservices.authB\x10AuthServiceProtoP\x01Z\x14pkg/api/v1/auth;auth\xa2\x02\x05GCBBA\xaa\x02/Github.Com.BurMachine.BigtechMicroservices.Auth\xca\x02/Github\\Com\\BurMachine\\BigtechMicroservices\\Auth\xe2\x02;Github\\Com\\BurMachine\\BigtechMicroservices\\Auth\\GPBMetadata\xea\x023Github::Com::BurMachine::BigtechMicroservices::Authb\x06proto3"
 
 var file_v1_auth_auth_service_proto_goTypes = []any{
 	(*RegisterRequest)(nil),  // 0: github.com.BurMachine.Bigtech_microservices.auth.RegisterRequest
 	(*LoginRequest)(nil),     // 1: github.com.BurMachine.Bigtech_microservices.auth.LoginRequest
 	(*RefreshRequest)(nil),   // 2: github.com.BurMachine.Bigtech_microservices.auth.RefreshRequest
-	(*RegisterResponse)(nil), // 3: github.com.BurMachine.Bigtech_microservices.auth.RegisterResponse
-	(*LoginResponse)(nil),    // 4: github.com.BurMachine.Bigtech_microservices.auth.LoginResponse
-	(*RefreshResponse)(nil),  // 5: github.com.BurMachine.Bigtech_microservices.auth.RefreshResponse
+	(*LogoutRequest)(nil),    // 3: github.com.BurMachine.Bigtech_microservices.auth.LogoutRequest
+	(*GetJWKSRequest)(nil),   // 4: github.com.BurMachine.Bigtech_microservices.auth.GetJWKSRequest
+	(*RegisterResponse)(nil), // 5: github.com.BurMachine.Bigtech_microservices.auth.RegisterResponse
+	(*LoginResponse)(nil),    // 6: github.com.BurMachine.Bigtech_microservices.auth.LoginResponse
+	(*RefreshResponse)(nil),  // 7: github.com.BurMachine.Bigtech_microservices.auth.RefreshResponse
+	(*Empty)(nil),            // 8: github.com.BurMachine.Bigtech_microservices.auth.Empty
+	(*GetJWKSResponse)(nil),  // 9: github.com.BurMachine.Bigtech_microservices.auth.GetJWKSResponse
 }
 var file_v1_auth_auth_service_proto_depIdxs = []int32{
 	0, // 0: github.com.BurMachine.Bigtech_microservices.auth.AuthService.Register:input_type -> github.com.BurMachine.Bigtech_microservices.auth.RegisterRequest
 	1, // 1: github.com.BurMachine.Bigtech_microservices.auth.AuthService.Login:input_type -> github.com.BurMachine.Bigtech_microservices.auth.LoginRequest
 	2, // 2: github.com.BurMachine.Bigtech_microservices.auth.AuthService.Refresh:input_type -> github.com.BurMachine.Bigtech_microservices.auth.RefreshRequest
-	3, // 3: github.com.BurMachine.Bigtech_microservices.auth.AuthService.Register:output_type -> github.com.BurMachine.Bigtech_microservices.auth.RegisterResponse
-	4, // 4: github.com.BurMachine.Bigtech_microservices.auth.AuthService.Login:output_type -> github.com.BurMachine.Bigtech_microservices.auth.LoginResponse
-	5, // 5: github.com.BurMachine.Bigtech_microservices.auth.AuthService.Refresh:output_type -> github.com.BurMachine.Bigtech_microservices.auth.RefreshResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	3, // 3: github.com.BurMachine.Bigtech_microservices.auth.AuthService.Logout:input_type -> github.com.BurMachine.Bigtech_microservices.auth.LogoutRequest
+	4, // 4: github.com.BurMachine.Bigtech_microservices.auth.AuthService.JWKS:input_type -> github.com.BurMachine.Bigtech_microservices.auth.GetJWKSRequest
+	5, // 5: github.com.BurMachine.Bigtech_microservices.auth.AuthService.Register:output_type -> github.com.BurMachine.Bigtech_microservices.auth.RegisterResponse
+	6, // 6: github.com.BurMachine.Bigtech_microservices.auth.AuthService.Login:output_type -> github.com.BurMachine.Bigtech_microservices.auth.LoginResponse
+	7, // 7: github.com.BurMachine.Bigtech_microservices.auth.AuthService.Refresh:output_type -> github.com.BurMachine.Bigtech_microservices.auth.RefreshResponse
+	8, // 8: github.com.BurMachine.Bigtech_microservices.auth.AuthService.Logout:output_type -> github.com.BurMachine.Bigtech_microservices.auth.Empty
+	9, // 9: github.com.BurMachine.Bigtech_microservices.auth.AuthService.JWKS:output_type -> github.com.BurMachine.Bigtech_microservices.auth.GetJWKSResponse
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

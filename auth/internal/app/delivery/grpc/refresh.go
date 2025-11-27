@@ -9,10 +9,12 @@ import (
 )
 
 func (s *Service) Refresh(ctx context.Context, request *pb.RefreshRequest) (*pb.RefreshResponse, error) {
-	userToken, err := s.authUsecase.Refresh(ctx, request.RefreshToken)
+	refreshDto := dtoRefreshFromRefreshRequest(request)
+	userToken, err := s.authUsecase.Refresh(ctx, refreshDto.RefreshToken)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	response := refreshResponseFromModelUser(userToken)
-	return response, nil
+
+	refreshResponse := refreshResponseFromModelUserToken(userToken)
+	return refreshResponse, nil
 }

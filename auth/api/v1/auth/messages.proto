@@ -6,39 +6,59 @@ import "buf/validate/validate.proto";
 
 option go_package = "pkg/api/v1/auth;auth";
 
-
-// Register messages
-
 message RegisterRequest {
   string email = 1 [(buf.validate.field).string.email = true];
-  string password = 2 [(buf.validate.field).string.max_len = 64];
+  string password = 2 [
+    (buf.validate.field).string.min_len = 8,
+    (buf.validate.field).string.max_len = 72  // bcrypt/argon2 обычно до 72 байт
+  ];
+  string nickname = 3 [
+    (buf.validate.field).string = {
+      min_len: 3,
+      max_len: 32,
+      pattern: "^[a-zA-Z0-9_]+$"
+    }
+  ];
 }
 
 message RegisterResponse {
   string user_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
-// Login messages
-
 message LoginRequest {
   string email = 1 [(buf.validate.field).string.email = true];
-  string password = 2 [(buf.validate.field).string.max_len = 64];
+  string password = 2 [(buf.validate.field).string.min_len = 8];
+  string device_id = 3; // опционально
 }
 
 message LoginResponse {
   string access_token = 1;
   string refresh_token = 2;
-  string user_id = 3 [(buf.validate.field).string.uuid = true];
+  int64 expires_in = 3;        // секунды
+  string user_id = 4 [(buf.validate.field).string.uuid = true];
 }
 
-// Refresh
-
 message RefreshRequest {
-  string refresh_token = 1;
+  string refresh_token = 1 [(buf.validate.field).string.min_len = 32];
+  string device_id = 2;
 }
 
 message RefreshResponse {
   string access_token = 1;
   string refresh_token = 2;
-  string user_id = 3 [(buf.validate.field).string.uuid = true];
+  int64 expires_in = 3;
+  string user_id = 4;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+message Empty {}
+
+message GetJWKSRequest {}
+
+message GetJWKSResponse {
+  repeated string keys = 1; // или используй google.protobuf.Struct, или свой JWK message
+
 }
