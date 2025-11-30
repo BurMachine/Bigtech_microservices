@@ -10,29 +10,22 @@ import (
 	"github.com/Burmachine/MSA/lib/postgreslib"
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // ============================================
 // USER METHODS
 // ============================================
 
-// CreateUser создает нового пользователя и возвращает его данные
-func (r *RepositoryImpl) CreateUser(ctx context.Context, email, password string) (*models.UserRepo, error) {
-	const api = "auth_repo.Repository.CreateUser"
-
-	// Хеширование пароля
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, fmt.Errorf("%s: failed to hash password: %w", api, err)
-	}
+// CreateUserWithHash создает пользователя с уже захешированным паролем
+func (r *RepositoryImpl) CreateUserWithHash(ctx context.Context, email, passwordHash string) (*models.UserRepo, error) {
+	const api = "auth_repo.Repository.CreateUserWithHash"
 
 	userID := uuid.New().String()
 	now := time.Now()
 
 	qb := r.qb.Insert(tableUsers).
 		Columns(colUserID, colUserEmail, colUserPasswordHash, colUserCreatedAt).
-		Values(userID, email, string(passwordHash), now).
+		Values(userID, email, passwordHash, now).
 		Suffix("RETURNING id, email, created_at, is_active")
 
 	conn := r.db.GetQueryEngine(ctx)

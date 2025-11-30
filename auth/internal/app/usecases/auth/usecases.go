@@ -13,9 +13,9 @@ import (
 //go:generate mockgen -source=usecases.go -destination=mocks/mock_repositories.go -package=mocks
 type (
 	AuthRepository interface {
-		CreateUser(ctx context.Context, email, password string) (*models.UserRepo, error) // теперь возвращает *User
-		GetUserByEmail(ctx context.Context, email string) (*models.UserRepo, error)
+		CreateUserWithHash(ctx context.Context, email, passwordHash string) (*models.UserRepo, error) // изменён		GetUserByEmail(ctx context.Context, email string) (*models.UserRepo, error)
 		GetUserByID(ctx context.Context, userID string) (*models.UserRepo, error)
+		GetUserByEmail(ctx context.Context, email string) (*models.UserRepo, error)
 		CheckUserExistsByEmail(ctx context.Context, email string) (bool, error)
 		DeleteUser(ctx context.Context, userID string) error
 
@@ -69,11 +69,19 @@ var (
 type AuthService struct {
 	authRepo AuthRepository
 	tm       TransactionManager
+	jwtCfg   JWTConfig
+}
+type JWTConfig struct {
+	Issuer    string   // "https://auth.example.com" или "auth-service"
+	Audience  []string // ["chat-service", "user-service", "api-gateway"]
+	ExpiresIn int64    // 900 секунд (15 минут)
 }
 
-func NewAuthUsecases(authRepo AuthRepository, tm TransactionManager) AuthUsecases {
+func NewAuthUsecases(authRepo AuthRepository, tm TransactionManager, jwtCfg JWTConfig) AuthUsecases {
 	return &AuthService{
 		authRepo: authRepo,
 		tm:       tm,
+		jwtCfg:   jwtCfg,
 	}
+
 }

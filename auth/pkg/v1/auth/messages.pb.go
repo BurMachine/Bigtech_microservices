@@ -454,6 +454,90 @@ func (*Empty) Descriptor() ([]byte, []int) {
 	return file_v1_auth_messages_proto_rawDescGZIP(), []int{7}
 }
 
+type JWK struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kid           string                 `protobuf:"bytes,1,opt,name=kid,proto3" json:"kid,omitempty"` // Key ID
+	Kty           string                 `protobuf:"bytes,2,opt,name=kty,proto3" json:"kty,omitempty"` // Key Type (RSA)
+	Use           string                 `protobuf:"bytes,3,opt,name=use,proto3" json:"use,omitempty"` // Public Key Use (sig)
+	Alg           string                 `protobuf:"bytes,4,opt,name=alg,proto3" json:"alg,omitempty"` // Algorithm (RS256)
+	N             string                 `protobuf:"bytes,5,opt,name=n,proto3" json:"n,omitempty"`     // Modulus (base64url)
+	E             string                 `protobuf:"bytes,6,opt,name=e,proto3" json:"e,omitempty"`     // Exponent (base64url)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *JWK) Reset() {
+	*x = JWK{}
+	mi := &file_v1_auth_messages_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JWK) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JWK) ProtoMessage() {}
+
+func (x *JWK) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_messages_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JWK.ProtoReflect.Descriptor instead.
+func (*JWK) Descriptor() ([]byte, []int) {
+	return file_v1_auth_messages_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *JWK) GetKid() string {
+	if x != nil {
+		return x.Kid
+	}
+	return ""
+}
+
+func (x *JWK) GetKty() string {
+	if x != nil {
+		return x.Kty
+	}
+	return ""
+}
+
+func (x *JWK) GetUse() string {
+	if x != nil {
+		return x.Use
+	}
+	return ""
+}
+
+func (x *JWK) GetAlg() string {
+	if x != nil {
+		return x.Alg
+	}
+	return ""
+}
+
+func (x *JWK) GetN() string {
+	if x != nil {
+		return x.N
+	}
+	return ""
+}
+
+func (x *JWK) GetE() string {
+	if x != nil {
+		return x.E
+	}
+	return ""
+}
+
 type GetJWKSRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -462,7 +546,7 @@ type GetJWKSRequest struct {
 
 func (x *GetJWKSRequest) Reset() {
 	*x = GetJWKSRequest{}
-	mi := &file_v1_auth_messages_proto_msgTypes[8]
+	mi := &file_v1_auth_messages_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -474,7 +558,7 @@ func (x *GetJWKSRequest) String() string {
 func (*GetJWKSRequest) ProtoMessage() {}
 
 func (x *GetJWKSRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_messages_proto_msgTypes[8]
+	mi := &file_v1_auth_messages_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -487,19 +571,19 @@ func (x *GetJWKSRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJWKSRequest.ProtoReflect.Descriptor instead.
 func (*GetJWKSRequest) Descriptor() ([]byte, []int) {
-	return file_v1_auth_messages_proto_rawDescGZIP(), []int{8}
+	return file_v1_auth_messages_proto_rawDescGZIP(), []int{9}
 }
 
 type GetJWKSResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Keys          []string               `protobuf:"bytes,1,rep,name=keys,proto3" json:"keys,omitempty"` // или используй google.protobuf.Struct, или свой JWK message
+	Keys          []*JWK                 `protobuf:"bytes,1,rep,name=keys,proto3" json:"keys,omitempty"` // ✅ Массив JWK объектов
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetJWKSResponse) Reset() {
 	*x = GetJWKSResponse{}
-	mi := &file_v1_auth_messages_proto_msgTypes[9]
+	mi := &file_v1_auth_messages_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -511,7 +595,7 @@ func (x *GetJWKSResponse) String() string {
 func (*GetJWKSResponse) ProtoMessage() {}
 
 func (x *GetJWKSResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_messages_proto_msgTypes[9]
+	mi := &file_v1_auth_messages_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -524,10 +608,10 @@ func (x *GetJWKSResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJWKSResponse.ProtoReflect.Descriptor instead.
 func (*GetJWKSResponse) Descriptor() ([]byte, []int) {
-	return file_v1_auth_messages_proto_rawDescGZIP(), []int{9}
+	return file_v1_auth_messages_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *GetJWKSResponse) GetKeys() []string {
+func (x *GetJWKSResponse) GetKeys() []*JWK {
 	if x != nil {
 		return x.Keys
 	}
@@ -566,10 +650,17 @@ const file_v1_auth_messages_proto_rawDesc = "" +
 	"\auser_id\x18\x04 \x01(\tR\x06userId\"4\n" +
 	"\rLogoutRequest\x12#\n" +
 	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"\a\n" +
-	"\x05Empty\"\x10\n" +
-	"\x0eGetJWKSRequest\"%\n" +
-	"\x0fGetJWKSResponse\x12\x12\n" +
-	"\x04keys\x18\x01 \x03(\tR\x04keysB\xbd\x02\n" +
+	"\x05Empty\"i\n" +
+	"\x03JWK\x12\x10\n" +
+	"\x03kid\x18\x01 \x01(\tR\x03kid\x12\x10\n" +
+	"\x03kty\x18\x02 \x01(\tR\x03kty\x12\x10\n" +
+	"\x03use\x18\x03 \x01(\tR\x03use\x12\x10\n" +
+	"\x03alg\x18\x04 \x01(\tR\x03alg\x12\f\n" +
+	"\x01n\x18\x05 \x01(\tR\x01n\x12\f\n" +
+	"\x01e\x18\x06 \x01(\tR\x01e\"\x10\n" +
+	"\x0eGetJWKSRequest\"\\\n" +
+	"\x0fGetJWKSResponse\x12I\n" +
+	"\x04keys\x18\x01 \x03(\v25.github.com.BurMachine.Bigtech_microservices.auth.JWKR\x04keysB\xbd\x02\n" +
 	"4com.github.com.BurMachine.Bigtech_microservices.authB\rMessagesProtoP\x01Z\x14pkg/api/v1/auth;auth\xa2\x02\x05GCBBA\xaa\x02/Github.Com.BurMachine.BigtechMicroservices.Auth\xca\x02/Github\\Com\\BurMachine\\BigtechMicroservices\\Auth\xe2\x02;Github\\Com\\BurMachine\\BigtechMicroservices\\Auth\\GPBMetadata\xea\x023Github::Com::BurMachine::BigtechMicroservices::Authb\x06proto3"
 
 var (
@@ -584,7 +675,7 @@ func file_v1_auth_messages_proto_rawDescGZIP() []byte {
 	return file_v1_auth_messages_proto_rawDescData
 }
 
-var file_v1_auth_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_v1_auth_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_v1_auth_messages_proto_goTypes = []any{
 	(*RegisterRequest)(nil),  // 0: github.com.BurMachine.Bigtech_microservices.auth.RegisterRequest
 	(*RegisterResponse)(nil), // 1: github.com.BurMachine.Bigtech_microservices.auth.RegisterResponse
@@ -594,15 +685,17 @@ var file_v1_auth_messages_proto_goTypes = []any{
 	(*RefreshResponse)(nil),  // 5: github.com.BurMachine.Bigtech_microservices.auth.RefreshResponse
 	(*LogoutRequest)(nil),    // 6: github.com.BurMachine.Bigtech_microservices.auth.LogoutRequest
 	(*Empty)(nil),            // 7: github.com.BurMachine.Bigtech_microservices.auth.Empty
-	(*GetJWKSRequest)(nil),   // 8: github.com.BurMachine.Bigtech_microservices.auth.GetJWKSRequest
-	(*GetJWKSResponse)(nil),  // 9: github.com.BurMachine.Bigtech_microservices.auth.GetJWKSResponse
+	(*JWK)(nil),              // 8: github.com.BurMachine.Bigtech_microservices.auth.JWK
+	(*GetJWKSRequest)(nil),   // 9: github.com.BurMachine.Bigtech_microservices.auth.GetJWKSRequest
+	(*GetJWKSResponse)(nil),  // 10: github.com.BurMachine.Bigtech_microservices.auth.GetJWKSResponse
 }
 var file_v1_auth_messages_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	8, // 0: github.com.BurMachine.Bigtech_microservices.auth.GetJWKSResponse.keys:type_name -> github.com.BurMachine.Bigtech_microservices.auth.JWK
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_v1_auth_messages_proto_init() }
@@ -616,7 +709,7 @@ func file_v1_auth_messages_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_auth_messages_proto_rawDesc), len(file_v1_auth_messages_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

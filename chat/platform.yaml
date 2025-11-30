@@ -1,3 +1,5 @@
+# chat-service/config/platform.yaml
+
 client:
   grpc:
     timeout: 2s
@@ -14,35 +16,45 @@ client:
       halfOpenMaxCalls: 10
       openStateFor: 60s
     metrics: true
+
 server:
   timeout:
     enabled: true
-    ignore: [""]
+    ignore:
+      - "/health.HealthService/Check"
+      - "/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo"
     timeoutMs: 5000
     paths:
-      - path: "/github.com.BurMachine.Bigtech_microservices.auth.AuthService/Register"
+      - path: "/github.com.BurMachine.Bigtech_microservices.chat.ChatService/SendMessage"
+        timeoutMs: 3000
+      - path: "/github.com.BurMachine.Bigtech_microservices.chat.ChatService/GetMessages"
+        timeoutMs: 2000
+      - path: "/github.com.BurMachine.Bigtech_microservices.chat.ChatService/CreateChat"
         timeoutMs: 1000
   rateLimit:
     enabled: true
-    ignore: [""]
+    ignore:
+      - "/health.HealthService/Check"
+      - "/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo"
     reqPerSec: 1000
     paths:
-      - path: "/github.com.BurMachine.Bigtech_microservices.auth.AuthService/Register" # http
-        reqPerSec: 12
+      - path: "/github.com.BurMachine.Bigtech_microservices.chat.ChatService/SendMessage"
+        reqPerSec: 100  # Ограничение на отправку сообщений
+      - path: "/github.com.BurMachine.Bigtech_microservices.chat.ChatService/GetMessages"
+        reqPerSec: 200  # Чтение - можно чаще
 
 tracing:
   enabled: true
-  agentHost: localhost:6831    # UDP для отправки spans
-  healthHost: localhost:14271  # TCP для health check (опционально)
+  agentHost: localhost:6831
+  healthHost: localhost:14271
   samplerType: const
   samplerParam: 1.0
   logSpans: false
 
-
 admin:
   enabled: true
   host: "0.0.0.0"
-  port: 9992
+  port: 9993  # Другой порт для chat-service
   metrics:
     enabled: true
     path: "/metrics"
@@ -50,6 +62,22 @@ admin:
     enabled: true
     path: "/debug/pprof"
 
+# ✅ Auth блок для Chat Service
+auth:
+  enabled: true
+  issuer: "auth-service"
+  audience:
+    - "chat-service"
+  jwks:
+    url: "http://auth-service:8081/v1/.well-known/jwks.json"
+    cacheTtl: "5m"
+    refreshTimeout: "2s"
+  required: true  # Все методы требуют токен
+  public:
+    methods:
+      # Только health check публичный
+      - "/health.HealthService/Check"
+      - "/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo"
 
 shutdown:
   gracePeriod: 30s

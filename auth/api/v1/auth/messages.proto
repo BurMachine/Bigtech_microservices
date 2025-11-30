@@ -56,9 +56,17 @@ message LogoutRequest {
 
 message Empty {}
 
+message JWK {
+    string kid = 1; // Key ID
+    string kty = 2; // Key Type (RSA)
+    string use = 3; // Public Key Use (sig)
+    string alg = 4; // Algorithm (RS256)
+    string n = 5;   // Modulus (base64url)
+    string e = 6;   // Exponent (base64url)
+}
+
 message GetJWKSRequest {}
 
 message GetJWKSResponse {
-  repeated string keys = 1; // или используй google.protobuf.Struct, или свой JWK message
-
+  repeated JWK keys = 1; // ✅ Массив JWK объектов
 }

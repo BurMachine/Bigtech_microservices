@@ -10,7 +10,7 @@ import (
 
 func (s *Service) Refresh(ctx context.Context, request *pb.RefreshRequest) (*pb.RefreshResponse, error) {
 	refreshDto := dtoRefreshFromRefreshRequest(request)
-	userToken, err := s.authUsecase.Refresh(ctx, refreshDto.RefreshToken)
+	userToken, err := s.authUsecase.Refresh(ctx, refreshDto)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}

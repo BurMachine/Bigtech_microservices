@@ -7,6 +7,7 @@ import (
 	"os"
 
 	auth_grpc "github.com/BurMachine/Bigtech_microservices/auth/internal/app/delivery/grpc"
+	"github.com/BurMachine/Bigtech_microservices/auth/internal/app/keys/keygen"
 	auth_repo "github.com/BurMachine/Bigtech_microservices/auth/internal/app/repositories/auth"
 	"github.com/BurMachine/Bigtech_microservices/auth/internal/app/usecases/auth"
 	"github.com/BurMachine/Bigtech_microservices/auth/internal/config"
@@ -67,13 +68,25 @@ func Construct(
 		dbConn.Pool.Close()
 		return nil
 	})
+
 	txMngr := transaction_manager.New(dbConn)
 
 	// 2. Репозитории
 	authRepo := auth_repo.NewRepository(txMngr)
 
+	logger.Info(ctx, "initializing RSA keys")
+	keyInit := keygen.NewKeyInitializer(authRepo, logger)
+	if err := keyInit.InitializeKeys(ctx); err != nil {
+		logger.Fatal(ctx, "failed to initialize RSA keys", "error", err)
+		return nil, nil, fmt.Errorf("failed to initialize RSA keys: %w", err)
+	}
+
 	// 3. Use cases
-	authUsecases := auth.NewAuthUsecases(authRepo, txMngr)
+	authUsecases := auth.NewAuthUsecases(authRepo, txMngr, auth.JWTConfig{
+		Issuer:    "auth_service",
+		Audience:  []string{"auth_service", "chat_service", "gateway_service", "social_service", "user_service"},
+		ExpiresIn: 900,
+	})
 
 	// 4. gRPC сервис
 	grpcService, err := auth_grpc.New(authUsecases)

@@ -1,8 +1,6 @@
 package auth_grpc
 
 import (
-	"encoding/json"
-
 	"github.com/BurMachine/Bigtech_microservices/auth/internal/app/models"
 	"github.com/BurMachine/Bigtech_microservices/auth/internal/app/usecases/auth/dto"
 	pb "github.com/BurMachine/Bigtech_microservices/auth/pkg/v1/auth"
@@ -75,16 +73,17 @@ func refreshResponseFromModelUserToken(token *models.UserToken) *pb.RefreshRespo
 }
 
 func jwksResponseFromModelJWKS(jwks *models.JWKSResponse) *pb.GetJWKSResponse {
-	keys := make([]string, 0, len(jwks.Keys))
+	keys := make([]*pb.JWK, 0, len(jwks.Keys))
 
 	for _, jwk := range jwks.Keys {
-		// Сериализуем каждый JWK в JSON string
-		jwkJSON, err := json.Marshal(jwk)
-		if err != nil {
-			// Пропускаем невалидные ключи
-			continue
-		}
-		keys = append(keys, string(jwkJSON))
+		keys = append(keys, &pb.JWK{
+			Kid: jwk.KID,
+			Kty: jwk.Kty,
+			Use: jwk.Use,
+			Alg: jwk.Alg,
+			N:   jwk.N,
+			E:   jwk.E,
+		})
 	}
 
 	return &pb.GetJWKSResponse{

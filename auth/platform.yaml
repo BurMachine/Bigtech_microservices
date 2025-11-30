@@ -19,10 +19,10 @@ server:
   timeout:
     enabled: true
     ignore: [""]
-    timeoutMs: 5000
+    timeoutMs: 500000000000
     paths:
       - path: "/github.com.BurMachine.Bigtech_microservices.auth.AuthService/Register"
-        timeoutMs: 1000
+        timeoutMs: 100000000000000
   rateLimit:
     enabled: true
     ignore: [""]

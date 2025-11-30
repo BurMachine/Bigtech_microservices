@@ -153,6 +153,28 @@ func Init[Config any, Secrets any](
 
 	// GRPC Middleware
 	if grpcEntry != nil {
+
+		if platformCfg.IsAuthEnabled() {
+			logger.Info(ctx, "initializing auth interceptor",
+				"issuer", platformCfg.Auth.Issuer,
+				"jwks_url", platformCfg.Auth.JWKS.URL,
+				"cache_ttl", platformCfg.Auth.JWKS.CacheTTL,
+			)
+
+			authInterceptor, err := platform_server.NewAuthInterceptor(platformCfg.Auth, logger)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create auth interceptor: %w", err)
+			}
+
+			grpcEntry.AddUnaryInterceptors(authInterceptor.UnaryInterceptor)
+
+			logger.Info(ctx, "auth interceptor enabled",
+				"public_methods", platformCfg.Auth.Public.Methods,
+				"required", platformCfg.Auth.Required,
+			)
+		} else {
+			logger.Info(ctx, "auth interceptor disabled")
+		}
 		grpcEntry.AddUnaryInterceptors(platform_server.NewServerResiliencyInterceptors(logger, platformCfg.Server)...)
 		grpcEntry.AddStreamInterceptors(platform_server.NewServerResiliencyStreamInterceptors(logger)...)
 
@@ -209,7 +231,9 @@ func (app *App) Run(ctx context.Context) error {
 	defer shutdownCancel()
 
 	go func() {
-		app.boot.Bootstrap(shutdownCtx)
+		//app.boot.Bootstrap(shutdownCtx)
+		app.boot.Bootstrap(context.Background()) // TODO - только для локальногго дебага
+		println(shutdownCtx)
 	}()
 
 	app.logger.Info(ctx, "service started", "gracePeriod", app.gracePeriod)

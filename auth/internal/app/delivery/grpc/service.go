@@ -25,6 +25,8 @@ func New(usecases auth.AuthUsecases) (*Service, error) {
 			&pb.RegisterRequest{},
 			&pb.LoginRequest{},
 			&pb.RefreshRequest{},
+			&pb.LogoutRequest{},
+			&pb.GetJWKSRequest{},
 		),
 	)
 	if err != nil {
