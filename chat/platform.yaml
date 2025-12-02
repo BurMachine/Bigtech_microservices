@@ -62,14 +62,15 @@ admin:
     enabled: true
     path: "/debug/pprof"
 
-# ✅ Auth блок для Chat Service
+# Auth блок для Chat Service
 auth:
   enabled: true
-  issuer: "auth-service"
+  issuer: "auth_service"
   audience:
-    - "chat-service"
+    - "chat_service"
   jwks:
-    url: "http://auth-service:8081/v1/.well-known/jwks.json"
+#    url: "http://auth-service:8071/v1/jwks"
+    url: "http://localhost:8071/v1/jwks"
     cacheTtl: "5m"
     refreshTimeout: "2s"
   required: true  # Все методы требуют токен

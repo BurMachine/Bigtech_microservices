@@ -190,7 +190,7 @@ func Init[Config any, Secrets any](
 
 	// HTTP Middleware
 	if httpEntry != nil {
-		httpEntry.AddMiddleware(platform_server.NewHTTPMiddlewares(logger, appMetrics, BaseCfg.ServiceName, platformCfg.Server)...)
+		httpEntry.AddMiddleware(platform_server.NewHTTPMiddlewares(logger, appMetrics, BaseCfg.ServiceName, platformCfg.Server, platformCfg.Auth)...)
 	}
 
 	// Вызываем конструктор

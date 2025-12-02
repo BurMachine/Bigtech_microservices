@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	auth_grpc "github.com/BurMachine/Bigtech_microservices/auth/internal/app/delivery/grpc"
@@ -18,6 +19,7 @@ import (
 	"github.com/Burmachine/MSA/lib/platform"
 	"github.com/Burmachine/MSA/lib/postgreslib"
 	"github.com/Burmachine/MSA/lib/postgreslib/transaction_manager"
+	"github.com/gin-gonic/gin"
 	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
 	rkgrpc "github.com/rookie-ninja/rk-grpc/v2/boot"
 	"google.golang.org/grpc"
@@ -97,6 +99,18 @@ func Construct(
 	entryGrpc.AddRegFuncGrpc(func(server *grpc.Server) {
 		pb.RegisterAuthServiceServer(server, grpcService)
 	})
+
+	if entryHttp != nil {
+		entryHttp.Router.GET("/v1/jwks", func(ctx *gin.Context) {
+			resp, err := authUsecases.JWKS(ctx)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{
+					"error": err.Error(),
+				})
+			}
+			ctx.JSON(http.StatusOK, resp)
+		})
+	}
 
 	return &platform.RegisteredServices{
 		GRPC: true,

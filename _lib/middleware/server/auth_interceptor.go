@@ -26,7 +26,7 @@ import (
 // ============================================
 
 const (
-	authorizationKey = "authorization"
+	authorizationKey = "Authorization"
 	userIDKey        = "user_id"
 	authContextKey   = "auth_context"
 )

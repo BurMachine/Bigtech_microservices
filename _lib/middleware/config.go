@@ -3,6 +3,7 @@ package platform_middleware
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -44,7 +45,8 @@ type AuthJWKSConfig struct {
 
 // AuthPublicConfig конфигурация публичных методов (без токена)
 type AuthPublicConfig struct {
-	Methods []string `yaml:"methods"` // Список публичных gRPC методов
+	Methods []string `yaml:"methods"` // gRPC методы
+	Paths   []string `yaml:"paths"`   // HTTP пути
 }
 
 type ClientGRPCConfig struct {
@@ -275,6 +277,15 @@ func (c *AuthConfig) GetRefreshTimeout() time.Duration {
 func (c *AuthConfig) IsPublicMethod(fullMethod string) bool {
 	for _, method := range c.Public.Methods {
 		if method == fullMethod {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *AuthConfig) IsPublicPath(path string) bool {
+	for _, publicPath := range c.Public.Paths {
+		if path == publicPath || strings.HasPrefix(path, publicPath) {
 			return true
 		}
 	}

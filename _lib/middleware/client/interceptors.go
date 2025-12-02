@@ -26,6 +26,10 @@ func NewClientConn(addr string, targetService string, m *metrics.Metrics, cfg *p
 	var unaryClientInterceptors []grpc.UnaryClientInterceptor
 	var streamClientInterceptors []grpc.StreamClientInterceptor
 
+	// 0. Auth
+	unaryClientInterceptors = append(unaryClientInterceptors, NewClientAuthInterceptor())
+	streamClientInterceptors = append(streamClientInterceptors, NewClientAuthStreamInterceptor())
+
 	// 1. Tracing interceptor (первым, чтобы создать span)
 	unaryClientInterceptors = append(unaryClientInterceptors, NewClientTracingInterceptor())
 
