@@ -41,5 +41,23 @@ admin:
     enabled: true
     path: "/debug/pprof"
 
+
+
+auth:
+  enabled: true
+  issuer: "auth_service"
+  audience:
+    - "user_service"
+  jwks:
+    #    url: "http://auth-service:8071/v1/jwks"
+    url: "http://localhost:8071/v1/jwks"
+    cacheTtl: "5m"
+    refreshTimeout: "2s"
+  required: true
+  public:
+    methods:
+      - "/health.HealthService/Check"
+      - "/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo"
+
 shutdown:
   gracePeriod: 30s
